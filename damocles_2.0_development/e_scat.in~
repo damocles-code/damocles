@@ -1,0 +1,52 @@
+========================GENERAL OPTIONS==================================================================================
+true		!  using observed data? 
+false           !  doublet?
+true		!  include velocity scattering?
+false		!  use line of sight
+false           !  include e- scattering?
+'e_scat.in'	!  e- scattering file
+========================GEOMETRY OPTIONS=================================================================================
+true		!  decouple dust and gas? If decoupled, gas distribution will follow specified dust distribution
+shell		!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
+'dust_geom.in'  !  dust geometry file (required)
+arbitrary	!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
+'gas_geom.in'	!  gas geometry file (required)
+========================LINE==============================================================================================
+656.2		!  Wavelength (nm) of line or first doublet component
+636.4		!  Wavelength (nm) of second doublet component (if applicable, 0.0 if n/a)
+4.12e2		!  total observed luminosity (e40 ergs-1)
+0.2		!  total Halpha luminosity in e40 ergs-1 (for electron densities)
+3.1		!  Flux ratio of line 1 to line 2 (0 if n/a)
+========================OPTIONS===========================================================================================
+10000		!  electron scattering temperature (set to 0 if no es)
+0.0		!  mass fraction in clumps (set to 0 for no clumping)
+0.5		!  filling factor (volume in clumps)
+0		!  all emission from clumps????
+2.0		!  clump number density distribution
+========================OBSERVED PROPERTIES===============================================================================
+714		!  day number (to calculate Rout)  - THIS CURRENTLY READ IN FROM LINE.IN.  CAN IGNORE.
+1000		!  NOT USED!!!  CAN IGNORE.
+========================SN DUST EJECTA PROFILE============================================================================
+5500		!  max dust velocity in km/s
+0.25		!  Rin/Rout ratio
+0.0		!  Total dust mass in Msun
+1.0		!  value of l where velocity profile is v~r^l
+2.0		!  value of  where density profile is rho~r^-q
+2.0		!  value of b where emissivity~r^-qb
+========================SN GAS SHELL/REVERSE SHOCK========================================================================
+5500.		!  max gas velocity in km/s
+0.75		!  Rin/Rout ratio for gas shell
+1.0		!  gas velocity profile
+2.0		!  gas density profile
+2.0		!  gas emissivity profile
+=========================GRID==============================================================================================
+50			!  number of cells in each direction
+=======================PHOTON PACKETS====================================================================================
+10000			!  number of photons
+10000		   !  number of frequency bins for output energy distribution
+100		   !  number of shells
+=========================DUST SPECIES DATA=================================================================================
+'species_file.in'	!  filename for dust data file
+
+INPUT FILE 
+
