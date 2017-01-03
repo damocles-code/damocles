@@ -1,7 +1,7 @@
 FC=gfortran
 LD=gfortran
-FFLAGS += -cpp -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"${PREFIX}\"
-PREFIX=Users/antoniabevan/Documents/Work/DAMOCLES/damocles_2.0_dev
+FFLAGS += -cpp --enable-checking -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"${PREFIX}\"
+PREFIX=/Users/antoniabevan/Documents/Work/DAMOCLES/damocles_2.0_dev
 
 ifeq ($(CO),debug)
   FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal
@@ -18,8 +18,10 @@ new:    clean all
 source/%.o: source/%.f90
 	$(FC) $(FFLAGS) $^ -c -o $@
 
-damocles: source/input.o source/electron_scattering.o source/random_routines.o source/vector_functions.o source/grain_sizes.o source/initialise.o source/init_packet.o source/BHmie.o source/init_random_seed.o \
-source/propagate.o source/construct_grid.o source/model_comparison.o source/driver.o source/damocles_wrap.o source/damocles.o
+damocles: source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o \
+  source/class_grid.o source/input.o source/random_routines.o source/electron_scattering.o source/vector_functions.o \
+source/initialise.o source/class_packet.o source/init_packet.o source/BHmie.o source/init_random_seed.o source/propagate.o \
+source/construct_grid.o source/model_comparison.o source/driver.o source/damocles.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
 
 clean:

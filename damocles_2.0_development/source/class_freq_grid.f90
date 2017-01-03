@@ -3,7 +3,7 @@ MODULE class_freq_grid
     USE class_line
     USE class_geometry
     USE class_dust
-    USE class_grid
+
 
 
     IMPLICIT NONE

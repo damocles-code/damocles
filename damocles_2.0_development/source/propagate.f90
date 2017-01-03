@@ -1,5 +1,6 @@
-RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,w,scatno)
+RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,lgabs,lgactive,w,scatno)
 
+    USE globals
     USE class_dust
     USE class_grid
     USE input
@@ -8,12 +9,13 @@ RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,
     USE init_packet
     USE random_routines
     USE electron_scattering
+    USE class_packet
 
     IMPLICIT NONE
 
 
     INTEGER,INTENT(OUT)     ::  lgabs, lgactive
-    INTEGER,INTENT(INOUT)   ::  iG,iG_axis(3)
+    INTEGER,INTENT(INOUT)   ::  iG_axis(3)
 
     REAL,INTENT(INOUT)      ::  nu_p
     REAL,INTENT(INOUT)      ::  dir_cart(3),pos_cart(3),w
@@ -21,7 +23,7 @@ RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,
     REAL    ::  tau,kp,kappa_i,kappa_sca_i
     REAL    ::  kappa,kappa_sca,albdo
     REAL    ::  ran,random(2)
-    REAL    ::  r
+
     REAL    ::  sface(3),s,s_min
     REAL    ::  v,vel_vect(3)
     REAL    ::  dir_sph(2)
@@ -31,7 +33,7 @@ RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,
 
     REAL, PARAMETER :: sigma_T=6.652E-25 !(cm2)
 
-    INTEGER ::  i_dir,iSG,ispec
+    INTEGER ::  i_dir,ispec
     INTEGER ::  wavid(1),wavid2
     INTEGER ::  iSGP(3)
     INTEGER ::  f,imin(1)
@@ -46,7 +48,7 @@ RECURSIVE SUBROUTINE propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,
     !calculate overall id of cell using x,y and z ids
     !note that in list of all cells, cells listed changing first z, then y, then x e.g.
     ! 1 1 1, 1 1 2, 1 1 3, 1 2 1, 1 2 2, 1 2 3, 2 1 1, 2 1 2... etc.
-    iG=(mothergrid%ncells(2)*mothergrid%ncells(3)*(iG_axis(1)-1)+mothergrid%ncells(3)*(iG_axis(2)-1)+iG_axis(3))
+    packet%iG=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(iG_axis(1)-1)+mothergrid%n_cells(3)*(iG_axis(2)-1)+iG_axis(3))
     
     !initialise absorption logical to 0.  This changed to 1 is absorbed.
     !Note absorption(lgabs - absorbed) different to inactive(lginactive-never emitted).
@@ -106,13 +108,13 @@ albdo=kappa_sca/kappa
 !            s=(mothergrid%cell_width(1))*(3**0.5)
 !        END IF
 !    ELSE
-        kp=kappa*grid_cell(iG)%nrho     !=k*rho=n*Cext, units of cm^-1
+        kp=kappa*grid_cell(packet%iG)%nrho     !=k*rho=n*Cext, units of cm^-1
         
 
-        IF (grid_cell(iG)%nrho>0) THEN
+        IF (grid_cell(packet%iG)%nrho>0) THEN
            
             IF (lg_ES) THEN
-                s=tau/(kp+sigma_T*grid_cell(iG)%N_e)
+                s=tau/(kp+sigma_T*grid_cell(packet%iG)%N_e)
             !    PRINT*,s
             ELSE
                 s=tau/kp                !distance therefore in units of cm
@@ -121,8 +123,8 @@ albdo=kappa_sca/kappa
 
            IF (lg_ES) THEN
               
-                s=tau/(sigma_T*grid_cell(iG)%N_e)
-                !PRINT*,tau,sigma_T,mgrid(iG)%N_e,iG
+                s=tau/(sigma_T*grid_cell(packet%iG)%N_e)
+                !PRINT*,tau,sigma_T,mgrid(packet%iG)%N_e,packet%iG
             ELSE
               
                 s=mothergrid%cell_width(1)*(3**0.5)
@@ -134,10 +136,10 @@ albdo=kappa_sca/kappa
     dir_cart=normalise(dir_cart)
 
     !calculate distance to nearest face (and identify whether in subgrid cell or mothergrid cell)
-!    IF (mgrid(iG)%cellStatus ==1) THEN
+!    IF (mgrid(packet%iG)%cellStatus ==1) THEN
 !
 !        DO i_dir=1,3
-!            IF (pos_cart(i_dir) > mgrid(iG)%subaxes(i_dir,2)) THEN
+!            IF (pos_cart(i_dir) > mgrid(packet%iG)%subaxes(i_dir,2)) THEN
 !                iSGP(i_dir)=2
 !            ELSE
 !                iSGP(i_dir)=1
@@ -146,17 +148,17 @@ albdo=kappa_sca/kappa
 !        iSG=(iSGP(1)-1)*4+(iSGP(2)-1)*2+isGP(3)
 !        DO i_dir=1,3
 !            IF (dir_cart(i_dir)<0) THEN
-!                sface(i_dir)=ABS((mgrid(iG)%subgrid(iSG)%axis(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
+!                sface(i_dir)=ABS((mgrid(packet%iG)%subgrid(iSG)%axis(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
 !            ELSE
-!                sface(i_dir)=ABS((mgrid(iG)%subgrid(iSG)%axis(i_dir)+mothergrid%cell_width(i_dir)/2-pos_cart(i_dir))/dir_cart(i_dir))
+!                sface(i_dir)=ABS((mgrid(packet%iG)%subgrid(iSG)%axis(i_dir)+mothergrid%cell_width(i_dir)/2-pos_cart(i_dir))/dir_cart(i_dir))
 !            END IF
 !        END DO
 !    ELSE
         DO i_dir=1,3
             IF (dir_cart(i_dir)<0) THEN
-                sface(i_dir)=ABS((grid_cell(iG)%axis(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
+                sface(i_dir)=ABS((grid_cell(packet%iG)%axis(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
             ELSE
-                sface(i_dir)=ABS((grid_cell(iG)%axis(i_dir)+mothergrid%cell_width(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
+                sface(i_dir)=ABS((grid_cell(packet%iG)%axis(i_dir)+mothergrid%cell_width(i_dir)-pos_cart(i_dir))/dir_cart(i_dir))
             END IF
         END DO
 !    END IF
@@ -174,14 +176,14 @@ albdo=kappa_sca/kappa
         pos_cart(:)=pos_cart(:)+(ABS(s_min)+ABS(s_min)*1E-10)*dir_cart(:)     !actually moves just past boundary by small factor...
         f=imin(1)
         IF (dir_cart(f)>0) THEN
-            IF (iG_axis(f) /= mothergrid%ncells(1)) THEN
+            IF (iG_axis(f) /= mothergrid%n_cells(1)) THEN
                 iG_axis(imin)=iG_axis(imin)+1
             ELSE 
                 !PRINT*, scatno,w
                 RETURN
             END IF
-            iG=(mothergrid%ncells(2)*mothergrid%ncells(3)*(iG_axis(1)-1))+mothergrid%ncells(3)*(iG_axis(2)-1)+iG_axis(3)
-            pos_cart(f)=grid_cell(iG)%axis(f)+((ABS(s_min)*1E-10)*dir_cart(f))
+            packet%iG=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(iG_axis(1)-1))+mothergrid%n_cells(3)*(iG_axis(2)-1)+iG_axis(3)
+            pos_cart(f)=grid_cell(packet%iG)%axis(f)+((ABS(s_min)*1E-10)*dir_cart(f))
         ELSE
             IF (iG_axis(f) /= 1) THEN
                 iG_axis(imin)=iG_axis(imin)-1
@@ -189,38 +191,38 @@ albdo=kappa_sca/kappa
                 !PRINT*, scatno,w
                 RETURN
             END IF
-            iG=(mothergrid%ncells(2)*mothergrid%ncells(3)*(iG_axis(1)-1))+mothergrid%ncells(3)*(iG_axis(2)-1)+iG_axis(3)
-            IF (iG<1) PRINT*,'here',iG
-            pos_cart(f)=grid_cell(iG)%axis(f)+((ABS(s_min)*1E-10)*dir_cart(f))+mothergrid%cell_width(1)
+            packet%iG=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(iG_axis(1)-1))+mothergrid%n_cells(3)*(iG_axis(2)-1)+iG_axis(3)
+            IF (packet%iG<1) PRINT*,'here',packet%iG
+            pos_cart(f)=grid_cell(packet%iG)%axis(f)+((ABS(s_min)*1E-10)*dir_cart(f))+mothergrid%cell_width(1)
         END IF
-        r=(pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5
+        packet%r=(pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5
 
 
 
         !TEST FOR PACKET IN CORRECT CELL
         !IF (omp_get_thread_num()==0) THEN
         DO i_dir=1,3
-            IF (POS_cart(i_dir)<grid_cell(iG)%axis(i_dir)) THEN
+            IF (POS_cart(i_dir)<grid_cell(packet%iG)%axis(i_dir)) THEN
                 !idGP(i_dir)=idGP(i_dir)-1
-                !iGPP=(mothergrid%ncells(2)*mothergrid%ncells(3)*(idGP(1)-1))+mothergrid%ncells(3)*(idGP(2)-1)+idGP(3)
-                PRINT*,'yelp!','1',i_dir,grid_cell(iG)%axis(i_dir),POS_cart(i_dir),grid_cell(iG)%axis(i_dir)+mothergrid%cell_width(i_dir)
+                !iGPP=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(idGP(1)-1))+mothergrid%n_cells(3)*(idGP(2)-1)+idGP(3)
+                PRINT*,'yelp!','1',i_dir,grid_cell(packet%iG)%axis(i_dir),POS_cart(i_dir),grid_cell(packet%iG)%axis(i_dir)+mothergrid%cell_width(i_dir)
                 RETURN
-            ELSE IF (POS_cart(i_dir)>(grid_cell(iG)%axis(i_dir)+mothergrid%cell_width(i_dir))) THEN
+            ELSE IF (POS_cart(i_dir)>(grid_cell(packet%iG)%axis(i_dir)+mothergrid%cell_width(i_dir))) THEN
                 !idGP(i_dir)=idGP(i_dir)+1
-                !iGPP=(mothergrid%ncells(2)*mothergrid%ncells(3)*(idGP(1)-1))+mothergrid%ncells(3)*(idGP(2)-1)+idGP(3)
-                PRINT*,'yelp!','2',i_dir,grid_cell(iG)%axis(i_dir),POS_cart(i_dir),grid_cell(iG)%axis(i_dir)+mothergrid%cell_width(i_dir)
+                !iGPP=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(idGP(1)-1))+mothergrid%n_cells(3)*(idGP(2)-1)+idGP(3)
+                PRINT*,'yelp!','2',i_dir,grid_cell(packet%iG)%axis(i_dir),POS_cart(i_dir),grid_cell(packet%iG)%axis(i_dir)+mothergrid%cell_width(i_dir)
                 RETURN
             END IF
         END DO
         !END IF
 
         !If moved outside of cells then packet escaped
-        IF (iG_axis(f) > mothergrid%ncells(1) .OR. iG_axis(f)<1 .OR. r>(MAX(gas_geometry%R_max,dust_geometry%R_max)*1E15)) THEN
+        IF (iG_axis(f) > mothergrid%n_cells(1) .OR. iG_axis(f)<1 .OR. packet%r>(MAX(gas_geometry%R_max,dust_geometry%R_max)*1E15)) THEN
             !PRINT*, scatno,w
             RETURN
         END IF
 
-        CALL propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,w,scatno)
+        CALL propagate(nu_p,dir_cart,pos_cart,iG_axis,lgabs,lgactive,w,scatno)
         !PRINT*,'here3'
     ELSE
        
@@ -228,7 +230,7 @@ albdo=kappa_sca/kappa
 
         !calculate position and radius of event
         pos_cart(:)=pos_cart(:)+s*dir_cart(:)
-        r=(pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5
+        packet%r=(pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5
 
         !if ES used then establish whether dust event or e- scattering event
 
@@ -243,7 +245,7 @@ albdo=kappa_sca/kappa
        
 
 
-        IF ((.not. lg_ES) .OR. (ran<kp/(kp+sigma_T*grid_cell(iG)%N_e))) THEN
+        IF ((.not. lg_ES) .OR. (ran<kp/(kp+sigma_T*grid_cell(packet%iG)%N_e))) THEN
            
            !PRINT*,albdo
             !PRINT*,'here?'
@@ -257,9 +259,9 @@ albdo=kappa_sca/kappa
                 scatno=scatno+1
 !                PRINT*, scatno
                 !calculate velocity of scatterer and velocity unit vector
-                v=dust_geometry%v_max*((r/(dust_geometry%R_max*1e15))**dust_geometry%v_power)
+                packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%R_max*1e15))**dust_geometry%v_power)
                 vel_vect=normalise(pos_cart)*v
-                IF (r>MAX(gas_geometry%R_max,dust_geometry%R_max)*1e15) THEN
+                IF (packet%r>MAX(gas_geometry%R_max,dust_geometry%R_max)*1e15) THEN
                     !NOTE no actual scattering as has already escaped
                     !PRINT*, scatno,w
 !                   PRINT*,'escaped' 
@@ -284,7 +286,7 @@ albdo=kappa_sca/kappa
                 !PRINT*,'scat'
                 
  !               PRINT*,'after',scatno,nu_p,1/nu_p
-                call propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,w,scatno)
+                call propagate(nu_p,dir_cart,pos_cart,iG_axis,lgabs,lgactive,w,scatno)
 
             !PRINT*,'here1'
             ELSE
@@ -301,8 +303,8 @@ albdo=kappa_sca/kappa
             !note there is no weighting due to albedo here (since no absorption)
             !calculate bulk velocity of scattering e- and velocity unit vector
 
-            v=dust_geometry%v_max*((r/(dust_geometry%R_max*1e15))**dust_geometry%v_power)
-            vel_vect=normalise(pos_cart)*v
+            packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%R_max*1e15))**dust_geometry%v_power)
+            vel_vect=normalise(pos_cart)*packet%v
 
             !also calculate thermal velocity and random thermal velocity vector
             V_T(1)=normal(0.d0,dble(maxwell_sigma))
@@ -322,7 +324,7 @@ albdo=kappa_sca/kappa
 
             !PRINT*,(vel_vect(1)**2+vel_vect(2)**2+vel_vect(3)**2)**0.5
 
-            IF (r>MAX(gas_geometry%R_max,dust_geometry%R_max)*1e15) THEN
+            IF (packet%r>MAX(gas_geometry%R_max,dust_geometry%R_max)*1e15) THEN
                 !NOTE no actual scattering as has already escaped
                 !PRINT*, scatno,w
                 !PRINT*,'escaped'
@@ -348,7 +350,7 @@ albdo=kappa_sca/kappa
             END IF
             !PRINT*,'scat'
             !PRINT*, 'nu2',nu_p
-            call propagate(nu_p,dir_cart,pos_cart,iG_axis,iG,lgabs,lgactive,w,scatno)
+            call propagate(nu_p,dir_cart,pos_cart,iG_axis,lgabs,lgactive,w,scatno)
 
         END IF
        

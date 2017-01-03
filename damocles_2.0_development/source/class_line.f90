@@ -5,6 +5,8 @@ MODULE class_line
     TYPE line_obj
         REAL        ::  luminosity              !total luminosity of line       W/um
         REAL        ::  wavelength              !wavelength (nm) of the line being modelled
+        INTEGER        ::  wav_bin                 !array index of nearest wavelength bin to rest frame wavelength being modelled
+        INTEGER        ::  wav_bin_v               !array index of nearest wavelength bin to V band (547nm)
         REAL        ::  frequency               !frequency of the line to be modelled
         REAL        ::  doublet_wavelength_1    !wavelength (nm) of the first component of the doublet (if applic.)
         REAL        ::  doublet_wavelength_2    !wavelength (nm) of the second component of the doublet (if applic.)

@@ -15,6 +15,9 @@ MODULE class_geometry
         REAL        ::  den_con             !density contrast at inner radius
         REAL        ::  R_min,R_max         !inner and outer radii of distribution (e15cm)
         REAL        ::  R_min_cm,R_max_cm   !inner and outer radii of distribution (cm)
+        REAL        ::  n_clumps            !number of clumps
+        REAL        ::  rho_in              !denisty of smooth medium at inner radius (excluding clumps for a clumped medium)
+        REAL        ::  rho_clump           !denisty (constant) of an individual clump
 
         LOGICAL     ::  lg_clumped          !is the medium clumped?
 

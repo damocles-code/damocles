@@ -1,9 +1,8 @@
 ================DUST OPTIONS=========================================
-9.65e-5             !  Total dust mass (Msun)
-'species.in'    !  Name of file detailing dust species and grain sizes
+0.001             !  Total dust mass (Msun)
 ================DUST CLUMPING OPTIONS================================
 0.0		!  mass fraction in clumps (set to 0 for no clumping)
-0.0		!  filling factor (volume in clumps)
+0.3		!  filling factor (volume in clumps)
 2.0             !  clump number density distribution
 ================DUST GEOMETRY========================================
 3250		!  max dust velocity in km/s

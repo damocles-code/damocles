@@ -8,6 +8,8 @@ MODULE globals
 
     !counters
     INTEGER             ::  ii,jj,kk
+    INTEGER             ::  ixx,iyy,izz
+    INTEGER             ::  iG
 
     !constants
     REAL, PARAMETER     ::  pi=3.141592654

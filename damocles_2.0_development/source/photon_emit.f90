@@ -54,33 +54,33 @@ contains
 
 
             !CALCULATE WHICH CELL EMITTER & PHOTON ARE IN
-            DO ixx=1,mothergrid%ncells(1)
-                IF ((POS_CART(1)*1e15-grid(ixx))<0) THEN                        !identify grid axis that lies just beyond position of emitter in each direction
+            DO ixx=1,mothergrid%n_cells(1)
+                IF ((POS_CART(1)*1e15-mothergrid%x_div(ixx))<0) THEN                        !identify grid axis that lies just beyond position of emitter in each direction
                     iG_axis(1)=ixx-1                                       !then the grid cell id is the previous one
                     EXIT
                 END IF
-                IF (ixx==mothergrid%ncells(1)) THEN
-                    iG_axis(1)=mothergrid%ncells(1)
+                IF (ixx==mothergrid%n_cells(1)) THEN
+                    iG_axis(1)=mothergrid%n_cells(1)
                 END IF
 
             END DO
-            DO iyy=1,mothergrid%ncells(2)
-                IF ((POS_CART(2)*1e15-grid(mothergrid%ncells(1)+iyy))<0) THEN
+            DO iyy=1,mothergrid%n_cells(2)
+                IF ((POS_CART(2)*1e15-mothergrid%y_div(iyy))<0) THEN
                     iG_axis(2)=iyy-1
                     EXIT
                 END IF
-                IF (iyy==mothergrid%ncells(2)) THEN
-                    iG_axis(2)=mothergrid%ncells(2)
+                IF (iyy==mothergrid%n_cells(2)) THEN
+                    iG_axis(2)=mothergrid%n_cells(2)
                 END IF
 
             END DO
-            DO izz=1,mothergrid%ncells(3)
-                IF ((POS_CART(3)*1e15-grid(mothergrid%ncells(1)+mothergrid%ncells(2)+izz))<0) THEN
+            DO izz=1,mothergrid%n_cells(3)
+                IF ((POS_CART(3)*1e15-mothergrid%z_div(izz))<0) THEN
                     iG_axis(3)=izz-1
                     EXIT
                 END IF
-                IF (izz==mothergrid%ncells(3)) THEN
-                    iG_axis(3)=mothergrid%ncells(3)
+                IF (izz==mothergrid%n_cells(3)) THEN
+                    iG_axis(3)=mothergrid%n_cells(3)
                 END IF
             END DO
 

@@ -1,7 +1,7 @@
 ========================GENERAL OPTIONS================================================
 true		!  using observed data? 
 'line.in'	!  data file containing observed line
-true           !  doublet?
+false           !  doublet?
 true		!  include velocity scattering?
 false		!  use line of sight
 false           !  include e- scattering?
@@ -9,14 +9,15 @@ false           !  include e- scattering?
 714		!  day no (used to calculate R_out)
 ========================GEOMETRY OPTIONS===============================================
 false		!  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
-shell		!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
-'dust.in'	!  dust geometry file (required)
-shell		!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
-'gas.in'	!  gas geometry file (required)
+arbitary		!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
+'dust_grid.in'	!  dust geometry file (required - specifies parameters to create grid or is the grid file)
+'species.in'    !  Name of file detailing dust species and grain sizes
+arbitrary	!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
+'gas.in'	!  gas geometry file (required - - specifies parameters to create grid or is the grid file)
 =========================GRID==========================================================
 50		!  number of cells in each direction
 =======================PHOTON PACKETS==================================================
-10000		!  number of photons
+100000		!  number of photons
 10000		!  number of frequency bins for output energy distribution
 100		!  number of shells
 

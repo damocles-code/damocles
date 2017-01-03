@@ -49,11 +49,12 @@ contains
         READ(10,*) lg_decoupled
         READ(10,*) dust_geometry%type
         READ(10,*) dust_file
+        READ(10,*) species_file
         READ(10,*) gas_geometry%type
         READ(10,*) gas_file
 
         READ(10,*)
-        READ(10,*) mothergrid%ncells(1)
+        READ(10,*) mothergrid%n_cells(1)
         READ(10,*)
         READ(10,*) n_packets
         READ(10,*) nu_grid%n_bins
@@ -88,7 +89,6 @@ contains
         OPEN(12,file=dust_file)
         READ(12,*)
         READ(12,*) dust%mass
-        READ(12,*) species_file
         READ(12,*)
         READ(12,*) dust_geometry%clumped_mass_frac
         READ(12,*) dust_geometry%ff
@@ -101,8 +101,11 @@ contains
         READ(12,*) dust_geometry%emis_power
         CLOSE(12)
 
-        call check_dust_clumped()
 
+        SELECT CASE(dust_geometry%type)
+            CASE ('shell')
+                call check_dust_clumped()
+        END SELECT
         !read in electron scattering options (if using electron scattering)
         IF (lg_ES) THEN
             OPEN(13,file = e_scat_file)
@@ -115,11 +118,6 @@ contains
                 STOP
             END IF
         END IF
-
-
-        !!everything below needs review
-
-
 
     END SUBROUTINE read_input
 
