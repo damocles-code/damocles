@@ -9,7 +9,14 @@ MODULE globals
     !counters
     INTEGER             ::  ii,jj,kk
     INTEGER             ::  ixx,iyy,izz
+    INTEGER             ::  iSh
+
+    !dummy counters
+    INTEGER             ::  xx,yy,zz
+
+    !identifiers
     INTEGER             ::  iG
+    INTEGER             ::  unit_vol_iD
 
     !constants
     REAL, PARAMETER     ::  pi=3.141592654

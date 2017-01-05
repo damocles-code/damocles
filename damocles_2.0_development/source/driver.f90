@@ -16,7 +16,7 @@ MODULE driver
 
     INTEGER,EXTERNAL ::  omp_get_num_threads, omp_get_thread_num
     INTEGER ::  lgabs,lgactive
-    INTEGER ::  celliD,iG_axis(3),freqid,los
+    INTEGER ::  iG_axis(3),freqid,los
 
 
     REAL    ::  nu_p,theta,w,w_abs
@@ -31,6 +31,8 @@ contains
         implicit none
         
         REAL  :: chi2
+
+        PRINT*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
 
         !read variables in input files
         PRINT*, 'reading input...'
@@ -59,7 +61,7 @@ contains
                     call build_dust_grid()
                     call construct_freq_grid()
                     !call N_e_const(ES_const)
-                    call build_emissivity_dist()
+
                     OPEN(15,file='output/output.out')
                 END IF
 
@@ -72,67 +74,55 @@ contains
                 tot=0
 
                 IF (iDoublet==1) THEN
+
+                    !!initialise counters to zero
+                    !!what are these?
+                    !NP_BIN=0 (this is already declared in class_grid.f90 file)
                     n=0
                     n_inactive=0
                     nabs=0
-                END IF
-
-                PRINT*, 'starting iteration...'
-
-                IF (iDoublet==1) THEN
-                    shell_width=(gas_geometry%R_max-gas_geometry%R_min)/n_shells!Calculate width of shells
-                    PRINT*,'****************SHELL WIDTH****************',shell_width
-
-                    !scale factor to work out number of packets in each shell
-                    IF ((gas_geometry%emis_power*gas_geometry%rho_power)==3) THEN
-                        const=n_packets/(LOG(gas_geometry%R_max/gas_geometry%R_min))
-                    ELSE
-                        const=n_packets*(gas_geometry%emis_power*gas_geometry%rho_power-3)/(gas_geometry%R_min**(3-gas_geometry%emis_power*gas_geometry%rho_power)-gas_geometry%R_max**(3-gas_geometry%emis_power*gas_geometry%rho_power))
-                    END IF
-
-                    PRINT*,'CONST',const
-                    RSh(1,1)=gas_geometry%R_min
-                    RSh(1,2)=gas_geometry%R_min+shell_width
-                END IF
-
-                IF (iDoublet==1) THEN
-                    NP_BIN=0
                     w_abs=0
                     nabs=0
+
+                    call build_emissivity_dist()
+
                 END IF
 
-                ii=0
-                IF (gas_geometry%clumped_mass_frac==1) THEN
-                    NP(:,1)=0
-                    DO iSh=1,mothergrid%tot_cells
-                        IF (grid_cell(iSh)%cellStatus==1) THEN
-                            ii=ii+1
-                            !PRINT*,'clump number',ii,'of',ncl
-                            NP(iSh,1)=n_packets/ncl
-                            n=n+NP(iSh,1)
-                            celliD=iSh
-                            call run_packets(celliD)
-                        END IF
+                IF (gas_geometry%type == 'shell') THEN
+                    IF (gas_geometry%clumped_mass_frac == 1) THEN
+                        !all emission from clumps
+                        DO ii=1, mothergrid%tot_cells
+                            IF (grid_cell(ii)%cellStatus == 1) THEN
+                                NP(ii)=n_packets/ncl
+                                !n is cumulative number of packets run through grid (check number)
+                                n=n+NP(ii)
+                                unit_vol_iD=ii
+                                call run_packets()
+                            END IF
+                        END DO
+                    ELSE
+                        !all emission from shell
+                        DO ii=1,n_shells
+                            !n is cumulative number of packets run through grid (check number)
+                            n=n+NP(ii)
+                            !iG is the cell in which the packet is located and is identified after emission in the rountine 'run_packets'
+                            iG=0
+                            unit_vol_iD=ii
+                            call run_packets()
+                        END DO
+                    END IF
+                ELSE IF (gas_geometry%type == 'arbitrary') THEN
+                    !emission per cell scaled with dust mass from specified dust grid
+                    DO ii=1,mothergrid%tot_cells
+                        !n is cumulative number of packets run through grid (check number)
+                        n=n+NP(ii)
+                        unit_vol_iD=ii
+                        call run_packets()
                     END DO
                 ELSE
-                    DO iSh=1,n_shells
-                        !divide the SN up into radial shells
-                        PRINT*,'shell no',iSh,'of',n_shells
-                        IF (iDoublet==1) THEN
-                            IF ((gas_geometry%emis_power*gas_geometry%rho_power)==3) THEN
-                                NP(iSh,1)=NINT(const*LOG(RSh(iSh,2)/RSh(iSh,1)))
-                            ELSE
-                                NP(iSh,1)=NINT(const*(RSh(iSh,1)**(3-gas_geometry%emis_power*gas_geometry%rho_power)-RSh(iSh,2)**(3-gas_geometry%emis_power*gas_geometry%rho_power))/(gas_geometry%emis_power*gas_geometry%rho_power-3))
-                            END IF
-
-                        END IF
-                        n=n+NP(iSh,1)
-                        iG=0 !to be calculated by emit_photon routine in run_packets (see below)
-                   
-                        call run_packets(iG)
-
-                        RSh(iSh+1,1:2)=(/ RSh(iSh,2),RSh(iSh,2)+shell_width /)  !calculate upper and lower radius bound for each shell
-                    END DO
+                    PRINT*,'You have not selected a gas or arbitrary distribution.  Alternative distributions have not yet been included.'
+                    PRINT*,'Please construct a grid using the gridmaker at http://www.nebulousresearch.org/codes/mocassin/mocassin_gridmaker.php and use the arbitrary option.  Aborted.'
+                    STOP
                 END IF
             END IF
         END DO
@@ -218,32 +208,30 @@ contains
         DEALLOCATE(mothergrid%z_div)
         DEALLOCATE(np)
         DEALLOCATE(np_bin)
-        DEALLOCATE(RSh)
         DEALLOCATE(dust%species)
-
+        IF (dust_geometry%type == "shell") DEALLOCATE(RSh)
 
     END SUBROUTINE run_code
 
-    SUBROUTINE run_packets(celliD)
-        INTEGER::celliD
+    SUBROUTINE run_packets()
+
 
         !!!!!OPENMP HAS NOT BEEN UPDATED AFTER RECENT AMENDMENTS SO DO NOT EMPLOY WITHOUT THOROUGH CHECKING FIRST!!!!!!!!!!!
         !!$OMP PARALLEL DEFAULT(PRIVATE) SHARED(dust_geometry%ff,gas_geometry%rho_power,line%doublet_ratio,iDoublet,tot,n_inactive,nabs,shell_width,width,NP_BIN,NP,iSh,RSh,dust_geometry%R_min,dust_geometry%R_max,gas_geometry%R_min,gas_geometry%R_max,lg_LOS,lg_ES,grid,mothergrid%n_cells,nu_grid%bin,dust_geometry%v_max,gas_geometry%v_max,l,gas_geometry%v_power,dummy,mgrid,dust,lg_vel_shift)
 
         !PRINT*,'num of threads', omp_get_num_threads()
 
-                    
         !!$OMP DO SCHEDULE(dynamic)
-        DO iP=1,NP(iSh,1)
+        DO iP=1,NP(unit_vol_iD)
             !PRINT*,'thread number',omp_get_thread_num()
-                       
-            call emit_photon(nu_p,dir_cart,pos_cart,iG_axis,lgactive,w,celliD)
+
+            call emit_photon(nu_p,dir_cart,pos_cart,iG_axis,lgactive,w)
                         
             !PRINT*,'thread no',omp_get_thread_num()
             IF (lgactive == 1) THEN
                 scatno=0
                 lgabs=0
-                    
+
                 call propagate(nu_p,dir_cart,pos_cart*1e15,iG_axis,lgabs,lgactive,w,scatno)
                     
                 theta=acos(pos_cart(3)/((pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5))
@@ -277,9 +265,11 @@ contains
                                         
                             END IF
                              !!$OMP CRITICAL
-                            dummy=NP_BIN(freqid)+w                  !Add 1 to number of photons in that freq bin
+                            !dummy=NP_BIN(freqid)+w                  !Add 1 to number of photons in that freq bin
 
-                            NP_BIN(freqid)=dummy
+                            !NP_BIN(freqid)=dummy
+
+                            NP_BIN(freqid)=NP_BIN(freqid)+w
 
                             tot=tot+1
                              !!$OMP END CRITICAL
@@ -312,9 +302,10 @@ contains
             END IF
         !                        PRINT*,'threadno',omp_get_thread_num()
         END DO
+
                     
          !!$OMP END DO
-                    
+
          !!$OMP END PARALLEL
 
         !close log file (opened in read_input)

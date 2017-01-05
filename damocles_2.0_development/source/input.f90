@@ -77,30 +77,34 @@ contains
         READ(11,*) line%luminosity
         READ(11,*) line%doublet_ratio
         READ(11,*)
-        READ(11,*) gas_geometry%clumped_mass_frac  !!!CURRENTLY RESTRICTED TO 0 or 1
-        READ(11,*) gas_geometry%v_max
-        READ(11,*) gas_geometry%R_ratio
-        READ(11,*) gas_geometry%v_power
-        READ(11,*) gas_geometry%rho_power
-        READ(11,*) gas_geometry%emis_power
-        CLOSE(11)
+        !if using a shell geometry
+        IF (gas_geometry%type == 'shell') THEN
+            READ(11,*) gas_geometry%clumped_mass_frac  !!!CURRENTLY RESTRICTED TO 0 or 1
+            READ(11,*) gas_geometry%v_max
+            READ(11,*) gas_geometry%R_ratio
+            READ(11,*) gas_geometry%v_power
+            READ(11,*) gas_geometry%rho_power
+            READ(11,*) gas_geometry%emis_power
+            CLOSE(11)
+        END IF
 
-        !read in dust options
-        OPEN(12,file=dust_file)
-        READ(12,*)
-        READ(12,*) dust%mass
-        READ(12,*)
-        READ(12,*) dust_geometry%clumped_mass_frac
-        READ(12,*) dust_geometry%ff
-        READ(12,*) dust_geometry%clump_power
-        READ(12,*)
-        READ(12,*) dust_geometry%v_max
-        READ(12,*) dust_geometry%R_ratio
-        READ(12,*) dust_geometry%v_power
-        READ(12,*) dust_geometry%rho_power
-        READ(12,*) dust_geometry%emis_power
-        CLOSE(12)
-
+        !read in dust options (for shell case)
+        IF (dust_geometry%type == 'shell') THEN
+            OPEN(12,file=dust_file)
+            READ(12,*)
+            READ(12,*) dust%mass
+            READ(12,*)
+            READ(12,*) dust_geometry%clumped_mass_frac
+            READ(12,*) dust_geometry%ff
+            READ(12,*) dust_geometry%clump_power
+            READ(12,*)
+            READ(12,*) dust_geometry%v_max
+            READ(12,*) dust_geometry%R_ratio
+            READ(12,*) dust_geometry%v_power
+            READ(12,*) dust_geometry%rho_power
+            READ(12,*) dust_geometry%emis_power
+            CLOSE(12)
+        END IF
 
         SELECT CASE(dust_geometry%type)
             CASE ('shell')

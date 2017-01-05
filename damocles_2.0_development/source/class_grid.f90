@@ -10,8 +10,8 @@ MODULE class_grid
     TYPE grid_obj
 
         INTEGER          ::  n_cells(3)                    !number of cells in x/y/z directions
-        REAL             ::  cell_width(3)                !width of grid cells in x/y/z directions
-        REAL             ::  cell_vol                     !volume of grid cell
+        REAL             ::  cell_width(3)                !width of grid cells in x/y/z directions (only applicable for cubic grids with equal no of divisions in each axis)
+        REAL             ::  cell_vol                     !volume of grid cell (only applicable for cubic grids with equal no of divisions in each axis)
         INTEGER          ::  tot_cells                     !total number of cells
         REAL,ALLOCATABLE ::  x_div(:),y_div(:),z_div(:)   !locations of divisions listed consecutively in x, y and z
         REAL             ::  x_min,x_max
@@ -24,10 +24,12 @@ MODULE class_grid
 
     TYPE grid_cell_obj
         REAL    ::  axis(3)                               !limits of grid cell in x, y and z
+        REAL    ::  width(3)                              !width of grid cells in x/y/z directions
         REAL    ::  rho,nrho,N_e                          !mass density, number density and electron density of grid cell
+        REAL    ::  r                                     !radial distance from (0,0,0) to the centre of the cell
+        REAL    ::  vol                                   !volume of cell
         INTEGER ::  id(3)                                 !grid cell number in each of x, y and z
         INTEGER ::  cellStatus,numPhots
-        REAL    ::  r
     END TYPE
 
     TYPE(grid_cell_obj),ALLOCATABLE  :: grid_cell(:) !mothergrid is comprised of'tot_cells' grid_cells
@@ -37,7 +39,7 @@ MODULE class_grid
 
 
 
-    !!here!!
+    !!variables declared below need review (removing, moving, etc.)
     INTEGER ::  nclumps                     !actual number of clumps used (increased over iterations
                                           !until within 99.5% of theoretical number)
     INTEGER ::  loop                        !loop counter for clump iterations
@@ -64,7 +66,7 @@ MODULE class_grid
 
     INTEGER(8)     ::  iP,idP,n,iGP,idPP,n_inactive,freq(1),nsize, &
         & ios,nabs,iDoublet
-    INTEGER :: iSh,n_threads
+    INTEGER :: n_threads
     REAL :: E_0, &
         & SCAT_RF_PT(2),lambda_bin,vel_bin, &
         & tot,shell_width,  &
@@ -77,14 +79,16 @@ MODULE class_grid
     REAL,DIMENSION(:),ALLOCATABLE :: grid, r
 
     REAL ::SCAT_RF_SN(2), &
-        & SCAT_FIN(2),POS_SPH1(3),R_P,ndustav
+        & SCAT_FIN(2),pos_sph1(3),R_P,ndustav
 
-    INTEGER(8),DIMENSION(:,:),ALLOCATABLE :: ix,iy,iz,NP
+    INTEGER(8),DIMENSION(:,:),ALLOCATABLE :: ix,iy,iz
     REAL,DIMENSION(:),ALLOCATABLE      :: NP_BIN,diff
+    INTEGER(8),DIMENSION(:),ALLOCATABLE :: NP
 
+    INTEGER :: test
     CHARACTER(LEN=1024) :: filename,junk
 
-    !!
+    INTEGER ::  shell_no
 
 contains
 
@@ -122,8 +126,6 @@ contains
                 mothergrid%y_max=mothergrid%x_max
                 mothergrid%z_max=mothergrid%x_max
 
-                PRINT*,dust_geometry%R_max_cm
-
                 !set number of cells in each direction and calculate total number of cells
                 !mothergrid%n_cells(1) read in from input file in input.f90
                 !!edit here if different number of cells in each direction required
@@ -139,12 +141,16 @@ contains
                 !calculate total volume of shell in 1e42cm^3
                 tot_vol=1000*4*pi*(dust_geometry%R_max**3-dust_geometry%R_min**3)/3 !in e42cm^3
 
-
-
                 ALLOCATE(grid_cell(mothergrid%tot_cells))
                 ALLOCATE(mothergrid%x_div(mothergrid%n_cells(1)))
                 ALLOCATE(mothergrid%y_div(mothergrid%n_cells(2)))
                 ALLOCATE(mothergrid%z_div(mothergrid%n_cells(3)))
+
+                !for a cubic grid (as for a shell), set the cell widths and volumes to be identical for all cells
+                grid_cell%width(1)=mothergrid%cell_width(1)
+                grid_cell%width(2)=mothergrid%cell_width(2)
+                grid_cell%width(3)=mothergrid%cell_width(3)
+                grid_cell%vol=mothergrid%cell_vol
 
                 !initialise mothergrid divisions to zero
                 mothergrid%x_div=0
@@ -163,8 +169,6 @@ contains
                 DO izz=1,mothergrid%n_cells(3)
                     mothergrid%z_div(izz)=mothergrid%z_min+((izz-1)*mothergrid%cell_width(3))
                 END DO
-
-
 
                 !calculate radius of the centre of each cell
                 iG=0
@@ -194,8 +198,8 @@ contains
                 rhodG=0
                 ndust=0
                 h=0
-                ALLOCATE(tmp(nu_grid%n_bins,1))
-                tmp=0
+
+
                 !set counters to zero
                 iG=0
                 SF=0
@@ -409,9 +413,6 @@ contains
                     PRINT*,'DUST GRAIN NUMBER DENSITY AT Rin',dust_geometry%rho_in/dust%av_mgrain
                     PRINT*,'DUST GRAIN NUMBER DENSITY AT Rout',((dust_geometry%rho_in)*(dust_geometry%R_min_cm/dust_geometry%R_max_cm)**dust_geometry%rho_power)/dust%av_mgrain
                 END IF
-                PRINT*,loop
-
-
 
                 IF (dust_geometry%lg_clumped) THEN
                     PRINT*,'number clumps test:',' using - ',ncl,'requested -',dust_geometry%n_clumps
@@ -438,31 +439,91 @@ contains
                 & It is due to be added to the class_grid module.  Aborted.'
                 STOP
             CASE("arbitrary")
+                !read in dust grid file
+                !!note that currently the filename is hard coded and should be changed to be variable
                 OPEN(33,file='dust_grid.in')
 
+                !the file format is based on the grid generated by the mocassin grid generator which can be found at
+                !http://www.nebulousresearch.org/codes/mocassin/mocassin_gridmaker.php
                 READ(33,*) junk,mothergrid%n_cells(1),mothergrid%n_cells(2),mothergrid%n_cells(3)
                 mothergrid%tot_cells=mothergrid%n_cells(1)*mothergrid%n_cells(2)*mothergrid%n_cells(3)
 
                 ALLOCATE(grid_cell(mothergrid%tot_cells))
+                ALLOCATE(mothergrid%x_div(mothergrid%n_cells(1)))
+                ALLOCATE(mothergrid%y_div(mothergrid%n_cells(2)))
+                ALLOCATE(mothergrid%z_div(mothergrid%n_cells(3)))
 
+
+                xx=0
+                yy=0
+                zz=0
+                !grid must be arranged in ascending z, then y, then x (as per mocassin grid maker)
+                !!include a sort here to ensure this is the case?
                 DO iG=1,mothergrid%tot_cells
+
+                    !read in limits of grid cells in x, y and z
                     READ(33,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),grid_cell(iG)%nrho
-                END DO
 
-                DO iG=1,mothergrid%tot_cells
-                    IF (iG /= mothergrid%tot_cells) THEN
-                        grid_cell(iG)%r=((((grid_cell(iG)%axis(1)+grid_cell(iG+1)%axis(1))/2)**2) + &
-                            & (((grid_cell(iG)%axis(2)+grid_cell(iG+1)%axis(2))/2)**2) + &
-                            & (((grid_cell(iG)%axis(3)+grid_cell(iG+1)%axis(3))/2)**2))**0.5
+                    !this section calculates the cell no in each axis given the overall cell number within the grid
+                    !(effectively reverse engineers iG=(n_cells(2)*n_cells(3)*(id(1)-1)+n_cells(3)*(id(2)-1)+id(3)))
+                    IF (MOD(iG,mothergrid%n_cells(3)) /=1) THEN
+                    grid_cell(iG)%id(3)=grid_cell(iG-1)%id(3)+1
                     ELSE
-                        grid_cell(iG)%r=(((grid_cell(iG)%axis(1)+(grid_cell(iG)%axis(1)-grid_cell(iG-1)%axis(1))/2)**2) + &
-                            & ((grid_cell(iG)%axis(2)+(grid_cell(iG)%axis(2)-grid_cell(iG-1)%axis(2))/2)**2) + &
-                            & ((grid_cell(iG)%axis(3)+(grid_cell(iG)%axis(3)-grid_cell(iG-1)%axis(3))/2)**2))**0.5
+                    grid_cell(iG)%id(3)=1
                     END IF
+                    grid_cell(iG)%id(2)=MOD((iG-grid_cell(iG)%id(3))/mothergrid%n_cells(3),mothergrid%n_cells(2))+1
+                    grid_cell(iG)%id(1)=((iG-grid_cell(iG)%id(3)-(mothergrid%n_cells(3)*(grid_cell(iG)%id(2)-1)))/(mothergrid%n_cells(3)*mothergrid%n_cells(2)))+1
 
+                    !this section populates the list of divisions in x, y and z from the grid specified
+                    !each time a cell is encountered where the id of the other two axes is 1, the third non-zero axis is stored
+                    !this generates a unique list of axis divisions
+                    IF (grid_cell(iG)%id(1) == 1 .and. grid_cell(iG)%id(2) == 1) THEN
+                        zz=zz+1
+                        mothergrid%z_div(zz)=grid_cell(iG)%axis(3)
+                    END IF
+                    IF (grid_cell(iG)%id(1) == 1 .and. grid_cell(iG)%id(3) == 1) THEN
+                        yy=yy+1
+                        mothergrid%y_div(yy)=grid_cell(iG)%axis(2)
+                    END IF
+                    IF (grid_cell(iG)%id(2) == 1 .and. grid_cell(iG)%id(3) == 1) THEN
+                        xx=xx+1
+                        mothergrid%x_div(xx)=grid_cell(iG)%axis(1)
+                    END IF
                 END DO
 
                 CLOSE(33)
+
+                !radii are calculated for each grid cell from the centre of the grid (0,0,0) to the centre of the cell
+                !volumes are calculated by multiplying distance to next division in all axes
+                !at far 'right' edge, the volumes, widths and radii are calculated using symmetries of grid
+                !i.e. radius/volume at cell (43,47,50) is same as for (43,47,1)
+                DO iG=1,mothergrid%tot_cells
+                    IF (grid_cell(iG)%id(1) /= mothergrid%n_cells(1) .and. &
+                      & grid_cell(iG)%id(2) /= mothergrid%n_cells(2) .and. &
+                      & grid_cell(iG)%id(3) /= mothergrid%n_cells(3)) THEN
+
+                        grid_cell(iG)%r=((((grid_cell(iG)%axis(1)+grid_cell(iG+1)%axis(1))/2)**2) + &
+                            & (((grid_cell(iG)%axis(2)+grid_cell(iG+1)%axis(2))/2)**2) + &
+                            & (((grid_cell(iG)%axis(3)+grid_cell(iG+1)%axis(3))/2)**2))**0.5
+                        grid_cell(iG)%vol=(mothergrid%x_div(grid_cell(iG)%id(1)+1)-mothergrid%x_div(grid_cell(iG)%id(1)))*1e-14* &
+                                        & (mothergrid%y_div(grid_cell(iG)%id(2)+1)-mothergrid%y_div(grid_cell(iG)%id(2)))*1e-14* &
+                                        & (mothergrid%z_div(grid_cell(iG)%id(3)+1)-mothergrid%z_div(grid_cell(iG)%id(3)))*1e-14
+                        grid_cell(iG)%width(1)=mothergrid%x_div(grid_cell(iG)%id(1)+1)-mothergrid%x_div(grid_cell(iG)%id(1))
+                        grid_cell(iG)%width(2)=mothergrid%x_div(grid_cell(iG)%id(2)+1)-mothergrid%x_div(grid_cell(iG)%id(2))
+                        grid_cell(iG)%width(3)=mothergrid%x_div(grid_cell(iG)%id(3)+1)-mothergrid%x_div(grid_cell(iG)%id(3))
+                    ELSE IF (grid_cell(iG)%id(3) == mothergrid%n_cells(3)) THEN
+                        grid_cell(iG)%vol=grid_cell(iG-mothergrid%n_cells(3)+1)%vol
+                        grid_cell(iG)%r=grid_cell(iG-mothergrid%n_cells(3)+1)%r
+                    ELSE IF (grid_cell(iG)%id(2) == mothergrid%n_cells(2)) THEN
+                        grid_cell(iG)%vol=grid_cell(iG-mothergrid%n_cells(2)*(grid_cell(iG)%id(2)-1))%vol
+                        grid_cell(iG)%r=grid_cell(iG-mothergrid%n_cells(2)*(grid_cell(iG)%id(2)-1))%r
+                    ELSE IF (grid_cell(iG)%id(1) == mothergrid%n_cells(1)) THEN
+                        grid_cell(iG)%vol=grid_cell(iG-mothergrid%n_cells(2)*mothergrid%n_cells(1)*(grid_cell(iG)%id(1)-1))%vol
+                        grid_cell(iG)%r=grid_cell(iG-mothergrid%n_cells(2)*mothergrid%n_cells(1)*(grid_cell(iG)%id(1)-1))%r
+                    END IF
+                END DO
+
+            PRINT*,'Dust mass in grid (Msun)',sum(grid_cell(:)%nrho*(grid_cell(:)%vol)*dust%av_mgrain)*5.02765e8         !5.02765e8=1e42/1.989e33 i.e. conversion factor for  e42cm3 to cm3 and g to Msun)
 
             CASE("bipolar")
                 PRINT*, 'You have selected a bipolar distribution of dust.  This routine has not been written yet.  &
@@ -479,13 +540,20 @@ contains
 
     END SUBROUTINE
     SUBROUTINE build_emissivity_dist()
+        ALLOCATE(NP_BIN(nu_grid%n_bins))
+        ALLOCATE(tmp(nu_grid%n_bins,1))
+        tmp=0
+        NP_BIN=0
         SELECT CASE(gas_geometry%type)
 
             CASE("shell")
+                !assign parameters related to gas geometry
                 IF (lg_decoupled) THEN
+                    !if decoupled then generate max/min radii from epoch and maximum velocity
                     gas_geometry%R_max=gas_geometry%v_max*day_no*8.64E-6
                     gas_geometry%R_min=gas_geometry%R_ratio*gas_geometry%R_max
                 ELSE
+                    !if decoupled then set gas geometry parameters to equal the dust geometry parameters
                     IF (gas_geometry%type /= dust_geometry%type) THEN
                         PRINT*, 'You have requested that gas and dust distributions be coupled but specified different geometries.  Aborted.'
                         STOP
@@ -499,12 +567,30 @@ contains
                     gas_geometry%v_max=dust_geometry%v_max
                 END IF
 
-                ALLOCATE(NP(mothergrid%tot_cells,1))
-                ALLOCATE(NP_BIN(nu_grid%n_bins))
-                ALLOCATE(RSh(n_shells+1,2))
-                NP=0
-                NP_BIN=0
+                IF (gas_geometry%clumped_mass_frac /= 1) THEN
+                    ALLOCATE(NP(n_shells+1))
+                    ALLOCATE(RSh(n_shells+1,2))
+                ELSE IF (gas_geometry%clumped_mass_frac == 1) THEN
+                    ALLOCATE(NP(mothergrid%tot_cells))
+                END IF
+
                 RSh=0
+                shell_width=(gas_geometry%R_max-gas_geometry%R_min)/n_shells
+                !calculate upper and lower radius bound for each shell
+                RSh(1,1)=gas_geometry%R_min
+                RSh(1,2)=gas_geometry%R_min+shell_width
+                DO ii=1,n_shells
+                    RSh(ii+1,1:2)=(/ RSh(ii,2),RSh(ii,2)+shell_width /)
+                END DO
+
+                !scale factor to work out number of packets in each shell
+                IF ((gas_geometry%emis_power*gas_geometry%rho_power)==3) THEN
+                    const=n_packets/(LOG(gas_geometry%R_max/gas_geometry%R_min))
+                    NP(:)=NINT(const*LOG(RSh(:,2)/RSh(:,1)))
+                ELSE
+                    const=n_packets*(gas_geometry%emis_power*gas_geometry%rho_power-3)/(gas_geometry%R_min**(3-gas_geometry%emis_power*gas_geometry%rho_power)-gas_geometry%R_max**(3-gas_geometry%emis_power*gas_geometry%rho_power))
+                    NP(:)=NINT(const*(RSh(:,1)**(3-gas_geometry%emis_power*gas_geometry%rho_power)-RSh(:,2)**(3-gas_geometry%emis_power*gas_geometry%rho_power))/(gas_geometry%emis_power*gas_geometry%rho_power-3))
+                END IF
 
             CASE("torus")
                 IF (lg_decoupled) THEN
@@ -515,18 +601,35 @@ contains
                     STOP
                 END IF
             CASE("arbitrary")
+
                 IF (lg_decoupled) THEN
-                    PRINT*, 'You have selected an arbitrary distribution of gas.  This routine has not been written yet.  &
-                & It is due to be added to the class_grid module in due course.'
-                    WRITE(55,*) 'You have specified an arbitrary distribution of gas.  Damocles is not yet capable of handling arbitrary geometry grids.  &
-                & This capability is due to be added to the class_grid module.  Aborted.'
+                    PRINT*,"Haven't yet included provision for two different arbitrary distributions of dust and gas. Aborted."
                     STOP
                 ELSE
-                    IF (gas_geometry%type /= dust_geometry%type) THEN
-                        PRINT*, 'You have requested that gas and dust distributions be coupled but specified different geometries.  Aborted.'
-                        STOP
-                    END IF
+                    ALLOCATE(NP(mothergrid%tot_cells))
+                    NP=0
+                    PRINT*,'calculating number of packets to be emitted in each cell...'
+                    !number of packets to be emitted in each cell scaled with number of particles in cell
+                    NP(:)=NINT(grid_cell(:)%nrho*real(n_packets)*(grid_cell(ii)%vol/SUM((grid_cell%nrho)*(grid_cell%vol))))
                 END IF
+
+                !DO ii=1,mothergrid%tot_cells
+                !PRINT*,grid_cell(ii)%axis(:),grid_cell(ii)%nrho,NP(ii)
+               ! PRINT*,grid_cell(ii)%nrho,grid_cell(ii)%vol,grid_cell(ii)%nrho*grid_cell(ii)%vol
+                !END DO
+
+            !                IF (lg_decoupled) THEN
+            !                    PRINT*, 'You have selected an arbitrary distribution of gas.  This routine has not been written yet.  &
+            !                & It is due to be added to the class_grid module in due course.'
+            !                    WRITE(55,*) 'You have specified an arbitrary distribution of gas.  Damocles is not yet capable of handling arbitrary geometry grids.  &
+            !                & This capability is due to be added to the class_grid module.  Aborted.'
+            !                    STOP
+            !                ELSE
+            !                    IF (gas_geometry%type /= dust_geometry%type) THEN
+            !                        PRINT*, 'You have requested that gas and dust distributions be coupled but specified different geometries.  Aborted.'
+            !                        STOP
+            !                    END IF
+            !                END IF
             CASE("bipolar")
                 IF (lg_decoupled) THEN
                     PRINT*, 'You have selected a bipolar distribution of gas.  This routine has not been written yet.  &
