@@ -9,7 +9,7 @@ false           !  include e- scattering?
 714		!  day no (used to calculate R_out)
 ========================GEOMETRY OPTIONS===============================================
 false		!  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
-arbitrary		!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
+arbitrary	!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
 'dust_grid.in'	!  dust geometry file (required - specifies parameters to create grid or is the grid file)
 'species.in'    !  Name of file detailing dust species and grain sizes
 arbitrary   	!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'

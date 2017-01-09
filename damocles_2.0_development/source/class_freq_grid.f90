@@ -27,6 +27,8 @@ contains
     !It is constructed at the start of the simulation in order to store packet data cumulativley as the RT progreses.
     SUBROUTINE construct_freq_grid()
 
+        PRINT*, 'Constructing frequency grid...'
+
         ALLOCATE(nu_grid%bin(nu_grid%n_bins,2))
 
         IF (lg_doublet) THEN

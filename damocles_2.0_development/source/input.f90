@@ -18,10 +18,10 @@ contains
         IF (nargs==1) THEN
             call get_command_argument(1,input_file)
             input_file=trim(input_file)
-            PRINT*, 'reading input from file ', input_file
+            PRINT*, 'Reading input from file ', input_file
         ELSE IF (nargs==0) THEN
             input_file='input.in'
-            PRINT*,'reading input from file input.in'
+            PRINT*,'Reading input from file input.in'
         ELSE
             PRINT*,'too many input arguments - aborted'
             STOP
@@ -110,6 +110,7 @@ contains
             CASE ('shell')
                 call check_dust_clumped()
         END SELECT
+
         !read in electron scattering options (if using electron scattering)
         IF (lg_ES) THEN
             OPEN(13,file = e_scat_file)

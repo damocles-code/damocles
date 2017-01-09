@@ -51,6 +51,7 @@ contains
         dir_sph(:)=(/ (2*random(4))-1,random(5)*2*pi /)
         dir_cart(:)=cart(ACOS(dir_sph(1)),dir_sph(2))
 
+
         !If the photon lies inside the radial bounds of the supernova
         !or if the photon is emitted from a clump or cell (rather than shell) then it is processed
         IF (((pos_sph(1) > gas_geometry%R_min) .AND. (pos_sph(1) < gas_geometry%R_max) .AND. (gas_geometry%clumped_mass_frac==0)) &
@@ -64,9 +65,9 @@ contains
        
             nu_p=line%frequency
             lgactive=1
-       
+
             call lorentz_trans(vel_vect,nu_p,dir_cart,w,"emsn")
-       
+
             !identify cell which contains emitting particle (and therefore packet)
             !!could be made more efficient but works...
             DO ixx=1,mothergrid%n_cells(1)
@@ -103,7 +104,10 @@ contains
             !check to ensure that for packets emitted from cells, the identified cell is the same as the original...
             IF ((gas_geometry%type == 'shell' .and. gas_geometry%clumped_mass_frac == 1) &
                 &    .or.  (gas_geometry%type == 'arbitrary')) THEN
-                IF (.not. ALL(iG_axis .eq. grid_cell(unit_vol_iD)%id)) THEN
+
+                IF ((iG_axis(1) /= grid_cell(unit_vol_iD)%id(1)) .and. &
+                &   (iG_axis(2) /= grid_cell(unit_vol_iD)%id(2)) .and. &
+                &   (iG_axis(3) /= grid_cell(unit_vol_iD)%id(3))) THEN
                     PRINT*,'cell calculation gone wrong in module init_packet. Aborted.'
                     STOP
                 END IF
@@ -115,7 +119,7 @@ contains
             PRINT*,'inactive photon'
             lgactive=0
         END IF
-    
+
         IF (ANY(iG_axis == 0)) THEN
             lgactive=0
             n_inactive=n_inactive+1

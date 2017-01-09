@@ -130,7 +130,7 @@ contains
 
         CHARACTER(LEN=50)       :: junk                             !holder
 
-        !CALCULATE Qext FOR EACH GRAIN SIZE AND WAVELENGTH
+        PRINT*, 'Calculating opacities...'
 
         call generate_grain_radii()
 

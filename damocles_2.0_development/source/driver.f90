@@ -32,10 +32,7 @@ contains
         
         REAL  :: chi2
 
-        PRINT*,'!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
-
         !read variables in input files
-        PRINT*, 'reading input...'
         call read_input()
 
         !entire simulation run for each component of doublet (if applicable)
@@ -44,53 +41,60 @@ contains
         w_abs=0
         
         DO iDoublet=1,2
-            IF ((.not. lg_doublet) .and. (iDoublet==2))  THEN
-                EXIT
-            ELSE
-                IF (iDoublet==2) THEN
-                    !active wavelength is now second element of doublet
-                    line%wavelength=line%doublet_wavelength_2
-                    line%frequency=c*10**9/line%wavelength
-                ELSE IF (iDoublet==1) THEN
-                                    !set active rest frame wavelength
-                    line%wavelength=line%doublet_wavelength_1
-                    line%frequency=c*10**9/line%wavelength
-                    PRINT*, 'Calculating opacities...'
-                    call calculate_opacities()
-                    PRINT*, 'Constructing grid...'
-                    call build_dust_grid()
-                    call construct_freq_grid()
-                    !call N_e_const(ES_const)
 
-                    OPEN(15,file='output/output.out')
-                END IF
+            !generate random seed for random number generators (ensures random numbers change on each run)
+            call init_random_seed
 
-                PRINT*,"active rest wavelength",line%wavelength
+            !construct all grids and initialise rest line wavelength/freq
+            IF (iDoublet==1) THEN
 
-                !generate random seed for random number generators (ensures random numbers change on each run)
-                CALL init_random_seed
+                !set active rest frame wavelength
+                line%wavelength=line%doublet_wavelength_1
+                line%frequency=c*10**9/line%wavelength
 
-                !!what is this variable?  total number of packets for single component?
-                tot=0
+                !construct grids
+                call calculate_opacities()
+                call build_dust_grid()
+                call construct_freq_grid()
+                !call N_e_const(ES_const)
+                call build_emissivity_dist()
 
-                IF (iDoublet==1) THEN
+                !!initialise counters to zero
+                !!what are these?
+                n=0
+                n_inactive=0
+                nabs=0
+                w_abs=0
+                nabs=0
 
-                    !!initialise counters to zero
-                    !!what are these?
-                    !NP_BIN=0 (this is already declared in class_grid.f90 file)
-                    n=0
-                    n_inactive=0
-                    nabs=0
-                    w_abs=0
-                    nabs=0
+                !open output file to record resultant modelled line profile
+                OPEN(15,file='output/output.out')
 
-                    call build_emissivity_dist()
+            ELSE IF (iDoublet==2) THEN
 
-                END IF
+                !exit if not a doublet
+                IF (.not. lg_doublet) EXIT
 
-                IF (gas_geometry%type == 'shell') THEN
+                !otherwise reset rest frame wavelength of line to be modelled
+                !active wavelength is now second component of doublet
+                line%wavelength=line%doublet_wavelength_2
+                line%frequency=c*10**9/line%wavelength
+
+            END IF
+
+            PRINT*,"active rest wavelength:",line%wavelength
+
+            !!what is this variable?  total number of packets for single component?
+            tot=0
+
+            !emit and propagate packets through grid
+            PRINT*,"Propagating packets..."
+            SELECT CASE(gas_geometry%type)
+
+                CASE('shell')
+
+                    !if all emission from clumps within shell structure
                     IF (gas_geometry%clumped_mass_frac == 1) THEN
-                        !all emission from clumps
                         DO ii=1, mothergrid%tot_cells
                             IF (grid_cell(ii)%cellStatus == 1) THEN
                                 NP(ii)=n_packets/ncl
@@ -100,8 +104,8 @@ contains
                                 call run_packets()
                             END IF
                         END DO
+                    !else if all emission from smooth shell
                     ELSE
-                        !all emission from shell
                         DO ii=1,n_shells
                             !n is cumulative number of packets run through grid (check number)
                             n=n+NP(ii)
@@ -111,7 +115,8 @@ contains
                             call run_packets()
                         END DO
                     END IF
-                ELSE IF (gas_geometry%type == 'arbitrary') THEN
+
+                CASE('arbitrary')
                     !emission per cell scaled with dust mass from specified dust grid
                     DO ii=1,mothergrid%tot_cells
                         !n is cumulative number of packets run through grid (check number)
@@ -119,15 +124,19 @@ contains
                         unit_vol_iD=ii
                         call run_packets()
                     END DO
-                ELSE
+
+                CASE DEFAULT
                     PRINT*,'You have not selected a gas or arbitrary distribution.  Alternative distributions have not yet been included.'
                     PRINT*,'Please construct a grid using the gridmaker at http://www.nebulousresearch.org/codes/mocassin/mocassin_gridmaker.php and use the arbitrary option.  Aborted.'
                     STOP
-                END IF
-            END IF
+
+            END SELECT
+
+
         END DO
 
         !post processing
+        !!the below needs tidying and review
         IF (lg_doublet) THEN
             PRINT*,line%luminosity,n,n_inactive,2.0*n-n_inactive
             E_0=line%luminosity/real(2.0*n-n_inactive)!Energy of a single packet in W/um (note uses actual number of active photons)
@@ -136,12 +145,12 @@ contains
             E_0=line%luminosity/real(n-n_inactive)
         END IF
 
-        PRINT*,E_0,'E0'
+
 
         PRINT*,''
         PRINT*,'**********************'
-        PRINT*,'All percentages out of total number of active packets:'
-        PRINT*,''
+        !PRINT*,'All percentages out of total number of active packets:'
+        !PRINT*,''
         PRINT*,'TOTAL NUMBER OF PACKETS',n
         PRINT*,'NUMBER OF ACTIVE(PROPAGATED) PACKETS',n-n_inactive
         !WRITE OUT ENERGY FILE - wavelength, velocity, energy (W/um)
@@ -158,48 +167,39 @@ contains
             END IF
         END DO
 
-        PRINT*,'*******************'
-        PRINT*,'absorbed weight',w_abs
-        IF (lg_doublet) THEN
-            PRINT*,'undepleted luminosity (in units e40 erg/s)',line%luminosity/(1-w_abs/real(n-n_inactive))
-        ELSE
-            PRINT*,'undepleted luminosity (in units e40 erg/s)',line%luminosity/(1-w_abs/real(n-n_inactive))
-        END IF
+        !PRINT*,'*******************'
+        !PRINT*,'absorbed weight',w_abs
+!        IF (lg_doublet) THEN
+!            PRINT*,'undepleted luminosity (in units e40 erg/s)',line%luminosity/(1-w_abs/real(n-n_inactive))
+!        ELSE
+!            PRINT*,'undepleted luminosity (in units e40 erg/s)',line%luminosity/(1-w_abs/real(n-n_inactive))
+!        END IF
         !CLOSE(13)
         CLOSE(15)
         !CLOSE(17)
         IF (.not. lg_doublet) THEN
-
             PRINT*,'NUMBER OF INACTIVE PACKETS',n_inactive
             PRINT*,'NUMBER OF ABSORBED PACKETS',nabs,real(nabs)*100/real(n-n_inactive),'%'
             PRINT*,'ABSORBED WEIGHT PERCENTAGE',w_abs*100/real(n-n_inactive),'%'
-            PRINT*,''
-            PRINT*,'TOTAL ENERGY',line%luminosity
-            PRINT*,'ENERGY PER PACKET (ACTIVE ONLY)',E_0
-            PRINT*,'TOTAL ENERGY ABSORBED',nabs*E_0
-            PRINT*,''
+            !PRINT*,''
+            !PRINT*,'TOTAL ENERGY',line%luminosity
+            !PRINT*,'ENERGY PER PACKET (ACTIVE ONLY)',E_0
+            !PRINT*,'TOTAL ENERGY ABSORBED',nabs*E_0
+            !PRINT*,''
             PRINT*,'FRACTION OF ESCAPED PACKETS IN LINE OF SIGHT',tot,real(tot)*100/real((n-n_inactive-nabs)),'%'
-            PRINT*,''
+            !PRINT*,''
             PRINT*,'DUST MASS',dust%mass
-            PRINT*,'OUTPUT FILENAME:  ', trim(filename)
-            PRINT*,''
-            PRINT*,'FINISHED MODELLING!'
-            PRINT*,''
-            PRINT*,'Calculating chi...'
-            PRINT*,''
-        
+            !PRINT*,'OUTPUT FILENAME:  ', trim(filename)
         ELSE
-
             PRINT*,'DUST MASS',dust%mass
             PRINT*,nabs,n,n_inactive
             PRINT*,'percentage of absorbed packets',real(nabs*100.0)/real(n-n_inactive)
             PRINT*,'absorbed weight',w_abs*100/real(n-n_inactive)
-            PRINT*,'FINISHED MODELLING!'
         END IF
 
+        !call linear_interp(chi2)
 
-        call linear_interp(chi2)
-
+        !decallocate all memore
         DEALLOCATE(grid_cell)
         DEALLOCATE(nu_grid%bin)
         DEALLOCATE(tmp)
@@ -211,14 +211,16 @@ contains
         DEALLOCATE(dust%species)
         IF (dust_geometry%type == "shell") DEALLOCATE(RSh)
 
+
+
+        PRINT*,'Complete!'
+
     END SUBROUTINE run_code
 
     SUBROUTINE run_packets()
 
-
         !!!!!OPENMP HAS NOT BEEN UPDATED AFTER RECENT AMENDMENTS SO DO NOT EMPLOY WITHOUT THOROUGH CHECKING FIRST!!!!!!!!!!!
         !!$OMP PARALLEL DEFAULT(PRIVATE) SHARED(dust_geometry%ff,gas_geometry%rho_power,line%doublet_ratio,iDoublet,tot,n_inactive,nabs,shell_width,width,NP_BIN,NP,iSh,RSh,dust_geometry%R_min,dust_geometry%R_max,gas_geometry%R_min,gas_geometry%R_max,lg_LOS,lg_ES,grid,mothergrid%n_cells,nu_grid%bin,dust_geometry%v_max,gas_geometry%v_max,l,gas_geometry%v_power,dummy,mgrid,dust,lg_vel_shift)
-
         !PRINT*,'num of threads', omp_get_num_threads()
 
         !!$OMP DO SCHEDULE(dynamic)
@@ -226,7 +228,7 @@ contains
             !PRINT*,'thread number',omp_get_thread_num()
 
             call emit_photon(nu_p,dir_cart,pos_cart,iG_axis,lgactive,w)
-                        
+
             !PRINT*,'thread no',omp_get_thread_num()
             IF (lgactive == 1) THEN
                 scatno=0
@@ -289,7 +291,6 @@ contains
                             IF (lg_doublet) THEN
                                 IF (iDoublet==2) THEN
                                     w=w/line%doublet_ratio
-                                        
                                 END IF
                             END IF
                             dummy=NP_BIN(freqid)+w                  !Add 1 to number of photons in that freq bin
