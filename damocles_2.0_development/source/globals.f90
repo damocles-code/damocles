@@ -1,6 +1,6 @@
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!---------------------------------------------------------------------!
 !  declare here all global variables such as counters, constants etc. !
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!---------------------------------------------------------------------!
 
 MODULE globals
 
@@ -18,12 +18,15 @@ MODULE globals
     INTEGER             ::  iG
     INTEGER             ::  unit_vol_iD
 
+    !random numbers
+    REAL                ::  random(5),ran
+
     !constants
     REAL, PARAMETER     ::  pi=3.141592654
     REAL,PARAMETER      ::  c=3E8                   !in SI units (m/s)
 
     !factors for scaling/normalising distributions
-    REAL    ::  norm
+    REAL                ::  norm
 
     !properties of the model
     INTEGER(8)          ::  n_packets               !number of packets to use in simulation

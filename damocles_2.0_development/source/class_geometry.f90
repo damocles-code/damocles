@@ -1,9 +1,15 @@
+!-----------------------------------------------------------------------!
+!  this module declares the geometry derived type objects               !
+!       - this is the general geoemtry description for gas or for dust  !
+!         and includes parameters such as maximum velocity, r_max etc.  !
+!  includes a subroutine to check whether dust is clumped or not        !
+!-----------------------------------------------------------------------!
+
 MODULE class_geometry
 
     IMPLICIT NONE
 
     TYPE geometry_obj
-
         REAL        ::  clumped_mass_frac   !mass fraction of dust located in clumpes. 0 indicates no clumping.
         REAL        ::  R_ratio             !ratio between inner and outer radii (R_in/R_out)
         REAL        ::  v_max               !maximum velocity (km/s) at R_out
@@ -21,15 +27,14 @@ MODULE class_geometry
 
         LOGICAL     ::  lg_clumped          !is the medium clumped?
 
-        CHARACTER(LEN=9) ::   type
-
+        CHARACTER(LEN=9) ::   type          !e.g. shell or arbitrary or torus
     END TYPE
-
 
     TYPE(geometry_obj) gas_geometry, dust_geometry
 
     contains
 
+    !this subroutine sets the dust clumping logical to true if the clumped dust mass fraction is between 0 and 1
     SUBROUTINE check_dust_clumped()
         !test 0 or 1 entered
         IF (dust_geometry%clumped_mass_frac < 0 .OR. dust_geometry%clumped_mass_frac > 1) THEN

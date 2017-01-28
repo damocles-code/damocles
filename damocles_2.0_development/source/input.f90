@@ -1,3 +1,11 @@
+!-------------------------------------------------------------------------------!
+!  the subroutine read_input contained in this module reads in all of the       !
+!  parameters specified in the input files as well as calling a couple of       !
+!  basic checks.                                                                !
+!                                                                               !
+!  more checks should be included here in the future.                           !
+!-------------------------------------------------------------------------------!
+
 MODULE input
 
     USE globals
@@ -43,6 +51,7 @@ contains
         READ(10,*) lg_ES
         READ(10,*) e_scat_file
         READ(10,*) day_no
+        READ(10,*) dust%scat_type
 
         !geometry options
         READ(10,*)
@@ -110,6 +119,8 @@ contains
             CASE ('shell')
                 call check_dust_clumped()
         END SELECT
+
+        call check_scat_type()
 
         !read in electron scattering options (if using electron scattering)
         IF (lg_ES) THEN

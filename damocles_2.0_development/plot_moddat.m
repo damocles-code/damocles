@@ -3,10 +3,11 @@ lim=0.8;
 limy=6;
 doublet=0;
 sm=3;
-sf=1e13;
+%sf=1e11;
 
 str='day 714';
 add=0;
+wav_space=1
 
 if (add==1) 
     
@@ -42,7 +43,12 @@ fluxdat=cat(1,fluxdat,fluxext);
 
 veldat=cat(1,line_in(:,1),velext);
 end
-fluxdat=fluxdat-0.0e-13;%-nanmin(fluxdat)%-0.05e-15;
+
+if (wav_space == 1) 
+veldat=3e5*(line_in(:,1)-486.1)./486.1;
+end
+
+fluxdat=fluxdat-0.0e-13-nanmin(fluxdat)%-0.05e-15;
 fluxmod=fluxmod*s*(nanmax(fluxdat))/nanmax(fluxmod);
 
 fluxmod=smooth(fluxmod,sm);
@@ -53,12 +59,16 @@ box on;
 if add==1
     plot(veldat*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
 else
+    if wav_space == 1
+    plot(veldat*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
+    else
     plot(line_in(:,1)*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
+    end
 end 
 
 
 
-ylim([0 limy]);
+%ylim([0 limy]);
 xlim([-lim lim]);
 leg=legend('observed','model');
 leg.FontSize=13;

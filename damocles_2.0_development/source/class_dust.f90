@@ -1,3 +1,13 @@
+!-------------------------------------------------------------------------------!
+!  this module declares the dust and dust species derived type objects          !
+!  dust type includes properties such as exinction, mass, average grain density !
+!  species types includes similar properties that are specied specific          !
+!  subroutines include                                                          !
+!      -  calculation of the array describing the dust grain radii              !
+!      -  opacity calculations utilising Mie routine                            !
+!         (for each species/wavelength/grain radius combination)                !
+!-------------------------------------------------------------------------------!
+
 MODULE class_dust
 
     USE globals
@@ -9,6 +19,7 @@ MODULE class_dust
         INTEGER ::  id                          !id number
         INTEGER ::  nsizes                      !number of grain sizes
         INTEGER ::  n_wav                       !number of wavelengths
+
         REAL    ::  interval                    !spacing of grain sizes
         REAL    ::  amin,amax                   !amin, amax
         REAL    ::  weight                      !relative weight of species (fractional weighting by area)
@@ -19,6 +30,7 @@ MODULE class_dust
         REAL    ::  av_mgrain                   !average mass of a dust grain for the species
 
         CHARACTER(LEN=50)   ::  dataFile        !data file containing optical constants for species
+
         REAL,ALLOCATABLE    ::  radius(:,:)     !array containing grain sizes (1) and weightings (2)
                                                 !weightings are relative abundance by number
         REAL,ALLOCATABLE    ::  mgrain(:)       !mass of grain for each grain size in grams
@@ -32,6 +44,7 @@ MODULE class_dust
 
     TYPE dust_obj
         INTEGER                       ::  n_species           !number of species
+
         REAL                          ::  mass                !total mass of dust (M_sun)
         REAL                          ::  mass_grams          !total mass of dust (grams)
         REAL                          ::  m_icm               !total mass of dust in interclump medium (ICM) (M_sun)
@@ -41,7 +54,11 @@ MODULE class_dust
         REAL                          ::  lambda_ext_V(1)     !extinction at V band wavelength (547nm)
         REAL                          ::  av_rhograin         !average density of dust grains across all species
         REAL                          ::  av_mgrain           !average mass of dust grains across all species and sizes
+
         TYPE(species_obj),ALLOCATABLE ::  species(:)
+
+        CHARACTER(10)                 ::  scat_type           !isotropic or henyey-greenstein (hg)
+
     END TYPE dust_obj
 
     TYPE(dust_obj) :: dust
@@ -91,6 +108,7 @@ contains
             END DO
 
             !generate weighting (relative abundance by number) for each grain radius (normalised so sum is unity)
+            !!check that this weighting is actually by number of grains rather than mass or density etc.
             dust%species(ii)%radius(:,2)=(dust%species(ii)%radius(:,1)**dust%species(ii)%power)/sum(dust%species(ii)%radius(:,1)**dust%species(ii)%power)
 
             !!check conversion to weighting by volume for more than 2 species
@@ -187,13 +205,13 @@ contains
 
                     !note here that grain_rad(j,2) is the relative abundance of grain with radius a for that species
                     dust%species(ii)%ext_opacity(jj)=dust%species(ii)%ext_opacity(jj)+ &
-                    & (dust%species(ii)%radius(kk,2)*Qext(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
+                        & (dust%species(ii)%radius(kk,2)*Qext(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
                     dust%species(ii)%sca_opacity(jj)=dust%species(ii)%sca_opacity(jj)+ &
-                    & (dust%species(ii)%radius(kk,2)*Qsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
+                        & (dust%species(ii)%radius(kk,2)*Qsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
                     dust%species(ii)%g(jj)=dust%species(ii)%g(jj)+ &
-                    & (dust%species(ii)%radius(kk,2)*ggsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
+                        & (dust%species(ii)%radius(kk,2)*ggsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
                 END DO
 
@@ -238,15 +256,15 @@ contains
             !calculate extinction for rest frame wavelength and V band (547nm) weighted sum over all species
             !interpolate between the limits of the wavelength bin that contains the desired wavelength
             dust%lambda_ext=dust%lambda_ext+ &
-            & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin)-((dust%species(ii)%ext_opacity(line%wav_bin)-dust%species(ii)%ext_opacity(line%wav_bin-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin)-((dust%species(ii)%ext_opacity(line%wav_bin)-dust%species(ii)%ext_opacity(line%wav_bin-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin)-(line%wavelength/1000))/(dust%species(ii)%wav(line%wav_bin)-dust%species(ii)%wav(line%wav_bin-1)))))
 
             dust%lambda_sca=dust%lambda_sca+ &
-            & dust%species(ii)%weight*(dust%species(ii)%sca_opacity(line%wav_bin)-((dust%species(ii)%sca_opacity(line%wav_bin)-dust%species(ii)%sca_opacity(line%wav_bin-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%sca_opacity(line%wav_bin)-((dust%species(ii)%sca_opacity(line%wav_bin)-dust%species(ii)%sca_opacity(line%wav_bin-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin)-(line%wavelength/1000))/(dust%species(ii)%wav(line%wav_bin)-dust%species(ii)%wav(line%wav_bin-1)))))
 
             dust%lambda_ext_V=dust%lambda_ext_V+ &
-            & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin_v)-((dust%species(ii)%ext_opacity(line%wav_bin_v)-dust%species(ii)%ext_opacity(line%wav_bin_v-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin_v)-((dust%species(ii)%ext_opacity(line%wav_bin_v)-dust%species(ii)%ext_opacity(line%wav_bin_v-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin_v)-(547.0/1000))/(dust%species(ii)%wav(line%wav_bin_v)-dust%species(ii)%wav(line%wav_bin_v-1)))))
 
         END DO
@@ -255,8 +273,13 @@ contains
         !this will be used to convert the dust mass density distribution to a number density distribution
         dust%av_mgrain=SUM(dust%species%av_mgrain*dust%species%mweight)
 
-
     END SUBROUTINE calculate_opacities
 
+    SUBROUTINE check_scat_type()
+        IF ((trim(dust%scat_type) /= "isotropic") .and. (trim(dust%scat_type) /= "hg")) THEN
+            PRINT*, "Please enter a dust scattering type of 'isotropic' or 'hg' (for henyey-greenstein). Aborted."
+            STOP
+        END IF
+    END SUBROUTINE
 
 END MODULE class_dust

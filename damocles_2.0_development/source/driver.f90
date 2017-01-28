@@ -9,25 +9,24 @@ MODULE driver
 
     USE vector_functions
     USE class_packet
-    USE init_packet
     USE model_comparison
 
     IMPLICIT NONE
 
     INTEGER,EXTERNAL ::  omp_get_num_threads, omp_get_thread_num
-    INTEGER ::  lgabs,lgactive
-    INTEGER ::  iG_axis(3),freqid,los
+
+    INTEGER ::  freqid,los
 
 
-    REAL    ::  nu_p,theta,w,w_abs
-    REAL    ::  dir_cart(3),pos_cart(3)
+    REAL    ::  theta,w,w_abs
+
     INTEGER ::  scatno
     INTEGER ::  NP_clump
 
 contains
 
-
     SUBROUTINE run_code()
+
         implicit none
         
         REAL  :: chi2
@@ -109,8 +108,8 @@ contains
                         DO ii=1,n_shells
                             !n is cumulative number of packets run through grid (check number)
                             n=n+NP(ii)
-                            !iG is the cell in which the packet is located and is identified after emission in the rountine 'run_packets'
-                            iG=0
+                            !packet%cell_no is the cell in which the packet is located and is identified after emission in the rountine 'run_packets'
+                            packet%cell_no=0
                             unit_vol_iD=ii
                             call run_packets()
                         END DO
@@ -197,6 +196,9 @@ contains
             PRINT*,'absorbed weight',w_abs*100/real(n-n_inactive)
         END IF
 
+        PRINT*,'AVERAGE OPTICAL DEPTH IN LAMBDA_0',ndustav*dust%lambda_ext*(dust_geometry%R_max_cm-dust_geometry%R_min_cm)
+        PRINT*,'AVERAGE OPTICAL DEPTH IN V',ndustav*dust%lambda_ext_V*(dust_geometry%R_max_cm-dust_geometry%R_min_cm)
+
         !call linear_interp(chi2)
 
         !decallocate all memore
@@ -227,43 +229,41 @@ contains
         DO iP=1,NP(unit_vol_iD)
             !PRINT*,'thread number',omp_get_thread_num()
 
-            call emit_photon(nu_p,dir_cart,pos_cart,iG_axis,lgactive,w)
+            call emit_packet()
 
             !PRINT*,'thread no',omp_get_thread_num()
-            IF (lgactive == 1) THEN
+            IF (packet%lg_active) THEN
                 scatno=0
-                lgabs=0
+                packet%lg_abs=.false.
 
-                call propagate(nu_p,dir_cart,pos_cart*1e15,iG_axis,lgabs,lgactive,w,scatno)
+                call propagate(scatno)
                     
-                theta=acos(pos_cart(3)/((pos_cart(1)**2+pos_cart(2)**2+pos_cart(3)**2)**0.5))
-                IF (lgabs == 1) THEN
+                theta=acos(packet%pos_cart(3)/((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5))
+                IF (packet%lg_abs) THEN
                     !!$OMP CRITICAL
                     nabs=nabs+1
                     IF (iDoublet==2) THEN
-                        w_abs=w_abs+w/line%doublet_ratio
+                        w_abs=w_abs+packet%weight/line%doublet_ratio
                     ELSE
-                        w_abs=w_abs+w
+                        w_abs=w_abs+packet%weight
                     END IF
                     !!$OMP END CRITICAL
                 END IF
-
-
                             
                 ! IF PHOTON IN LINE OF SIGHT THEN CALCULATE WHICH FREQ BIN PACKET IN AND ADD 1 TO TOTAL IN FREQ BIN
                 IF (.not. lg_LOS) THEN
-                    IF (lgabs == 0) THEN
+                    IF (.not. packet%lg_abs) THEN
                                    
                         los=1.
-                        tmp(:,1)=(nu_p-nu_grid%bin(:,1))                         !Calculate distance to each freq point
+                        tmp(:,1)=(packet%nu-nu_grid%bin(:,1))                         !Calculate distance to each freq point
                         freq=MINLOC(tmp,1,tmp>0)                                !Find the smallest distance and thus nearest freq point
                         freqid=freq(1)                              !Attach id of freq bin to photon id
                         IF (freqid==0) THEN
-                            PRINT*,'photon outside frequency range',freqid,nu_p,w
+                            PRINT*,'photon outside frequency range',freqid,packet%nu,packet%weight
                             PRINT*,nu_grid%fmin,nu_grid%fmax
                         ELSE
                             IF (iDoublet==2) THEN
-                                w=w/line%doublet_ratio
+                                packet%weight=packet%weight/line%doublet_ratio
                                         
                             END IF
                              !!$OMP CRITICAL
@@ -271,30 +271,30 @@ contains
 
                             !NP_BIN(freqid)=dummy
 
-                            NP_BIN(freqid)=NP_BIN(freqid)+w
+                            NP_BIN(freqid)=NP_BIN(freqid)+packet%weight
 
                             tot=tot+1
                              !!$OMP END CRITICAL
                         END IF
                     END IF
                 ELSE
-                    IF ((theta<(pi/6)) .AND. (lgabs==0)) THEN                       !Only calculate freq bin for those in LoS
+                    IF ((theta<(pi/6)) .AND. (.not. packet%lg_abs)) THEN                       !Only calculate freq bin for those in LoS
                         !Packets which are not absorbed
                         los=1.
-                        tmp(:,1)=(nu_p-nu_grid%bin(:,1))                     !Calculate distance to each freq point
+                        tmp(:,1)=(packet%nu-nu_grid%bin(:,1))                     !Calculate distance to each freq point
                         freq=MINLOC(tmp,1,tmp>0)                            !Find the smallest distance and thus nearest freq point
                         freqid=freq(1)                          !Attach id of freq bin to photon id
                         IF (freqid==0) THEN
-                            PRINT*,'photon outside frequency range',freqid,nu_p,w
+                            PRINT*,'photon outside frequency range',freqid,packet%nu,w
                         ELSE
                              !!$OMP CRITICAL
                             IF (lg_doublet) THEN
                                 IF (iDoublet==2) THEN
-                                    w=w/line%doublet_ratio
+                                    packet%weight=packet%weight/line%doublet_ratio
                                 END IF
                             END IF
-                            dummy=NP_BIN(freqid)+w                  !Add 1 to number of photons in that freq bin
-                            !PRINT*,w
+                            dummy=NP_BIN(freqid)+packet%weight                  !Add 1 to number of photons in that freq bin
+                            !PRINT*,packet%weight
                             tot=tot+1
                              !!$OMP END CRITICAL
                         END IF

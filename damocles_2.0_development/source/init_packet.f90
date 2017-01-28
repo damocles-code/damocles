@@ -5,20 +5,25 @@ MODULE init_packet
     use input
     use initialise
     use vector_functions
-  
+
+
     IMPLICIT NONE
     
 contains
 
-    SUBROUTINE emit_photon(nu_p,dir_cart,pos_cart,iG_axis,lgactive,w)
+    SUBROUTINE emit_photon(nu_p,dir_cart,pos_cart,iG_axis,packet,w)
+
+
+        use class_packet
+
+        IMPLICIT NONE
 
         INTEGER               ::  ixx,iyy,izz
 
     
         REAL,INTENT(INOUT)    ::  nu_p,dir_cart(3)
         REAL,INTENT(OUT)      ::  pos_cart(3),w
-        INTEGER,INTENT(OUT)   ::  iG_axis(3),lgactive
-    
+        INTEGER,INTENT(OUT)   ::  iG_axis(3)
     
         REAL    ::  random(5),rand1(3)
         REAL    ::  pos_sph(3)
@@ -28,7 +33,7 @@ contains
         CALL RANDOM_NUMBER(random)
     
         w=1         !w is weight of photon - energy scaled when doppler shifted
-        lgactive=0  !automatically inactive until declared active
+        packet%lg_active=0  !automatically inactive until declared active
 
         rand1=random(1:3)
     
@@ -64,7 +69,7 @@ contains
             vel_vect=normalise(pos_cart)*v_p
        
             nu_p=line%frequency
-            lgactive=1
+            packet%lg_active=1
 
             call lorentz_trans(vel_vect,nu_p,dir_cart,w,"emsn")
 
@@ -117,11 +122,11 @@ contains
             !track total number of inactive photons
             n_inactive=n_inactive+1
             PRINT*,'inactive photon'
-            lgactive=0
+            packet%lg_active=0
         END IF
 
         IF (ANY(iG_axis == 0)) THEN
-            lgactive=0
+            packet%lg_active=0
             n_inactive=n_inactive+1
             PRINT*,'inactive photon'
         END IF

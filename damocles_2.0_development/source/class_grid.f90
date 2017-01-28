@@ -8,28 +8,32 @@ MODULE class_grid
     implicit none
 
     TYPE grid_obj
-
         INTEGER          ::  n_cells(3)                    !number of cells in x/y/z directions
-        REAL             ::  cell_width(3)                !width of grid cells in x/y/z directions (only applicable for cubic grids with equal no of divisions in each axis)
-        REAL             ::  cell_vol                     !volume of grid cell (only applicable for cubic grids with equal no of divisions in each axis)
         INTEGER          ::  tot_cells                     !total number of cells
-        REAL,ALLOCATABLE ::  x_div(:),y_div(:),z_div(:)   !locations of divisions listed consecutively in x, y and z
+
+        REAL             ::  cell_vol                     !volume of grid cell (only applicable for cubic grids with equal no of divisions in each axis)
         REAL             ::  x_min,x_max
         REAL             ::  y_min,y_max
         REAL             ::  z_min,z_max
 
+        REAL             ::  cell_width(3)                !width of grid cells in x/y/z directions (only applicable for cubic grids with equal no of divisions in each axis)
+
+        REAL,ALLOCATABLE ::  x_div(:),y_div(:),z_div(:)   !locations of divisions listed consecutively in x, y and z
     END TYPE grid_obj
 
     TYPE(grid_obj)  ::  mothergrid                        !properties of the mothergrid
 
     TYPE grid_cell_obj
-        REAL    ::  axis(3)                               !limits of grid cell in x, y and z
-        REAL    ::  width(3)                              !width of grid cells in x/y/z directions
         REAL    ::  rho,nrho,N_e                          !mass density, number density and electron density of grid cell
         REAL    ::  r                                     !radial distance from (0,0,0) to the centre of the cell
         REAL    ::  vol                                   !volume of cell
-        INTEGER ::  id(3)                                 !grid cell number in each of x, y and z
+
+        REAL    ::  axis(3)                               !limits of grid cell in x, y and z
+        REAL    ::  width(3)                              !width of grid cells in x/y/z directions
+
         INTEGER ::  cellStatus,numPhots
+
+        INTEGER ::  id(3)                                 !grid cell number in each of x, y and z
     END TYPE
 
     TYPE(grid_cell_obj),ALLOCATABLE  :: grid_cell(:) !mothergrid is comprised of'tot_cells' grid_cells
@@ -563,6 +567,7 @@ contains
                     !if decoupled then generate max/min radii from epoch and maximum velocity
                     gas_geometry%R_max=gas_geometry%v_max*day_no*8.64E-6
                     gas_geometry%R_min=gas_geometry%R_ratio*gas_geometry%R_max
+
                 ELSE
                     !if decoupled then set gas geometry parameters to equal the dust geometry parameters
                     IF (gas_geometry%type /= dust_geometry%type) THEN

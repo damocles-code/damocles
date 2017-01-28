@@ -59,9 +59,10 @@ contains
         DO ii=1,n_bins_dat
             READ(21,*) xdat(ii),ydat(ii)
             !if in vel space (kms-1) include this line
-            xdat(ii)=((xdat(ii)*1000/c)+1)*line%wavelength
+            !xdat(ii)=((xdat(ii)*1000/c)+1)*line%wavelength
             !if in angstroms include this line
             !xdat(inu)=xdat(inu)/10
+            !if in nm do nothing
             !PRINT*,ydat(inu)
         END DO
 
