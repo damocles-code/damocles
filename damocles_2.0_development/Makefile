@@ -19,9 +19,9 @@ source/%.o: source/%.f90
 	$(FC) $(FFLAGS) $^ -c -o $@
 
 damocles: source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o \
-  source/class_grid.o source/input.o source/random_routines.o source/electron_scattering.o source/vector_functions.o \
-source/initialise.o source/class_packet.o source/BHmie.o source/init_random_seed.o source/propagate.o \
-source/construct_grid.o source/model_comparison.o source/driver.o source/damocles.o
+   source/class_grid.o source/electron_scattering.o source/input.o source/random_routines.o source/vector_functions.o \
+source/initialise.o source/class_packet.o source/BHmie.o source/init_random_seed.o source/radiative_transfer.o \
+source/model_comparison.o source/driver.o source/damocles.o
 	$(LD) $(LDFLAGS) $(FFLAGS) -o $@ $^
 
 clean:

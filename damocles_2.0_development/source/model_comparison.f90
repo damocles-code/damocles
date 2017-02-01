@@ -45,7 +45,7 @@ contains
         !read in observed data
         OPEN(21,file=data_file)
         READ(21,*) n_bins_dat
-        READ(21,*)
+
 !        READ(21,*) err
 !        READ(21,*)
 !        READ(21,*) limit_min, limit_max

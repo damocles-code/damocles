@@ -6,7 +6,7 @@ true		!  include velocity scattering?
 false		!  use line of sight
 false           !  include e- scattering?
 'e_scat.in'	!  e- scattering file
-868		!  day no (used to calculate R_out)
+100		!  day no (used to calculate R_out)
 hg		!  dust scattering (enter isotropic or hg (henyey-greenstein))
 ========================GEOMETRY OPTIONS===============================================
 false		!  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
@@ -18,7 +18,7 @@ shell   	!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
 =========================GRID==========================================================
 50		!  number of cells in each direction
 =======================PHOTON PACKETS==================================================
-1000000		!  number of photons
+100000		!  number of photons
 10000		!  number of frequency bins for output energy distribution
 100		!  number of shells
 

@@ -64,7 +64,6 @@ MODULE class_grid
     REAL    ::  msub                        !mass in grid replaced by clumps
 
     REAL    ::  cellno
-    REAL    ::  ES_const
 
 
 
@@ -396,8 +395,9 @@ contains
                                     grid_cell(iG)%nrho= ndust
                                     !!!ES EDIT
                                     !!!watch out for the E19 ES_const in E20
+                                    !moved to es module
+                                    !grid_cell(iG)%N_e=ES_const*(grid_cell(iG)%r**(-dust_geometry%rho_power))*1E20
 
-                                    grid_cell(iG)%N_e=ES_const*(grid_cell(iG)%r**(-dust_geometry%rho_power))*1E20
                                     !PRINT*,ES_const,(grid_cell(iG)%r**(-q)),mgrid(iG)%N_e, grid_cell(iG)%r,dust_geometry%R_min_cm
                                     grid_cell(ig)%id(:)=(/ ixx,iyy,izz /)
                                     !this should be calculates as numpG and not 0, but I've left out the calculation...

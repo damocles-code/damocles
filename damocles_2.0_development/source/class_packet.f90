@@ -30,6 +30,7 @@ MODULE class_packet
 
         INTEGER ::  cell_no      !current cell ID of packet
         INTEGER ::  axis_no(3)   !current cell IDs in each axis
+        INTEGER ::  step_no      !number of steps that packet has experienced
 
         LOGICAL ::  lg_abs       !true indicates packet has been absored
         LOGICAL ::  lg_active    !true indicates that packet is being or has been processed
@@ -55,6 +56,13 @@ contains
 
         !packet is declared inactive by default until declared active
         packet%lg_active=.false.
+
+        !initialise absorption logical to 0.  This changed to 1 if absorbed.
+        !Note absorption (lg_abs = true - absorbed) different to inactive (lg_active = false - never emitted).
+        packet%lg_abs=.false.
+
+        !initialise step number to zero
+        packet%step_no=0
 
         !initial position of packet is generated in both cartesian and spherical coordinates
         IF ((gas_geometry%clumped_mass_frac==1) .or. (gas_geometry%type == "arbitrary")) THEN

@@ -10,23 +10,31 @@
 !       called again                                                            !
 !-------------------------------------------------------------------------------!
 
-RECURSIVE SUBROUTINE propagate(scatno)
+MODULE radiative_transfer
 
-    USE globals
-    USE class_dust
-    USE class_grid
-    USE input
-    USE initialise
-    USE vector_functions
-    USE random_routines
-    USE electron_scattering
-    USE class_packet
+contains
 
-    IMPLICIT NONE
+    use globals
+    use class_dust
+    use class_grid
+    use input
+    use initialise
+    use vector_functions
+    use random_routines
+    use electron_scattering
+    use class_packet
 
-    REAL    ::  tau,kp,kappa_i,kappa_sca_i
-    REAL    ::  kappa,kappa_sca,albdo
-    REAL    ::  sface(3),s,s_min
+    implicit none
+
+    REAL    ::  tau                    !optical depth sampled from cumulative frequency dsitribution at wavelength of active packet
+    REAL    ::  kappa_rho              !opacity * mass density = C_ext (cross-section of interaction) * number density at at wavelength of active packet
+    REAL    ::  C_ext_tot              !total extinction cross-section of interaction at wavelength of active packet
+    REAL    ::  C_sca_tot              !total scattering cross-section of interaction at wavelength of active packet
+    REAL    ::  albedo                 !albedo in cell at wavelength of active packet
+
+    REAL    ::  s_face(3)              !distance to each (x/y/z) cell boundary in direction of travel
+    REAL    ::  s_min                  !
+    REAL    ::  s
 
     REAL    ::  V_T(3)
     REAL    ::  maxwell_sigma
@@ -38,8 +46,15 @@ RECURSIVE SUBROUTINE propagate(scatno)
     INTEGER ::  iSGP(3)
     INTEGER ::  imin
     INTEGER ::  scatno
+
+    REAL    ::  C_ext(dust%n_species)
+    REAL    ::  C_sca(dust%n_species)
     !INTEGER ::  omp_get_thread_num
-    
+
+contains
+
+RECURSIVE SUBROUTINE propagate(scatno)
+
     maxwell_sigma=((ES_temp*1.51563e7)**0.5)/1000
 
     !calculate overall id of cell using x,y and z ids
@@ -47,12 +62,7 @@ RECURSIVE SUBROUTINE propagate(scatno)
     ! 1 1 1, 1 1 2, 1 1 3, 1 2 1, 1 2 2, 1 2 3, 2 1 1, 2 1 2... etc.
     packet%cell_no=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(packet%axis_no(1)-1)+mothergrid%n_cells(3)*(packet%axis_no(2)-1)+packet%axis_no(3))
 
-    !initialise absorption logical to 0.  This changed to 1 if absorbed.
-    !Note absorption (lgabs - absorbed) different to inactive (lginactive-never emitted).
-    packet%lg_abs=.false.
-    albdo=0
-    kappa=0
-    kappa_sca=0
+    !call calculate_extinction()
 
     !calculate extinction opacity and albedo
     DO ispec=1,dust%n_species
@@ -61,46 +71,47 @@ RECURSIVE SUBROUTINE propagate(scatno)
         wav_id=MINLOC(ABS((dust%species(ispec)%wav(:)-(c*1e6/packet%nu))),1)
 
         !calculate opactiy as function of rho for specific wavelength by interpolating between bins for each species
+        !!interpolate function?
         IF ((c*1e6/packet%nu-dust%species(ispec)%wav(wav_id))<0) THEN
-            kappa_i=dust%species(ispec)%ext_opacity(wav_id)-((dust%species(ispec)%ext_opacity(wav_id)-dust%species(ispec)%ext_opacity(wav_id-1))* &
+            C_ext(ispec)=dust%species(ispec)%C_ext(wav_id)-((dust%species(ispec)%C_ext(wav_id)-dust%species(ispec)%C_ext(wav_id-1))* &
                 & ((dust%species(ispec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(ispec)%wav(wav_id)-dust%species(ispec)%wav(wav_id-1))))
         ELSE
-            kappa_i=dust%species(ispec)%ext_opacity(wav_id)+((dust%species(ispec)%ext_opacity(wav_id+1)-dust%species(ispec)%ext_opacity(wav_id))* &
+            C_ext(ispec)=dust%species(ispec)%C_ext(wav_id)+((dust%species(ispec)%C_ext(wav_id+1)-dust%species(ispec)%C_ext(wav_id))* &
                 & ((c*1e6/packet%nu-dust%species(ispec)%wav(wav_id))/(dust%species(ispec)%wav(wav_id+1)-dust%species(ispec)%wav(wav_id))))
         END IF
-
-        !add this weighted opacity to overall opacity
-        kappa=kappa+kappa_i*dust%species(ispec)%weight
 
         !cumulative scattering component of extinction for albedo calculation
         IF ((c*1e6/packet%nu-dust%species(ispec)%wav(wav_id))<0) THEN
-            kappa_sca_i=dust%species(ispec)%sca_opacity(wav_id)-((dust%species(ispec)%sca_opacity(wav_id)-dust%species(ispec)%sca_opacity(wav_id-1))* &
+            C_sca(ispec)=dust%species(ispec)%C_sca(wav_id)-((dust%species(ispec)%C_sca(wav_id)-dust%species(ispec)%C_sca(wav_id-1))* &
                 & ((dust%species(ispec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(ispec)%wav(wav_id)-dust%species(ispec)%wav(wav_id-1))))
         ELSE
-            kappa_sca_i=dust%species(ispec)%sca_opacity(wav_id)+((dust%species(ispec)%sca_opacity(wav_id+1)-dust%species(ispec)%sca_opacity(wav_id))* &
+            C_sca(ispec)=dust%species(ispec)%C_sca(wav_id)+((dust%species(ispec)%C_sca(wav_id+1)-dust%species(ispec)%C_sca(wav_id))* &
                 & ((c*1e6/packet%nu-dust%species(ispec)%wav(wav_id))/(dust%species(ispec)%wav(wav_id+1)-dust%species(ispec)%wav(wav_id))))
         END IF
-        kappa_sca=kappa_sca+kappa_sca_i*dust%species(ispec)%weight
     END DO
 
+    !calculate total opactiies weighted over all species
+    C_ext_tot=sum(C_ext*dust%species%weight)
+    C_sca_tot=sum(C_sca*dust%species%weight)
+
     !calculate albedo (don't add weighted albedos, must add each component and then divide total scat by total ext)
-    albdo=kappa_sca/kappa
+    albedo=C_sca_tot/C_ext_tot
 
     !call random number and sample from CFD to obtain tau
     call random_number(ran)
     tau=-(ALOG((1-ran)))
 
     !Calculate overall opactiy using rho and work out distance packet will travel
-    !kp = k*rho = n*Cext (units of cm^-1)
-    kp=kappa*grid_cell(packet%cell_no)%nrho
+    !kappa_rho = kappa*rho = n*Cext (units of cm^-1)
+    kappa_rho=(C_ext_tot*grid_cell(packet%cell_no)%nrho)
         
     !work out potential distance travelled by packet based on optical depth tau
-    !(distance in units of cm, since kp in units cm^-1)
+    !(distance in units of cm, since kappa_rho in units cm^-1)
     IF (grid_cell(packet%cell_no)%nrho>0) THEN
         IF (lg_ES) THEN
-            s=tau/(kp+sigma_T*grid_cell(packet%cell_no)%N_e)
+            s=tau/(kappa_rho+sigma_T*grid_cell(packet%cell_no)%N_e)
         ELSE
-            s=tau/kp
+            s=tau/kappa_rho
         END IF
     ELSE
         !if cell has zero density then potential distance travelled is greatest distance across cell (for no e- scat)
@@ -117,15 +128,15 @@ RECURSIVE SUBROUTINE propagate(scatno)
     !calculate distance to nearest face
     DO i_dir=1,3
         IF (packet%dir_cart(i_dir)<0) THEN
-            sface(i_dir)=ABS((grid_cell(packet%cell_no)%axis(i_dir)-packet%pos_cart(i_dir))/packet%dir_cart(i_dir))
+            s_face(i_dir)=ABS((grid_cell(packet%cell_no)%axis(i_dir)-packet%pos_cart(i_dir))/packet%dir_cart(i_dir))
         ELSE
-            sface(i_dir)=ABS((grid_cell(packet%cell_no)%axis(i_dir)+grid_cell(packet%cell_no)%width(i_dir)-packet%pos_cart(i_dir))/packet%dir_cart(i_dir))
+            s_face(i_dir)=ABS((grid_cell(packet%cell_no)%axis(i_dir)+grid_cell(packet%cell_no)%width(i_dir)-packet%pos_cart(i_dir))/packet%dir_cart(i_dir))
         END IF
     END DO
 
     !index of nearest face (i.e. identifies whether nearest face is planar in x or y or z) and distance
-    s_min=MINVAL(sface)
-    imin=MINLOC(sface,1)
+    s_min=MINVAL(s_face)
+    imin=MINLOC(s_face,1)
     
     !event occurs when distance travelled (as determined by tau) is < distance to nearest face
     !else continues with to cell boundary with no event occurring
@@ -136,22 +147,22 @@ RECURSIVE SUBROUTINE propagate(scatno)
         packet%pos_cart(:)=packet%pos_cart(:)+(ABS(s_min)+ABS(s_min)*1E-10)*packet%dir_cart(:)     !actually moves just past boundary by small factor...
 
         IF (packet%dir_cart(imin)>0) THEN
-        !if packet travels forwards then advance cell id by 1 in that index
+            !if packet travels forwards then advance cell id by 1 in that index
             IF (packet%axis_no(imin) /= mothergrid%n_cells(1)) THEN
                 packet%axis_no(imin)=packet%axis_no(imin)+1
             ELSE 
-            !reached edge of grid, escapes
+                !reached edge of grid, escapes
                 RETURN
             END IF
             !update id of cell where packet is and update position of packet
             packet%cell_no=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(packet%axis_no(1)-1))+mothergrid%n_cells(3)*(packet%axis_no(2)-1)+packet%axis_no(3)
             packet%pos_cart(imin)=grid_cell(packet%cell_no)%axis(imin)+((ABS(s_min)*1E-10)*packet%dir_cart(imin))
         ELSE
-        !if packet travels backwards then reduce cell id by 1 in that index
+            !if packet travels backwards then reduce cell id by 1 in that index
             IF (packet%axis_no(imin) /= 1) THEN
                 packet%axis_no(imin)=packet%axis_no(imin)-1
             ELSE
-            !reached edge of grid, escapes
+                !reached edge of grid, escapes
                 RETURN
             END IF
             !update id of cell where packet is and update position of packet
@@ -194,7 +205,7 @@ RECURSIVE SUBROUTINE propagate(scatno)
 
         call random_number(ran)
 
-!!no scattering check -could get stuck in highly scattering environments
+        !!no scattering check -could get stuck in highly scattering environments
         IF (scatno>500) THEN
             packet%lg_active=.false.
             !packet%lg_abs=1
@@ -203,14 +214,14 @@ RECURSIVE SUBROUTINE propagate(scatno)
         END IF
        
         !if ES used then establish whether dust event or e- scattering event
-        IF ((.not. lg_ES) .OR. (ran<kp/(kp+sigma_T*grid_cell(packet%cell_no)%N_e))) THEN
-        !dust event - either scattering or absorption...
+        IF ((.not. lg_ES) .OR. (ran<kappa_rho/(kappa_rho+sigma_T*grid_cell(packet%cell_no)%N_e))) THEN
+            !dust event - either scattering or absorption...
 
             !generate random number to compare to dust albedo in order to determine whether dust absorption or scattering
             call random_number(ran)
 
-            IF (ran<albdo) THEN
-            !dust scattering event
+            IF (ran<albedo) THEN
+                !dust scattering event
                 scatno=scatno+1
 
                 !calculate velocity of scatterer and velocity unit vector
@@ -240,12 +251,12 @@ RECURSIVE SUBROUTINE propagate(scatno)
                 call propagate(scatno)
 
             ELSE
-            !dust absorption event
+                !dust absorption event
                 packet%lg_abs=.true.
                 RETURN
             END IF
         ELSE
-        !electron scattering event
+            !electron scattering event
 
             !calculate bulk velocity of scattering e- and velocity unit vector
             packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%R_max*1e15))**dust_geometry%v_power)

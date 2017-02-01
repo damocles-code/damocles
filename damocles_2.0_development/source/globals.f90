@@ -10,6 +10,7 @@ MODULE globals
     INTEGER             ::  ii,jj,kk
     INTEGER             ::  ixx,iyy,izz
     INTEGER             ::  iSh
+    INTEGER             ::  i_dir,i_spec
 
     !dummy counters
     INTEGER             ::  xx,yy,zz

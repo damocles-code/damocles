@@ -1,15 +1,16 @@
 MODULE driver
 
-    USE globals
-    USE class_line
-    USE class_freq_grid
-    USE class_grid
-    USE input
-    USE initialise
-
-    USE vector_functions
-    USE class_packet
-    USE model_comparison
+    use globals
+    use class_line
+    use class_freq_grid
+    use class_grid
+    use electron_scattering
+    use input
+    use initialise
+    use vector_functions
+    use class_packet
+    use radiative_transfer
+    use model_comparison
 
     IMPLICIT NONE
 
@@ -55,8 +56,8 @@ contains
                 call calculate_opacities()
                 call build_dust_grid()
                 call construct_freq_grid()
-                !call N_e_const(ES_const)
                 call build_emissivity_dist()
+                call n_e_const()
 
                 !!initialise counters to zero
                 !!what are these?
@@ -199,7 +200,8 @@ contains
         PRINT*,'AVERAGE OPTICAL DEPTH IN LAMBDA_0',ndustav*dust%lambda_ext*(dust_geometry%R_max_cm-dust_geometry%R_min_cm)
         PRINT*,'AVERAGE OPTICAL DEPTH IN V',ndustav*dust%lambda_ext_V*(dust_geometry%R_max_cm-dust_geometry%R_min_cm)
 
-        !call linear_interp(chi2)
+        !calculate goodness of fit to data if supplied
+        IF (lg_data) call linear_interp(chi2)
 
         !decallocate all memore
         DEALLOCATE(grid_cell)
@@ -236,7 +238,7 @@ contains
                 scatno=0
                 packet%lg_abs=.false.
 
-                call propagate(scatno)
+                call propagate()
                     
                 theta=acos(packet%pos_cart(3)/((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5))
                 IF (packet%lg_abs) THEN

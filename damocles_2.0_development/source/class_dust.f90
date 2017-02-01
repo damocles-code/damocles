@@ -34,8 +34,8 @@ MODULE class_dust
         REAL,ALLOCATABLE    ::  radius(:,:)     !array containing grain sizes (1) and weightings (2)
                                                 !weightings are relative abundance by number
         REAL,ALLOCATABLE    ::  mgrain(:)       !mass of grain for each grain size in grams
-        REAL,ALLOCATABLE    ::  sca_opacity(:)  !array containing scattering extinctions at each wavelength
-        REAL,ALLOCATABLE    ::  ext_opacity(:)  !array containing extinctions at each wavelength
+        REAL,ALLOCATABLE    ::  C_sca(:)  !array containing scattering extinctions at each wavelength
+        REAL,ALLOCATABLE    ::  C_ext(:)  !array containing extinctions at each wavelength
         REAL,ALLOCATABLE    ::  g(:)            !array containing g (asymmetry factor) at each wavelength
         REAL,ALLOCATABLE    ::  wav(:)          !array containing the wavelengths
         REAL,ALLOCATABLE    ::  albedo(:)       !array containing albedos for each wavelength
@@ -177,8 +177,8 @@ contains
             !allocate permanent space for extinction efficiency parameters to be stored
             !extinction parameters are calculated for each species for each wavelength (averaged over the size distribution)
             ALLOCATE(dust%species(ii)%wav(dust%species(ii)%n_wav))
-            ALLOCATE(dust%species(ii)%ext_opacity(dust%species(ii)%n_wav))
-            ALLOCATE(dust%species(ii)%sca_opacity(dust%species(ii)%n_wav))
+            ALLOCATE(dust%species(ii)%C_ext(dust%species(ii)%n_wav))
+            ALLOCATE(dust%species(ii)%C_sca(dust%species(ii)%n_wav))
             ALLOCATE(dust%species(ii)%albedo(dust%species(ii)%n_wav))
             ALLOCATE(dust%species(ii)%g(dust%species(ii)%n_wav))
 
@@ -190,8 +190,8 @@ contains
             CLOSE(13)
 
             !initiliase arrays to 0
-            dust%species(ii)%ext_opacity(:)=0.
-            dust%species(ii)%sca_opacity(:)=0.
+            dust%species(ii)%C_ext(:)=0.
+            dust%species(ii)%C_sca(:)=0.
             dust%species(ii)%g(:)=0.
 
             DO jj=1,dust%species(ii)%n_wav
@@ -204,10 +204,10 @@ contains
                     call BHmie(sizeparam,refrel,Qext(kk,jj),Qsca(kk,jj),ggsca(kk,jj))
 
                     !note here that grain_rad(j,2) is the relative abundance of grain with radius a for that species
-                    dust%species(ii)%ext_opacity(jj)=dust%species(ii)%ext_opacity(jj)+ &
+                    dust%species(ii)%C_ext(jj)=dust%species(ii)%C_ext(jj)+ &
                         & (dust%species(ii)%radius(kk,2)*Qext(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
-                    dust%species(ii)%sca_opacity(jj)=dust%species(ii)%sca_opacity(jj)+ &
+                    dust%species(ii)%C_sca(jj)=dust%species(ii)%C_sca(jj)+ &
                         & (dust%species(ii)%radius(kk,2)*Qsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
                     dust%species(ii)%g(jj)=dust%species(ii)%g(jj)+ &
@@ -218,7 +218,7 @@ contains
             END DO
 
             !calculate albedo for each species at each wavelength
-            dust%species(ii)%albedo=dust%species(ii)%sca_opacity/dust%species(ii)%ext_opacity
+            dust%species(ii)%albedo=dust%species(ii)%C_sca/dust%species(ii)%C_ext
 
             !deallocate temporary space
             DEALLOCATE(E_Re)
@@ -256,15 +256,15 @@ contains
             !calculate extinction for rest frame wavelength and V band (547nm) weighted sum over all species
             !interpolate between the limits of the wavelength bin that contains the desired wavelength
             dust%lambda_ext=dust%lambda_ext+ &
-                & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin)-((dust%species(ii)%ext_opacity(line%wav_bin)-dust%species(ii)%ext_opacity(line%wav_bin-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%C_ext(line%wav_bin)-((dust%species(ii)%C_ext(line%wav_bin)-dust%species(ii)%C_ext(line%wav_bin-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin)-(line%wavelength/1000))/(dust%species(ii)%wav(line%wav_bin)-dust%species(ii)%wav(line%wav_bin-1)))))
 
             dust%lambda_sca=dust%lambda_sca+ &
-                & dust%species(ii)%weight*(dust%species(ii)%sca_opacity(line%wav_bin)-((dust%species(ii)%sca_opacity(line%wav_bin)-dust%species(ii)%sca_opacity(line%wav_bin-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%C_sca(line%wav_bin)-((dust%species(ii)%C_sca(line%wav_bin)-dust%species(ii)%C_sca(line%wav_bin-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin)-(line%wavelength/1000))/(dust%species(ii)%wav(line%wav_bin)-dust%species(ii)%wav(line%wav_bin-1)))))
 
             dust%lambda_ext_V=dust%lambda_ext_V+ &
-                & dust%species(ii)%weight*(dust%species(ii)%ext_opacity(line%wav_bin_v)-((dust%species(ii)%ext_opacity(line%wav_bin_v)-dust%species(ii)%ext_opacity(line%wav_bin_v-1))* &
+                & dust%species(ii)%weight*(dust%species(ii)%C_ext(line%wav_bin_v)-((dust%species(ii)%C_ext(line%wav_bin_v)-dust%species(ii)%C_ext(line%wav_bin_v-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin_v)-(547.0/1000))/(dust%species(ii)%wav(line%wav_bin_v)-dust%species(ii)%wav(line%wav_bin_v-1)))))
 
         END DO
@@ -275,6 +275,7 @@ contains
 
     END SUBROUTINE calculate_opacities
 
+    !subroutine to check that an appropriate scattering type has been specified
     SUBROUTINE check_scat_type()
         IF ((trim(dust%scat_type) /= "isotropic") .and. (trim(dust%scat_type) /= "hg")) THEN
             PRINT*, "Please enter a dust scattering type of 'isotropic' or 'hg' (for henyey-greenstein). Aborted."
