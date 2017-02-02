@@ -28,6 +28,7 @@ MODULE radiative_transfer
     REAL    ::  kappa_rho              !opacity * mass density = C_ext (cross-section of interaction) * number density at at wavelength of active packet
     REAL    ::  C_ext_tot              !total extinction cross-section of interaction at wavelength of active packet
     REAL    ::  C_sca_tot              !total scattering cross-section of interaction at wavelength of active packet
+    REAL    ::  g_param_tot            !total forward scattering parameter g (from Mie calculation, to be used with Henyey-Greenstein approx)
     REAL    ::  albedo                 !albedo in cell at wavelength of active packet
     REAL    ::  v_therm(3)             !sampled velocity of electron based on specified electron temperature
     REAL    ::  s_face(3)              !distance to each (x/y/z) cell boundary in direction of travel
@@ -189,6 +190,7 @@ contains
 
         REAL    ::  C_ext(dust%n_species)
         REAL    ::  C_sca(dust%n_species)
+        REAL    ::  g_param(dust%n_species)
 
         !calculate extinction opacity and albedo
         DO i_spec=1,dust%n_species
@@ -215,11 +217,21 @@ contains
                 C_sca(i_spec)=dust%species(i_spec)%C_sca(wav_id)+((dust%species(i_spec)%C_sca(wav_id+1)-dust%species(i_spec)%C_sca(wav_id))* &
                     & ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
             END IF
+
+            !cumulative scattering component of extinction for albedo calculation
+            IF ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))<0) THEN
+                g_param(i_spec)=dust%species(i_spec)%g_param(wav_id)-((dust%species(i_spec)%g_param(wav_id)-dust%species(i_spec)%g_param(wav_id-1))* &
+                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
+            ELSE
+                g_param(i_spec)=dust%species(i_spec)%g_param(wav_id)+((dust%species(i_spec)%g_param(wav_id+1)-dust%species(i_spec)%g_param(wav_id))* &
+                    & ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
+            END IF
         END DO
 
         !calculate total opactiies weighted over all species
         C_ext_tot=sum(C_ext*dust%species%weight)
         C_sca_tot=sum(C_sca*dust%species%weight)
+        g_param_tot=sum(g_param*dust%species%weight)
 
         !calculate albedo (don't add weighted albedos, must add each component and then divide total scat by total ext)
         albedo=C_sca_tot/C_ext_tot
@@ -241,9 +253,14 @@ contains
     !---------------------------------------------------------------------
 
     SUBROUTINE scatter()
-        !Now scatter (sample new direction)
+        !Sample new propagation direction
         call random_number(random)
-        packet%dir_sph(:)=(/ ((2*random(1))-1),random(2)*2*pi /)
+        IF (dust%scat_type == 'hg' .and. event_type == 'dust_scat') THEN
+            packet%dir_sph(:)=(/ (1.0/(2*g_param_tot))*(1+g_param_tot**2-((1-g_param_tot**2)/(1-g_param_tot+2*g_param_tot*random(1)))**2), &
+                & random(2)*2*pi /)
+        ELSE
+            packet%dir_sph(:)=(/ ((2*random(1))-1),random(2)*2*pi /)
+        END IF
         packet%dir_cart(:)=cart(ACOS(packet%dir_sph(1)),packet%dir_sph(2))
     END SUBROUTINE
 

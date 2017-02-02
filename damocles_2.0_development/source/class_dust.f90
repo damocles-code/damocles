@@ -34,9 +34,9 @@ MODULE class_dust
         REAL,ALLOCATABLE    ::  radius(:,:)     !array containing grain sizes (1) and weightings (2)
                                                 !weightings are relative abundance by number
         REAL,ALLOCATABLE    ::  mgrain(:)       !mass of grain for each grain size in grams
-        REAL,ALLOCATABLE    ::  C_sca(:)  !array containing scattering extinctions at each wavelength
-        REAL,ALLOCATABLE    ::  C_ext(:)  !array containing extinctions at each wavelength
-        REAL,ALLOCATABLE    ::  g(:)            !array containing g (asymmetry factor) at each wavelength
+        REAL,ALLOCATABLE    ::  C_sca(:)        !array containing scattering extinctions at each wavelength
+        REAL,ALLOCATABLE    ::  C_ext(:)        !array containing extinctions at each wavelength
+        REAL,ALLOCATABLE    ::  g_param(:)      !array containing g (asymmetry factor) at each wavelength
         REAL,ALLOCATABLE    ::  wav(:)          !array containing the wavelengths
         REAL,ALLOCATABLE    ::  albedo(:)       !array containing albedos for each wavelength
 
@@ -52,6 +52,7 @@ MODULE class_dust
         REAL                          ::  lambda_ext(1)       !extinction at rest frame wavelength
         REAL                          ::  lambda_sca(1)       !scattering extinction at rest frame wavelength
         REAL                          ::  lambda_ext_V(1)     !extinction at V band wavelength (547nm)
+        REAL                          ::  lambda_g_param(1)   !forward scattering parameter g at rest frame wavelength
         REAL                          ::  av_rhograin         !average density of dust grains across all species
         REAL                          ::  av_mgrain           !average mass of dust grains across all species and sizes
 
@@ -180,7 +181,7 @@ contains
             ALLOCATE(dust%species(ii)%C_ext(dust%species(ii)%n_wav))
             ALLOCATE(dust%species(ii)%C_sca(dust%species(ii)%n_wav))
             ALLOCATE(dust%species(ii)%albedo(dust%species(ii)%n_wav))
-            ALLOCATE(dust%species(ii)%g(dust%species(ii)%n_wav))
+            ALLOCATE(dust%species(ii)%g_param(dust%species(ii)%n_wav))
 
             !read in optical data for each species file
             DO jj=1,dust%species(ii)%n_wav
@@ -192,7 +193,7 @@ contains
             !initiliase arrays to 0
             dust%species(ii)%C_ext(:)=0.
             dust%species(ii)%C_sca(:)=0.
-            dust%species(ii)%g(:)=0.
+            dust%species(ii)%g_param(:)=0.
 
             DO jj=1,dust%species(ii)%n_wav
                 DO kk=1,dust%species(ii)%nsizes
@@ -210,12 +211,16 @@ contains
                     dust%species(ii)%C_sca(jj)=dust%species(ii)%C_sca(jj)+ &
                         & (dust%species(ii)%radius(kk,2)*Qsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
-                    dust%species(ii)%g(jj)=dust%species(ii)%g(jj)+ &
-                        & (dust%species(ii)%radius(kk,2)*ggsca(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
+                    !forward scattering parameter g weighted according to C_ext (C_ext determines likelihood of interaction with a particle of given size)
+                    dust%species(ii)%g_param(jj)=dust%species(ii)%g_param(jj)+ &
+                        & (dust%species(ii)%radius(kk,2)*ggsca(kk,jj)*Qext(kk,jj)*pi*(dust%species(ii)%radius(kk,1)*1e-4)**2)
 
                 END DO
 
             END DO
+
+            !normalise forward scattering parameter g by diding by total C_ext
+            dust%species(ii)%g_param(:)=dust%species(ii)%g_param(:)/dust%species(ii)%C_ext(:)
 
             !calculate albedo for each species at each wavelength
             dust%species(ii)%albedo=dust%species(ii)%C_sca/dust%species(ii)%C_ext
@@ -238,6 +243,7 @@ contains
         !calculate average opacity for lamba_0
         dust%lambda_ext=0
         dust%lambda_ext_V=0
+        dust%lambda_g_param=0
 
         !for each species, calculate extinction coefficients
         !!work out what these quanities actually are... extinction per unit mass? per unit csa?
@@ -266,6 +272,10 @@ contains
             dust%lambda_ext_V=dust%lambda_ext_V+ &
                 & dust%species(ii)%weight*(dust%species(ii)%C_ext(line%wav_bin_v)-((dust%species(ii)%C_ext(line%wav_bin_v)-dust%species(ii)%C_ext(line%wav_bin_v-1))* &
                 & ((dust%species(ii)%wav(line%wav_bin_v)-(547.0/1000))/(dust%species(ii)%wav(line%wav_bin_v)-dust%species(ii)%wav(line%wav_bin_v-1)))))
+
+            dust%lambda_g_param=dust%lambda_g_param+ &
+                & dust%species(ii)%weight*(dust%species(ii)%g_param(line%wav_bin)-((dust%species(ii)%g_param(line%wav_bin)-dust%species(ii)%g_param(line%wav_bin-1))* &
+                & ((dust%species(ii)%wav(line%wav_bin)-(line%wavelength/1000))/(dust%species(ii)%wav(line%wav_bin)-dust%species(ii)%wav(line%wav_bin-1)))))
 
         END DO
 

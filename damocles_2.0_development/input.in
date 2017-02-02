@@ -4,7 +4,7 @@ true		!  using observed data?
 false           !  doublet?
 true		!  include velocity scattering?
 false		!  use line of sight
-true           !  include e- scattering?
+false           !  include e- scattering?
 'e_scat.in'	!  e- scattering file
 100		!  day no (used to calculate R_out)
 hg		!  dust scattering (enter isotropic or hg (henyey-greenstein))

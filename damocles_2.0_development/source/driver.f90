@@ -177,6 +177,8 @@ contains
         !CLOSE(13)
         CLOSE(15)
         !CLOSE(17)
+        PRINT*,'albedo',dust%lambda_sca/dust%lambda_ext
+        PRINT*,'g_scat',dust%lambda_g_param
         IF (.not. lg_doublet) THEN
             PRINT*,'NUMBER OF INACTIVE PACKETS',n_inactive
             PRINT*,'NUMBER OF ABSORBED PACKETS',nabs,real(nabs)*100/real(n-n_inactive),'%'

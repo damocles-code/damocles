@@ -7,7 +7,7 @@ false		!  use line of sight
 false           !  include e- scattering?
 'e_scat.in'	!  e- scattering file
 100		!  day no (used to calculate R_out)
-hg		!  dust scattering (enter isotropic or hg (henyey-greenstein))
+isotropic	!  dust scattering (enter isotropic or hg (henyey-greenstein))
 ========================GEOMETRY OPTIONS===============================================
 false		!  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
 shell		!  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
