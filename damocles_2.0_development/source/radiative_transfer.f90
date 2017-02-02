@@ -24,12 +24,6 @@ MODULE radiative_transfer
 
     implicit none
 
-    REAL    ::  tau                    !optical depth sampled from cumulative frequency dsitribution at wavelength of active packet
-    REAL    ::  kappa_rho              !opacity * mass density = C_ext (cross-section of interaction) * number density at at wavelength of active packet
-    REAL    ::  C_ext_tot              !total extinction cross-section of interaction at wavelength of active packet
-    REAL    ::  C_sca_tot              !total scattering cross-section of interaction at wavelength of active packet
-    REAL    ::  g_param_tot            !total forward scattering parameter g (from Mie calculation, to be used with Henyey-Greenstein approx)
-    REAL    ::  albedo                 !albedo in cell at wavelength of active packet
     REAL    ::  v_therm(3)             !sampled velocity of electron based on specified electron temperature
     REAL    ::  s_face(3)              !distance to each (x/y/z) cell boundary in direction of travel
     REAL    ::  s_min                  !distance to nearest face in packet's direction of travel
@@ -38,9 +32,16 @@ MODULE radiative_transfer
     INTEGER ::  i_min                  !index of nearest face in packet's direction of travel
     INTEGER ::  wav_id                 !wavelength bin that contains the current packet
 
-    CHARACTER(9) :: event_type
+    CHARACTER(9) :: event_type         !is packet experiences an event, this describes whether it is
+                                       !dust scattering, electron scattering or absorption by dust
 
-    !INTEGER ::  omp_get_thread_num
+    !----variables below are properties of current active packet at its current wavelength
+    REAL    ::  tau                    !optical depth sampled from cumulative frequency dsitribution
+    REAL    ::  kappa_rho              !opacity * mass density = C_ext (cross-section of interaction) * number density
+    REAL    ::  C_ext_tot              !total extinction cross-section of interaction
+    REAL    ::  C_sca_tot              !total scattering cross-section of interaction
+    REAL    ::  g_param_tot            !total forward scattering parameter g (from Mie calculation, to be used with Henyey-Greenstein approx)
+    REAL    ::  albedo                 !albedo in cell
 
 contains
 
@@ -107,6 +108,7 @@ contains
                     packet%axis_no(i_min)=packet%axis_no(i_min)+1
                 ELSE
                     !reached edge of grid, escapes
+                    call check_los()
                     RETURN
                 END IF
                 !update id of cell containing packet and update position of packet
@@ -118,6 +120,7 @@ contains
                     packet%axis_no(i_min)=packet%axis_no(i_min)-1
                 ELSE
                     !reached edge of grid, escapes
+                    call check_los()
                     RETURN
                 END IF
                 !update id of cell containing packet and update position of packet
@@ -159,6 +162,7 @@ contains
                 CASE("dust_absn")
 
                     packet%lg_abs=.true.
+                    call check_los()
                     RETURN
 
                 CASE("elec_scat")
@@ -282,12 +286,14 @@ contains
                 !iGPP=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(idGP(1)-1))+mothergrid%n_cells(3)*(idGP(2)-1)+idGP(3)
                 PRINT*,'Error - packet coordinates are not in the identified cell. Packet removed.'
                 !PRINT*,'1',i_dir,grid_cell(packet%cell_no)%axis(i_dir),packet%pos_cart(i_dir),grid_cell(packet%cell_no)%axis(i_dir)+grid_cell%width(i_dir)
+                packet%lg_active=.false.
                 RETURN
             ELSE IF (packet%pos_cart(i_dir)>(grid_cell(packet%cell_no)%axis(i_dir)+grid_cell(packet%cell_no)%width(i_dir))) THEN
                 !idGP(i_dir)=idGP(i_dir)+1
                 !iGPP=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(idGP(1)-1))+mothergrid%n_cells(3)*(idGP(2)-1)+idGP(3)
                 PRINT*,'Error - packet coordinates are not in the identified cell. Packet removed.'
                 !PRINT*,'2',packet%axis_no(i_min),i_dir,i_min,packet%pos_cart(i_dir),grid_cell(packet%cell_no)%axis(i_dir)+grid_cell(packet%cell_no)%width(i_dir),iP!,grid_cell(packet%cell_no)%axis(i_dir),packet%pos_cart(i_dir),grid_cell(packet%cell_no)%axis(i_dir)+grid_cell%width(i_dir)
+                packet%lg_active=.false.
                 RETURN
             END IF
         END DO
@@ -297,6 +303,7 @@ contains
 
     SUBROUTINE check_escaped()
         IF (packet%axis_no(i_min) > mothergrid%n_cells(1) .OR. packet%axis_no(i_min)<1 .OR. packet%r>(MAX(gas_geometry%R_max,dust_geometry%R_max)*1E15)) THEN
+            call check_los()
             RETURN
         END IF
     END SUBROUTINE
@@ -304,13 +311,21 @@ contains
     !---------------------------------------------------------------------
 
     SUBROUTINE check_step_no()
-        !!check number of steps of this packet - a packet could get stuck in highly scattering environments
+        !check number of steps of this packet - a packet could get stuck in highly scattering environments
         packet%step_no=packet%step_no+1
         IF (packet%step_no>500) THEN
             packet%lg_active=.false.
             PRINT*, packet%step_no
             RETURN
         END IF
+    END SUBROUTINE
+
+    !---------------------------------------------------------------------
+
+    SUBROUTINE check_los()
+    IF (acos(packet%pos_cart(3)/sum(packet%pos_cart**2)**0.5) < pi/6) THEN
+                packet%lg_los = .true.
+                END IF
     END SUBROUTINE
 
     !---------------------------------------------------------------------

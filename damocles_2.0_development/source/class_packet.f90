@@ -31,8 +31,10 @@ MODULE class_packet
         INTEGER ::  cell_no      !current cell ID of packet
         INTEGER ::  axis_no(3)   !current cell IDs in each axis
         INTEGER ::  step_no      !number of steps that packet has experienced
+        INTEGER ::  freq_id      !id of frequency grid division that contains the frequency of the packet
 
         LOGICAL ::  lg_abs       !true indicates packet has been absored
+        LOGICAL ::  lg_los       !true indicates packet is in line of sight (after it has escaped)
         LOGICAL ::  lg_active    !true indicates that packet is being or has been processed
                                  !false indidcates it was outside of ejecta and therefore inactive, or has been scattered too many times
     END TYPE
@@ -67,14 +69,14 @@ contains
         !initial position of packet is generated in both cartesian and spherical coordinates
         IF ((gas_geometry%clumped_mass_frac==1) .or. (gas_geometry%type == "arbitrary")) THEN
             !packets are emitted from grid cells
-            packet%pos_cart= (grid_cell(unit_vol_iD)%axis+random(1:3)*grid_cell(unit_vol_iD)%width)
+            packet%pos_cart= (grid_cell(id_no)%axis+random(1:3)*grid_cell(id_no)%width)
             packet%pos_sph(1)=((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5)*1e-15
             packet%pos_sph(2)=ATAN(packet%pos_cart(2)/packet%pos_cart(1))
             packet%pos_sph(3)=ACOS(packet%pos_cart(3)*1e-15/packet%pos_sph(1))
             packet%pos_cart(:)=packet%pos_cart(:)*1e-15
         ELSE
             !shell emissivity distribution
-            packet%pos_sph(:)=(/ (random(1)*shell_width+RSh(unit_vol_iD,1)),(2*random(2)-1),random(3)*2*pi/)       !position of emitter idP - spherical coords - system SN - RF
+            packet%pos_sph(:)=(/ (random(1)*shell_width+RSh(id_no,1)),(2*random(2)-1),random(3)*2*pi/)       !position of emitter idP - spherical coords - system SN - RF
             packet%pos_cart(:)=cartr(packet%pos_sph(1),ACOS(packet%pos_sph(2)),packet%pos_sph(3))
         END IF
 
@@ -136,9 +138,9 @@ contains
             IF ((gas_geometry%type == 'shell' .and. gas_geometry%clumped_mass_frac == 1) &
                 &    .or.  (gas_geometry%type == 'arbitrary')) THEN
 
-                IF ((packet%axis_no(1) /= grid_cell(unit_vol_iD)%id(1)) .and. &
-                    &   (packet%axis_no(2) /= grid_cell(unit_vol_iD)%id(2)) .and. &
-                    &   (packet%axis_no(3) /= grid_cell(unit_vol_iD)%id(3))) THEN
+                IF ((packet%axis_no(1) /= grid_cell(id_no)%id(1)) .and. &
+                    &   (packet%axis_no(2) /= grid_cell(id_no)%id(2)) .and. &
+                    &   (packet%axis_no(3) /= grid_cell(id_no)%id(3))) THEN
                     PRINT*,'cell calculation gone wrong in module init_packet. Aborted.'
                     STOP
                 END IF

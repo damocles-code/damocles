@@ -7,6 +7,8 @@ module model_comparison
 
     implicit none
 
+    REAL :: chi2
+
 contains
 
     subroutine linear_interp(marg_chi)

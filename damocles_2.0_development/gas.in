@@ -1,5 +1,5 @@
 ========================LINE===========================================================
-2000.0		!  Wavelength (nm) of line or first doublet component
+656.3		!  Wavelength (nm) of line or first doublet component
 636.4		!  Wavelength (nm) of second doublet component (enter 0.0 if n/a)
 4.12e2		!  total observed luminosity (e40 ergs-1)
 2.6		!  Flux ratio of line 1 to line 2 (0 if n/a)

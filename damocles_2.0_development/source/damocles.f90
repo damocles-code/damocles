@@ -53,6 +53,6 @@ PROGRAM DAMOCLES
         STOP
     END IF
 
-    call run_code()
+    call run_damocles()
 
 END PROGRAM

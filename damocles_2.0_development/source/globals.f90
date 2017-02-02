@@ -6,6 +6,10 @@ MODULE globals
 
     IMPLICIT NONE
 
+    !OpenMP variables
+    INTEGER,EXTERNAL    ::  omp_get_num_threads
+    INTEGER,EXTERNAL    ::  omp_get_thread_num
+
     !counters
     INTEGER             ::  ii,jj,kk
     INTEGER             ::  ixx,iyy,izz
@@ -17,7 +21,7 @@ MODULE globals
 
     !identifiers
     INTEGER             ::  iG
-    INTEGER             ::  unit_vol_iD
+    INTEGER             ::  id_no
 
     !random numbers
     REAL                ::  random(5),ran
@@ -30,8 +34,14 @@ MODULE globals
     REAL                ::  norm
 
     !properties of the model
-    INTEGER(8)          ::  n_packets               !number of packets to use in simulation
+    INTEGER(8)          ::  n_packets               !number of packets requested
+    INTEGER(8)          ::  n_init_packets          !total number of initialised packets
+    INTEGER(8)          ::  n_inactive_packets      !total number of inactive packets
+    INTEGER(8)          ::  n_abs_packets           !total number of absorbed packets
+    INTEGER(8)          ::  n_los_packets           !total number of packets in the line of sight
     INTEGER(8)          ::  n_shells                !number of shells to use when generating packets
+
+
     INTEGER             ::  nargs                   !number of input arguments
     INTEGER             ::  day_no                  !time in days since outburst - used with v_max to calculate Rout
     INTEGER             ::  ES_temp                 !electron scattering temperature (0 if no ES)
@@ -44,6 +54,11 @@ MODULE globals
     LOGICAL             ::  lg_data                 !read in an observed line/doublet?
     LOGICAL             ::  lg_decoupled            !decouple = 0 or 1 (1 if dust and gas distributions are not coupled)
     LOGICAL             ::  lg_doublet              !is the 'line' to be modelled a doublet?
+
+    !properties of resultant line profile
+    REAL                ::  abs_frac                !total fraction of emitted energy that has been absorbed
+
+
 
     !names of input files
     CHARACTER(LEN=50)   ::  input_file              !name of input file to read in
