@@ -5,55 +5,55 @@
 !            - forwards and backwards lorentz transforms              !
 !---------------------------------------------------------------------!
 
-MODULE vector_functions
+module vector_functions
 
     use input
 
-    IMPLICIT NONE
+    implicit none
 
 contains
 
     !function to convert spherical direction to cartesian unit vector
-    FUNCTION cart(theta,phi)
-        REAL    ::  cart(3)
-        REAL    ::  theta,phi,x,y,z
-        x=SIN(theta)*COS(phi)
-        y=SIN(theta)*SIN(phi)
-        z=COS(theta)
+    function cart(theta,phi)
+        real    ::  cart(3)
+        real    ::  theta,phi,x,y,z
+        x=sin(theta)*cos(phi)
+        y=sin(theta)*sin(phi)
+        z=cos(theta)
         cart=(/x,y,z/)
-    END FUNCTION
+    end function
 
     !function to convert spherical corrdinates to cartesian coordinates
-    FUNCTION cartr(r,theta,phi)
-        REAL    ::  cartr(3)
-        REAL    ::  theta,phi,r,x,y,z
-        x=r*SIN(theta)*COS(phi)
-        y=r*SIN(theta)*SIN(phi)
-        z=r*COS(theta)
+    function cartr(r,theta,phi)
+        real    ::  cartr(3)
+        real    ::  theta,phi,r,x,y,z
+        x=r*sin(theta)*cos(phi)
+        y=r*sin(theta)*sin(phi)
+        z=r*cos(theta)
         cartr=(/x,y,z/)
-    END FUNCTION
+    end function
 
     !normalise a cartesian vector to a unit vector
-    FUNCTION normalise(cart)
-        REAL    ::  normalise(3),cart(3)
-        INTEGER ::  i_dir
-        DO i_dir=1,3
+    function normalise(cart)
+        real    ::  normalise(3),cart(3)
+        integer ::  i_dir
+        do i_dir=1,3
             normalise(i_dir)=cart(i_dir)/((cart(1)**2+cart(2)**2+cart(3)**2)**0.5)
-        END DO
-    END FUNCTION
+        end do
+    end function
 
     !forwards lorentz transform to move from comoving frame to rest frame of observer
     !updates frequency, direction of propagation of packet and weight of packet
-    SUBROUTINE lorentz_trans(vel_vect,dir_cart,nu,weight,str)
-        REAL, INTENT(IN)                ::  vel_vect(3)
-        REAL, INTENT(INOUT)             ::  dir_cart(3)
-        REAL, INTENT(INOUT)             ::  nu,weight
-        CHARACTER(LEN=4), INTENT(IN)    ::  str
+    subroutine lorentz_trans(vel_vect,dir_cart,nu,weight,str)
+        real, intent(in)                ::  vel_vect(3)
+        real, intent(inout)             ::  dir_cart(3)
+        real, intent(inout)             ::  nu,weight
+        character(len=4), intent(in)    ::  str
 
-        REAL                            ::  lorentz(4,4)
-        REAL                            ::  gmma
-        REAL                            ::  beta_vect(3),beta_scalar
-        REAL                            ::  four_vect_in(4),four_vect_out(4)
+        real                            ::  lorentz(4,4)
+        real                            ::  gmma
+        real                            ::  beta_vect(3),beta_scalar
+        real                            ::  four_vect_in(4),four_vect_out(4)
 
         !standard beta and gamma definitions as per lorentz transforms
         beta_vect=(1e3*vel_vect)/c
@@ -70,30 +70,30 @@ contains
         lorentz(4,:)=(/ gmma*beta_vect(3),  (gmma-1)*(beta_vect(1)*beta_vect(3)/(beta_scalar**2)),  (gmma-1)*(beta_vect(2)*beta_vect(3)/(beta_scalar**2)),  1.+(gmma-1)*(beta_vect(3)/beta_scalar)**2          /)
 
         !update values for frequency, direction of propagation and weight
-        four_vect_out=MATMUL(lorentz,four_vect_in)
+        four_vect_out=matmul(lorentz,four_vect_in)
         nu=four_vect_out(1)
         dir_cart(:)=four_vect_out(2:4)/nu
         dir_cart=normalise(dir_cart)
-        IF (str .eq. "scat") THEN
+        if (str .eq. "scat") then
             weight=weight*(four_vect_out(1)/four_vect_in(1))
-        ELSE
+        else
             weight=1
-        END IF
+        end if
 
-    END SUBROUTINE
+    end subroutine
 
     !backwards lorentz transform to move from rest frame of observer to comoving frame
     !updates frequency, direction of propagation of packet and weight of packet
-    SUBROUTINE inv_lorentz_trans(vel_vect,dir_cart,nu,weight,str)
-        REAL, INTENT(IN)                ::  vel_vect(3)
-        REAL, INTENT(INOUT)             ::  dir_cart(3)
-        REAL, INTENT(INOUT)             ::  nu,weight
-        CHARACTER(LEN=4), INTENT(IN)    ::  str
+    subroutine inv_lorentz_trans(vel_vect,dir_cart,nu,weight,str)
+        real, intent(in)                ::  vel_vect(3)
+        real, intent(inout)             ::  dir_cart(3)
+        real, intent(inout)             ::  nu,weight
+        character(len=4), intent(in)    ::  str
 
-        REAL                            ::  lorentz(4,4)
-        REAL                            ::  gmma
-        REAL                            ::  beta_vect(3),beta_scalar
-        REAL                            ::  four_vect_in(4),four_vect_out(4)
+        real                            ::  lorentz(4,4)
+        real                            ::  gmma
+        real                            ::  beta_vect(3),beta_scalar
+        real                            ::  four_vect_in(4),four_vect_out(4)
 
         !standard beta and gamma definitions as per lorentz transforms
         beta_vect=(1e3*vel_vect)/c
@@ -110,16 +110,16 @@ contains
         lorentz(4,:)=(/ -gmma*beta_vect(3),  (gmma-1)*(beta_vect(1)*beta_vect(3)/(beta_scalar**2)),  (gmma-1)*(beta_vect(2)*beta_vect(3)/(beta_scalar**2)),  1.+(gmma-1)*(beta_vect(3)/beta_scalar)**2          /)
 
         !update values for frequency, direction of propagation and weight
-        four_vect_out=MATMUL(lorentz,four_vect_in)
+        four_vect_out=matmul(lorentz,four_vect_in)
         nu=four_vect_out(1)
         dir_cart(:)=four_vect_out(2:4)/nu
         dir_cart=normalise(dir_cart)
-        IF (str .eq. "scat") THEN
+        if (str .eq. "scat") then
             weight=weight*(four_vect_out(1)/four_vect_in(1))
-        ELSE
+        else
             weight=1
-        END IF
+        end if
 
-    END SUBROUTINE
+    end subroutine
 
-END MODULE
+end module

@@ -31,28 +31,28 @@
 !    - the driver is included in a module such that it can be run             !
 !      as a function using other languages/script e.g. a python wrapper       !
 !-----------------------------------------------------------------------------!
-PROGRAM DAMOCLES
+program damocles
 
-    USE input
-    USE initialise
-    USE vector_functions
-    USE driver
+    use input
+    use initialise
+    use vector_functions
+    use driver
 
     implicit none
 
-    CHARACTER(LEN=50)       ::  infile
+    character(len=50)       ::  infile
 
-    nargs=command_argument_count()
-    IF (nargs==1) THEN
+    n_args=command_argument_count()
+    if (n_args==1) then
         call get_command_argument(1,infile)
         infile=trim(infile)
-    ELSE IF (nargs==0) THEN
+    else if (n_args==0) then
         infile='input.in'
-    ELSE
-        PRINT*,'too many input arguments - aborted'
-        STOP
-    END IF
+    else
+        print*,'too many input arguments - aborted'
+        stop
+    end if
 
     call run_damocles()
 
-END PROGRAM
+end program

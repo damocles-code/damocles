@@ -3,23 +3,25 @@
 !  of the line or doublet to be modelled                                   !
 !--------------------------------------------------------------------------!
 
-MODULE class_line
+module class_line
 
-    IMPLICIT NONE
+    implicit none
 
-    TYPE line_obj
-        REAL        ::  luminosity              !total luminosity of line       W/um
-        REAL        ::  wavelength              !wavelength (nm) of the line being modelled
-        REAL        ::  frequency               !frequency of the line to be modelled
-        REAL        ::  doublet_wavelength_1    !wavelength (nm) of the first component of the doublet (if applic.)
-        REAL        ::  doublet_wavelength_2    !wavelength (nm) of the second component of the doublet (if applic.)
-        REAL        ::  doublet_ratio           !flux ratio between 2 components of doublet (wavelength_1/wavelength_2)
+    type line_obj
+        real        ::  luminosity              !total luminosity of line       w/um
+        real        ::  wavelength              !wavelength (nm) of the line being modelled
+        real        ::  frequency               !frequency of the line to be modelled
+        real        ::  doublet_wavelength_1    !wavelength (nm) of the first component of the doublet (if applic.)
+        real        ::  doublet_wavelength_2    !wavelength (nm) of the second component of the doublet (if applic.)
+        real        ::  doublet_ratio           !flux ratio between 2 components of doublet (wavelength_1/wavelength_2)
+        real        ::  initial_energy          !energy of a single packet at emission
 
-        INTEGER     ::  wav_bin                 !array index of nearest wavelength bin to rest frame wavelength being modelled
-        INTEGER     ::  wav_bin_v               !array index of nearest wavelength bin to V band (547nm)
-    END TYPE
+        integer     ::  wav_bin                 !array index of nearest wavelength bin to rest frame wavelength being modelled
+        integer     ::  wav_bin_v               !array index of nearest wavelength bin to v band (547nm)
 
-    TYPE(line_obj)   :: line
+    end type
 
-END MODULE class_line
+    type(line_obj)   :: line
+
+end module class_line
 

@@ -2,72 +2,89 @@
 !  declare here all global variables such as counters, constants etc. !
 !---------------------------------------------------------------------!
 
-MODULE globals
+module globals
 
-    IMPLICIT NONE
+    implicit none
 
-    !OpenMP variables
-    INTEGER,EXTERNAL    ::  omp_get_num_threads
-    INTEGER,EXTERNAL    ::  omp_get_thread_num
+    !openmp variables
+    integer,external    ::  omp_get_num_threads
+    integer,external    ::  omp_get_thread_num
 
     !counters
-    INTEGER             ::  ii,jj,kk
-    INTEGER             ::  ixx,iyy,izz
-    INTEGER             ::  iSh
-    INTEGER             ::  i_dir,i_spec
+    integer             ::  ii,jj,kk
+    integer             ::  ixx,iyy,izz
+    integer             ::  ish
+    integer             ::  i_dir
+    integer             ::  i_spec
+    integer             ::  i_doublet
 
     !dummy counters
-    INTEGER             ::  xx,yy,zz
+    integer             ::  xx,yy,zz
 
     !identifiers
-    INTEGER             ::  iG
-    INTEGER             ::  id_no
+    integer             ::  ig
+    integer             ::  id_theta,id_phi
+    integer             ::  id_no
 
     !random numbers
-    REAL                ::  random(5),ran
+    real                ::  random(5),ran
 
     !constants
-    REAL, PARAMETER     ::  pi=3.141592654
-    REAL,PARAMETER      ::  c=3E8                   !in SI units (m/s)
+    real, parameter     ::  pi=3.141592654
+    real,parameter      ::  c=3e8                   !in si units (m/s)
 
     !factors for scaling/normalising distributions
-    REAL                ::  norm
+    real                ::  norm
 
     !properties of the model
-    INTEGER(8)          ::  n_packets               !number of packets requested
-    INTEGER(8)          ::  n_init_packets          !total number of initialised packets
-    INTEGER(8)          ::  n_inactive_packets      !total number of inactive packets
-    INTEGER(8)          ::  n_abs_packets           !total number of absorbed packets
-    INTEGER(8)          ::  n_los_packets           !total number of packets in the line of sight
-    INTEGER(8)          ::  n_shells                !number of shells to use when generating packets
+    integer(8)          ::  n_packets=0             !number of packets requested
+    integer(8)          ::  n_init_packets=0        !total number of initialised packets
+    integer(8)          ::  n_inactive_packets=0    !total number of inactive packets
+    integer(8)          ::  n_abs_packets=0         !total number of absorbed packets
+    integer(8)          ::  n_los_packets=0         !total number of packets in the line of sight
+    integer(8)          ::  n_shells=0              !number of shells to use when generating packets
+    integer(8)          ::  no_active_cells=0       !number of active (i.e. non-zero) cells inside ejecta
+    integer(8)          ::  n_clumps=0              !actual number of clumps used
 
+    integer             ::  n_args                  !number of input arguments
+    integer             ::  n_angle_divs            !number of division in each of phi and theta to divide grid into multiple lines of sight
+    integer             ::  day_no                  !time in days since outburst - used with v_max to calculate rout
+    integer             ::  es_temp                 !electron scattering temperature (0 if no es)
+    real                ::  l_halpha                !total halpha luminosity (for e- scattering calcn)
+    real                ::  tot_vol                 !total volume of ejecta in 1e42cm^3
 
-    INTEGER             ::  nargs                   !number of input arguments
-    INTEGER             ::  day_no                  !time in days since outburst - used with v_max to calculate Rout
-    INTEGER             ::  ES_temp                 !electron scattering temperature (0 if no ES)
-    REAL                ::  L_Halpha                !total Halpha luminosity (for e- scattering calcn)
+    !variables used for checking dust mass calculations
+    real                ::  m_tot_check             !calculated total mass of dust using densities and vols
+    real                ::  m_icm_check             !calculated mass of dust in inter clump medium
+    real                ::  m_clumps_check          !calculated mass of dust in clumps
 
     !different options and cases
-    LOGICAL             ::  lg_LOS                  !use a line of sight?
-    LOGICAL             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
-    LOGICAL             ::  lg_ES                   !use electron scattering?
-    LOGICAL             ::  lg_data                 !read in an observed line/doublet?
-    LOGICAL             ::  lg_decoupled            !decouple = 0 or 1 (1 if dust and gas distributions are not coupled)
-    LOGICAL             ::  lg_doublet              !is the 'line' to be modelled a doublet?
+    logical             ::  lg_los                  !use a line of sight?
+    logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
+    logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
+    logical             ::  lg_es                   !use electron scattering?
+    logical             ::  lg_data                 !read in an observed line/doublet?
+    logical             ::  lg_decoupled            !decouple = 0 or 1 (1 if dust and gas distributions are not coupled)
+    logical             ::  lg_doublet              !is the 'line' to be modelled a doublet?
+    logical             ::  lg_store_all
 
     !properties of resultant line profile
-    REAL                ::  abs_frac                !total fraction of emitted energy that has been absorbed
-
-
+    real                ::  abs_frac                !total fraction of emitted energy that has been absorbed
+    real,allocatable    ::  cos_theta_array(:)
+    real,allocatable    ::  phi_array(:)
 
     !names of input files
-    CHARACTER(LEN=50)   ::  input_file              !name of input file to read in
-    CHARACTER(LEN=50)   ::  data_file               !name of data file containing details of observed line to read in
-    CHARACTER(LEN=50)   ::  e_scat_file             !name of file containing electron scattering parameters (temperature, Halpha luminosity etc.)
-    CHARACTER(LEN=50)   ::  dust_file               !name of file containing dust grain parameters (geometry, mass etc.)
-    CHARACTER(LEN=50)   ::  gas_file                !name of file containing electron scattering parameters (geometry, luminosity etc.)
-    CHARACTER(LEN=40)   ::  species_file            !filename containing details of dust species
+    character(len=50)   ::  input_file              !name of input file to read in
+    character(len=50)   ::  data_file               !name of data file containing details of observed line to read in
+    character(len=50)   ::  e_scat_file             !name of file containing electron scattering parameters (temperature, halpha luminosity etc.)
+    character(len=50)   ::  dust_file               !name of file containing dust grain parameters (geometry, mass etc.)
+    character(len=50)   ::  gas_file                !name of file containing electron scattering parameters (geometry, luminosity etc.)
+    character(len=40)   ::  species_file            !filename containing details of dust species
+    character(len=1024) :: junk                 !dummy for reading in material from files
 
+    !system variables (used in naming output files)
+    character(8)        ::  date
+    character(10)       ::  time
+    character(8)       ::  run_no_string
 
-
-END MODULE globals
+end module globals

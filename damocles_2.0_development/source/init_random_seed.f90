@@ -4,18 +4,18 @@
 !  set of random numbers is used on each run.
 !---------------------------------------------------------------------!
 
-SUBROUTINE init_random_seed()
+subroutine init_random_seed()
 
-    INTEGER              :: i, num, clock
-    INTEGER, ALLOCATABLE :: seed(:)
+    integer              :: i, num, clock
+    integer, allocatable :: seed(:)
 
-    CALL random_SEED(size = num)
-    ALLOCATE(seed(num))
+    call random_seed(size = num)
+    allocate(seed(num))
           
-    CALL SYSTEM_CLOCK(COUNT=clock)
+    call system_clock(count=clock)
     seed = clock + 37 * (/ (i - 1, i = 1, num) /)
-    CALL random_SEED(PUT = seed)
+    call random_seed(put = seed)
           
-    DEALLOCATE(seed)
+    deallocate(seed)
 
-END SUBROUTINE init_random_seed
+end subroutine init_random_seed

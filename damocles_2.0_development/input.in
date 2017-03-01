@@ -1,12 +1,14 @@
 ========================GENERAL OPTIONS================================================
+false		!  create a unique folder to store all data? (false will overwrite current output files)
 true		!  using observed data? 
 'line.in'	!  data file containing observed line
 false           !  doublet?
 true		!  include velocity scattering?
 false		!  use line of sight
+false		!  use multiple lines of sight? (complete coverage)
 false           !  include e- scattering?
 'e_scat.in'	!  e- scattering file
-100		!  day no (used to calculate R_out)
+4082		!  day no (used to calculate R_out)
 hg		!  dust scattering (enter isotropic or hg (henyey-greenstein))
 ========================GEOMETRY OPTIONS===============================================
 false		!  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
@@ -17,6 +19,7 @@ shell   	!  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
 'gas.in'	!  gas geometry file (required - - specifies parameters to create grid or is the grid file)
 =========================GRID==========================================================
 50		!  number of cells in each direction
+20		!  number of divisions in phi and theta to generate lines of sight covering whole ejecta
 =======================PHOTON PACKETS==================================================
 100000		!  number of photons
 10000		!  number of frequency bins for output energy distribution

@@ -1,16 +1,16 @@
 ! ***********************************************************************
-! This subroutine is a modified version of the BH Mie scattering routine
-! Subroutine taken from Mocassin (Barbara Ercolano).
-! <gsca> added from B. Draine implementation by Barbara Ercolano.
+! this subroutine is a modified version of the bh mie scattering routine
+! subroutine taken from mocassin (barbara ercolano).
+! <gsca> added from b. draine implementation by barbara ercolano.
 ! -----------------------------------------------------------------------
 ! __________________________________________________________________
 !
-!  SUBROUTINE BHMIE CALCULATES AMPLITUDE SCATTERING MATRIX ELEMENTS
-!  & EFFICIENCIES FOR EXTINCTION, TOTAL SCATTERING AND BACSCATTERING,
-!  FOR A GIrVEN SIZE PARAMETER AND RELATIVE REFRACTIVE INDEX
+!  subroutine bhmie calculates amplitude scattering matrix elements
+!  & efficiencies for extinction, total scattering and bacscattering,
+!  for a girven size parameter and relative refractive index
 ! __________________________________________________________________
       
-subroutine BHmie (x,refrel,qext,qsca,ggsca)
+subroutine bhmie (x,refrel,qext,qsca,ggsca)
     implicit none
         
     complex, intent(in) :: refrel
@@ -166,4 +166,4 @@ subroutine BHmie (x,refrel,qext,qsca,ggsca)
     qsca=(2./(x*x))*qsca
     qext=(4./(x*x))*realpart(s1(1))
 
-end subroutine BHmie
+end subroutine bhmie

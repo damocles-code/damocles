@@ -1,8 +1,8 @@
-MODULE random_routines
+module random_routines
 
     use input
 
-    IMPLICIT NONE
+    implicit none
 
 contains
 
@@ -55,4 +55,4 @@ contains
   return
   endfunction normal
 
-END MODULE
+end module

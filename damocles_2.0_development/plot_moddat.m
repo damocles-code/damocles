@@ -1,13 +1,14 @@
-s=0.9;
-lim=0.8;
-limy=6;
+s=0.14;
+lim=0.6;
+limy=0.8e4;
 doublet=0;
-sm=3;
-%sf=1e11;
+sm=1;
+sf=1;
+cont=0.12e4
 
 str='day 714';
 add=0;
-wav_space=1
+wav_space=0
 
 if (add==1) 
     
@@ -48,7 +49,7 @@ if (wav_space == 1)
 veldat=3e5*(line_in(:,1)-486.1)./486.1;
 end
 
-fluxdat=fluxdat-0.0e-13-nanmin(fluxdat)%-0.05e-15;
+fluxdat=fluxdat-cont-nanmin(fluxdat)%-0.05e-15;
 fluxmod=fluxmod*s*(nanmax(fluxdat))/nanmax(fluxmod);
 
 fluxmod=smooth(fluxmod,sm);
@@ -68,7 +69,7 @@ end
 
 
 
-%ylim([0 limy]);
+ylim([0 limy]);
 xlim([-lim lim]);
 leg=legend('observed','model');
 leg.FontSize=13;

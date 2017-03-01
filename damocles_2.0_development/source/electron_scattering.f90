@@ -1,4 +1,4 @@
-MODULE electron_scattering
+module electron_scattering
 
     use globals
     use class_geometry
@@ -6,54 +6,55 @@ MODULE electron_scattering
     use class_freq_grid
     use class_grid
 
-    IMPLICIT NONE
+    implicit none
 
-    REAL                 ::  ES_const
-    REAL                 ::  R_max_ES
-    REAL                 ::  lum_q
-    REAL                 ::  maxwell_sigma
+    real                 ::  es_const
+    real                 ::  r_max_es
+    real                 ::  lum_q
+    real                 ::  maxwell_sigma
 
-    REAL, PARAMETER      ::  sigma_T=6.652E-25        !(cm2)
-    REAL, PARAMETER      ::  Q_Halpha_5=6.71E-25     !at 5000K
-    REAL, PARAMETER      ::  Q_Halpha_10=3.56E-25    !at 10000K
-    REAL, PARAMETER      ::  Q_Halpha_20=1.83E-24    !at 20000K
+    real, parameter      ::  sigma_t=6.652e-25        !(cm2)
+    real, parameter      ::  q_halpha_5=6.71e-25     !at 5000k
+    real, parameter      ::  q_halpha_10=3.56e-25    !at 10000k
+    real, parameter      ::  q_halpha_20=1.83e-24    !at 20000k
 
 contains
 
-    SUBROUTINE n_e_const()
+    subroutine n_e_const()
 
-        IF (ES_temp==5000) THEN
-            lum_q=L_Halpha/Q_Halpha_5
-        ELSE IF (ES_temp==10000) THEN
-            lum_q=L_Halpha/Q_Halpha_10
-        ELSE IF (ES_temp==20000) THEN
-            lum_q=L_Halpha/Q_Halpha_20
-        END IF
+        if (es_temp==5000) then
+            lum_q=l_halpha/q_halpha_5
+        else if (es_temp==10000) then
+            lum_q=l_halpha/q_halpha_10
+        else if (es_temp==20000) then
+            lum_q=l_halpha/q_halpha_20
+        end if
 
 
-        IF (lg_ES) THEN
-        IF ((3-2*gas_geometry%rho_power==0) .OR. (1-gas_geometry%rho_power==0)) THEN
-            PRINT*,'You have selected a density profile with exponent 1.5 or 1.0 - need an alternative calculation in this case'
-            STOP
-        END IF
-        END IF
+        if (lg_es) then
+            if ((3-2*gas_geometry%rho_power==0) .or. (1-gas_geometry%rho_power==0)) then
+                print*,'you have selected a density profile with exponent 1.5 or 1.0 - need an alternative calculation in this case'
+                stop
+            end if
+        end if
 
-        !At some point, include coding for separate line emitting region and gas region
-        R_max_ES=gas_geometry%R_max
+        !at some point, include coding for separate line emitting region and gas region
+        r_max_es=gas_geometry%r_max
 
-        maxwell_sigma=((ES_temp*1.51563e7)**0.5)/1000
+        maxwell_sigma=((es_temp*1.51563e7)**0.5)/1000
 
-        IF (gas_geometry%type == "shell") THEN
-        ES_const=(lum_q**0.5)*(((3-2*gas_geometry%rho_power)/(4*pi))/(((R_max_ES*1E15)**(3-2*gas_geometry%rho_power)-(gas_geometry%R_min*1E15)**(3-2*gas_geometry%rho_power))))**0.5
-        grid_cell%N_e=ES_const*(grid_cell%r**(-dust_geometry%rho_power))*1E20
-        ELSE
-        PRINT*,'Provision for electron scattering with a non-shell emissivity distribution has not yet been included.'
-        END IF
+        if (gas_geometry%type == "shell") then
+            es_const=(lum_q**0.5)*(((3-2*gas_geometry%rho_power)/(4*pi))/(((r_max_es*1e15)**(3-2*gas_geometry%rho_power)-(gas_geometry%r_min*1e15)**(3-2*gas_geometry%rho_power))))**0.5
+            grid_cell%n_e=es_const*(grid_cell%r**(-dust_geometry%rho_power))*1e20
+        else
+            print*,'provision for electron scattering with a non-shell emissivity distribution has not yet been included.Aborted.'
+            stop
+        end if
 
-        PRINT*,'av e- density',(ES_const*1E20*((1E15)**(-gas_geometry%rho_power))*((R_max_ES)**(3-gas_geometry%rho_power)-(gas_geometry%R_min)**(3-gas_geometry%rho_power)))/((3-dust_geometry%rho_power)*((R_max_ES)**3-(gas_geometry%R_min)**3))
-        PRINT*,''
-        PRINT*,'e- optical depth',ES_const*6.6E-5*((1E15*R_max_ES)**(1-gas_geometry%rho_power)-(1E15*gas_geometry%R_min)**(1-gas_geometry%rho_power))/(1-gas_geometry%rho_power)
+        !print*,'av e- density',(es_const*1e20*((1e15)**(-gas_geometry%rho_power))*((r_max_es)**(3-gas_geometry%rho_power)-(gas_geometry%r_min)**(3-gas_geometry%rho_power)))/((3-dust_geometry%rho_power)*((r_max_es)**3-(gas_geometry%r_min)**3))
+        !print*,''
+        !print*,'e- optical depth',es_const*6.6e-5*((1e15*r_max_es)**(1-gas_geometry%rho_power)-(1e15*gas_geometry%r_min)**(1-gas_geometry%rho_power))/(1-gas_geometry%rho_power)
 
-    END SUBROUTINE
+    end subroutine
 
-END MODULE
+end module

@@ -5,44 +5,55 @@
 !  includes a subroutine to check whether dust is clumped or not        !
 !-----------------------------------------------------------------------!
 
-MODULE class_geometry
+module class_geometry
 
-    IMPLICIT NONE
+    implicit none
 
-    TYPE geometry_obj
-        REAL        ::  clumped_mass_frac   !mass fraction of dust located in clumpes. 0 indicates no clumping.
-        REAL        ::  R_ratio             !ratio between inner and outer radii (R_in/R_out)
-        REAL        ::  v_max               !maximum velocity (km/s) at R_out
-        REAL        ::  v_power             !value of l where velocity profile is v~r^l
-        REAL        ::  rho_power           !value of q where density profile is rho~r^-q
-        REAL        ::  emis_power          !value of b where emissivity~r^-qb
-        REAL        ::  clump_power         !value of q where the number density of clumps is distributed as n~r^-q
-        REAL        ::  ff                  !filling factor of clumps by volume
-        REAL        ::  den_con             !density contrast at inner radius
-        REAL        ::  R_min,R_max         !inner and outer radii of distribution (e15cm)
-        REAL        ::  R_min_cm,R_max_cm   !inner and outer radii of distribution (cm)
-        REAL        ::  n_clumps            !number of clumps
-        REAL        ::  rho_in              !denisty of smooth medium at inner radius (excluding clumps for a clumped medium)
-        REAL        ::  rho_clump           !denisty (constant) of an individual clump
+    type geometry_obj
+        real        ::  clumped_mass_frac   !mass fraction of dust located in clumpes. 0 indicates no clumping.
+        real        ::  r_ratio             !ratio between inner and outer radii (r_in/r_out)
+        real        ::  v_max               !maximum velocity (km/s) at r_out
+        real        ::  v_power             !value of l where velocity profile is v~r^l
+        real        ::  rho_power           !value of q where density profile is rho~r^-q
+        real        ::  emis_power          !value of b where emissivity~r^-qb
+        real        ::  clump_power         !value of q where the number density of clumps is distributed as n~r^-q
+        real        ::  ff                  !filling factor of clumps by volume
+        real        ::  den_con             !density contrast at inner radius
+        real        ::  r_min,r_max         !inner and outer radii of distribution (e15cm)
+        real        ::  r_min_cm,r_max_cm   !inner and outer radii of distribution (cm)
+        real        ::  rho_in              !density of smooth medium at inner radius (in non-clumped case)
+        real        ::  rho_clump           !denisty (constant) of an individual clump
 
-        LOGICAL     ::  lg_clumped          !is the medium clumped?
+        integer     ::  n_clumps            !number of clumps
 
-        CHARACTER(LEN=9) ::   type          !e.g. shell or arbitrary or torus
-    END TYPE
+        logical     ::  lg_clumped          !is the medium clumped?
 
-    TYPE(geometry_obj) gas_geometry, dust_geometry
+        character(len=9) ::   type          !e.g. shell or arbitrary or torus
+    end type
+
+    type(geometry_obj) gas_geometry, dust_geometry
 
     contains
 
     !this subroutine sets the dust clumping logical to true if the clumped dust mass fraction is between 0 and 1
-    SUBROUTINE check_dust_clumped()
+    subroutine check_dust_clumped()
         !test 0 or 1 entered
-        IF (dust_geometry%clumped_mass_frac < 0 .OR. dust_geometry%clumped_mass_frac > 1) THEN
-            PRINT*, "Aborted - please enter a value between 0 and 1 for the mass fraction of dust in clumps."
-            STOP
-        END IF
+        if (dust_geometry%clumped_mass_frac < 0 .or. dust_geometry%clumped_mass_frac > 1) then
+            print*, "aborted - please enter a value between 0 and 1 for the mass fraction of dust in clumps."
+            stop
+        end if
         dust_geometry%lg_clumped = .false.
-        IF (dust_geometry%clumped_mass_frac > 0) dust_geometry%lg_clumped = .true.
-    END SUBROUTINE
+        if (dust_geometry%clumped_mass_frac > 0) then
+            if (dust_geometry%ff >0) then
+                dust_geometry%lg_clumped = .true.
+            else
+                print*,"you have requested that a non-zero clumped dust mass fraction &
+                & but have not specified a clump volume filling factor.  please set a non-zero volume &
+                & filling factor between 0 and 1 or set the clumped dust mass fraction to 0.  aborted."
+                stop
+            end if
+        end if
 
-END MODULE class_geometry
+    end subroutine
+
+end module class_geometry

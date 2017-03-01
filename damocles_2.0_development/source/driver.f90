@@ -1,13 +1,13 @@
- !-----------------------------------------------------------------------------------!
-!  This is the main driver of the code DAMOCLES.  It is included as a module        !
+!-----------------------------------------------------------------------------------!
+!  this is the main driver of the code damocles.  it is included as a module        !
 !  in order to allow it to be run from other programs e.g. python wrappers.         !
 !                                                                                   !
-!  The run_damocles subroutine calls the subroutines that construct the grids,      !
+!  the run_damocles subroutine calls the subroutines that construct the grids,      !
 !  emit and propagate packets through the grid and collates all escaped packets.    !
-!  The model comparison module is also called from here.                            !
+!  the model comparison module is also called from here.                            !
 !-----------------------------------------------------------------------------------!
 
-MODULE driver
+module driver
 
     use globals
     use class_line
@@ -21,23 +21,23 @@ MODULE driver
     use radiative_transfer
     use model_comparison
 
-    IMPLICIT NONE
+    implicit none
 
 contains
 
-    SUBROUTINE run_damocles()
+    subroutine run_damocles()
 
         !read input:
         call read_input()
         
         !construct grids and initialise simulation:
-        DO iDoublet=1,2
+        do i_doublet=1,2
 
             !generate random seed for random number generators (ensures random numbers change on each run)
             call init_random_seed
 
             !construct all grids and initialise rest line wavelength/freq
-            IF (iDoublet==1) THEN
+            if (i_doublet==1) then
                 !set active rest frame wavelength
                 line%wavelength=line%doublet_wavelength_1
                 line%frequency=c*10**9/line%wavelength
@@ -49,6 +49,15 @@ contains
                 call build_emissivity_dist()
                 call n_e_const()
 
+                !build multiple lines of sight array
+                allocate(cos_theta_array(n_angle_divs))
+                allocate(phi_array(n_angle_divs))
+                do ii=1,n_angle_divs-1
+                        cos_theta_array(ii) = (2*real(ii-1)/20.0)-1
+                        phi_array(ii)=2*real(ii)*pi/20
+                end do
+
+
                 !initialise counters to zero
                 n_init_packets=0
                 n_inactive_packets=0
@@ -56,150 +65,156 @@ contains
                 abs_frac=0
                 n_los_packets=0
 
-                !open output file to record resultant modelled line profile
-                OPEN(15,file='output/output.out')
-
-            ELSE IF (iDoublet==2) THEN
+            else if (i_doublet==2) then
                 !exit if not a doublet
-                IF (.not. lg_doublet) EXIT
+                if (.not. lg_doublet) exit
 
                 !otherwise reset rest frame wavelength of line to be modelled
                 !active wavelength is now second component of doublet
                 line%wavelength=line%doublet_wavelength_2
                 line%frequency=c*10**9/line%wavelength
-            END IF
+            end if
 
             !emit and propagate packets through grid
-            PRINT*,"Propagating packets..."
+            print*,"propagating packets..."
 
             !entire simulation run for each component of doublet (if applicable)
             !absorbed weight stored for complete doublet (i.e. both components)
             !initialise absorbed weight of packets to zero
             abs_frac=0
 
-            SELECT CASE(gas_geometry%type)
+            select case(gas_geometry%type)
 
-                CASE('shell')
+                case('shell')
                     !if all emission from clumps within shell structure
-                    IF (gas_geometry%clumped_mass_frac == 1) THEN
-                        DO id_no=1,mothergrid%tot_cells
-                            IF (grid_cell(id_no)%cellStatus == 1) THEN
+                    if (gas_geometry%clumped_mass_frac == 1) then
+                        do id_no=1,mothergrid%tot_cells
+                            if (grid_cell(id_no)%lg_clump) then
                                 !equal number of packets to be emitted in each clump
-                                NP(id_no)=n_packets/ncl
-                                n_init_packets=n_init_packets+NP(id_no)
+                                num_packets_array(id_no)=n_packets/n_clumps
+                                n_init_packets=n_init_packets+num_packets_array(id_no)
                                 call run_packets()
-                            END IF
-                        END DO
+                            end if
+                        end do
                     !else if all emission from smooth shell
-                    ELSE
-                        DO id_no=1,n_shells
-                            n_init_packets=n_init_packets+NP(id_no)
+                    else
+                        do id_no=1,n_shells
+                            n_init_packets=n_init_packets+num_packets_array(id_no)
                             call run_packets()
-                        END DO
-                    END IF
+                        end do
+                    end if
 
-                CASE('arbitrary')
+                case('arbitrary')
                     !emission per cell scaled with dust mass from specified dust grid
-                    DO id_no=1,mothergrid%tot_cells
+                    do id_no=1,mothergrid%tot_cells
                         !n is cumulative number of packets run through grid (check number)
-                        n_init_packets=n_init_packets+NP(id_no)
+                        n_init_packets=n_init_packets+num_packets_array(id_no)
                         call run_packets()
-                    END DO
+                    end do
 
-                CASE DEFAULT
-                    PRINT*,'You have not selected a shell or arbitrary distribution.  Alternative distributions have not yet been included.'
-                    PRINT*,'Please construct a grid using the gridmaker at http://www.nebulousresearch.org/codes/mocassin/mocassin_gridmaker.php and use the arbitrary option.  Aborted.'
-                    STOP
+                case default
+                    print*,'you have not selected a shell or arbitrary distribution.  alternative distributions have not yet been included.'
+                    print*,'please construct a grid using the gridmaker at http://www.nebulousresearch.org/codes/mocassin/mocassin_gridmaker.php and use the arbitrary option.  aborted.'
+                    stop
 
-            END SELECT
-        END DO
+            end select
+        end do
 
         !calculate goodness of fit to data if supplied
-        IF (lg_data) call linear_interp(chi2)
+        if (lg_data) call linear_interp(chi2)
 
         !write out log file
         call write_to_file()
 
         !decallocate all allocated memory
-        DEALLOCATE(grid_cell)
-        DEALLOCATE(nu_grid%bin)
-        DEALLOCATE(tmp)
-        DEALLOCATE(mothergrid%x_div)
-        DEALLOCATE(mothergrid%y_div)
-        DEALLOCATE(mothergrid%z_div)
-        DEALLOCATE(np)
-        DEALLOCATE(np_bin)
-        DEALLOCATE(dust%species)
-        IF (dust_geometry%type == "shell") DEALLOCATE(RSh)
+        deallocate(grid_cell)
+        deallocate(nu_grid%bin)
+        deallocate(mothergrid%x_div)
+        deallocate(mothergrid%y_div)
+        deallocate(mothergrid%z_div)
+        deallocate(num_packets_array)
+        deallocate(profile_array)
+        deallocate(dust%species)
+        deallocate(cos_theta_array)
+        deallocate(phi_array)
+        if (dust_geometry%type == "shell") deallocate(shell_radius)
 
-        PRINT*,'Complete!'
+        print*,'complete!'
 
-    END SUBROUTINE run_damocles
+    end subroutine run_damocles
 
-    SUBROUTINE run_packets()
+    subroutine run_packets()
 
-        !!!!!OPENMP HAS NOT BEEN UPDATED AFTER RECENT AMENDMENTS SO DO NOT EMPLOY WITHOUT THOROUGH CHECKING FIRST!!!!!!!!!!!
-        !!$OMP PARALLEL DEFAULT(PRIVATE) SHARED(dust_geometry%ff,gas_geometry%rho_power,line%doublet_ratio,iDoublet,n_los_packets,n_inactive,n_abs_packets,shell_width,width,NP_BIN,NP,iSh,RSh,dust_geometry%R_min,dust_geometry%R_max,gas_geometry%R_min,gas_geometry%R_max,lg_LOS,lg_ES,grid,mothergrid%n_cells,nu_grid%bin,dust_geometry%v_max,gas_geometry%v_max,l,gas_geometry%v_power,dummy,mgrid,dust,lg_vel_shift)
+        !!!!!openmp has not been updated after recent amendments so do not employ without thorough checking first!!!!!!!!!!!
+        !!$omp parallel default(private) shared(dust_geometry%ff,gas_geometry%rho_power,line%doublet_ratio,i_doublet,n_los_packets,n_inactive,n_abs_packets,shell_width,width,profile_array,num_packets_array,ish,shell_radius,dust_geometry%r_min,dust_geometry%r_max,gas_geometry%r_min,gas_geometry%r_max,lg_los,lg_es,grid,mothergrid%n_cells,nu_grid%bin,dust_geometry%v_max,gas_geometry%v_max,l,gas_geometry%v_power,dummy,mgrid,dust,lg_vel_shift)
 
-
-        !!$OMP DO SCHEDULE(dynamic)
-        DO iP=1,NP(id_no)
+        !!$omp do schedule(dynamic)
+        do ii=1,num_packets_array(id_no)
 
             call emit_packet()
 
-            IF (packet%lg_active) THEN
+            if (packet%lg_active) then
 
                 !propagate active packet through grid
                 call propagate()
 
                 !if packet has been absorbed then record
-                IF (packet%lg_abs) THEN
-                    !!$OMP CRITICAL
+                if (packet%lg_abs) then
+                    !!$omp critical
                     n_abs_packets=n_abs_packets+1
-                    IF (iDoublet==2) THEN
+                    if (i_doublet==2) then
                         abs_frac=abs_frac+packet%weight/line%doublet_ratio
-                    ELSE
+                    else
                         abs_frac=abs_frac+packet%weight
-                    END IF
-                    !!$OMP END CRITICAL
-                ELSE
+                    end if
+                    !!$omp end critical
+                else
                 !if the packet has not been absorbed then record in resultant profile
 
                     !if taking integrated profile and not interested in line of sight, record all escaped packets
-                    IF (.not. lg_los) THEN
+                    if (.not. lg_los) then
                          call add_packet_to_profile()
-                    ELSE
-                        !Only add active packets to profile for those in LoS
-                        IF (packet%lg_los) call add_packet_to_profile()
+                    else
+                        !only add active packets to profile for those in los
+                        if (packet%lg_los) call add_packet_to_profile()
 
-                    END IF !line of sight
-                END IF  !absorbed/escaped
-            END IF  !active
-        END DO
-        !!$OMP END DO
+                    end if !line of sight
+                end if  !absorbed/escaped
+            end if  !active
+        end do
+        !!$omp end do
 
-        !!$OMP END PARALLEL
+        !!$omp end parallel
 
-        !close log file (opened in read_input)
-        CLOSE(55)
+    end subroutine
 
-    END SUBROUTINE
+    subroutine add_packet_to_profile()
 
-    SUBROUTINE add_packet_to_profile()
-        !Find the smallest distance and thus nearest freq point
-        packet%freq_id=MINLOC(packet%nu-nu_grid%bin(:,1),1,(packet%nu-nu_grid%bin(:,1))>0)
+        !find the smallest distance and thus nearest freq point
+        packet%freq_id=minloc(packet%nu-nu_grid%bin(:,1),1,(packet%nu-nu_grid%bin(:,1))>0)
 
-        IF (packet%freq_id==0) THEN
-            PRINT*,'photon outside frequency range',packet%freq_id,packet%nu,packet%weight
-        ELSE
-            IF (iDoublet==2) THEN
+        if (packet%freq_id==0) then
+            print*,'photon outside frequency range',packet%freq_id,packet%nu,packet%weight
+        else
+            !adjust weight of packet if second component of doublet
+            if (i_doublet==2) then
                 packet%weight=packet%weight/line%doublet_ratio
-            END IF
-            !!$OMP CRITICAL
-            NP_BIN(packet%freq_id)=NP_BIN(packet%freq_id)+packet%weight
-            n_los_packets=n_los_packets+1
-            !!$OMP END CRITICAL
-        END IF
-    END SUBROUTINE
+            end if
+            !!$omp critical
+            !add packet to primary profile array
+            profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
 
-END MODULE driver
+            if (lg_multi_los) then
+                id_theta = minloc(packet%dir_sph(1)-cos_theta_array,1,(packet%dir_sph(1)-cos_theta_array)>0)
+                id_phi = minloc(packet%dir_sph(2)-phi_array,1,(packet%dir_sph(2)-phi_array)>0)
+                profile_los_array(packet%freq_id,id_theta,id_phi)=profile_los_array(packet%freq_id,id_theta,id_phi)+packet%weight
+            end if
+
+            !incremement number of packets in line of sight
+            n_los_packets=n_los_packets+1
+            !!$omp end critical
+        end if
+
+    end subroutine
+
+end module driver
