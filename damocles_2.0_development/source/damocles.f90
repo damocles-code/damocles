@@ -42,12 +42,13 @@ program damocles
 
     character(len=50)       ::  infile
 
+    !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
     if (n_args==1) then
         call get_command_argument(1,infile)
         infile=trim(infile)
     else if (n_args==0) then
-        infile='input.in'
+        infile='input/input.in'
     else
         print*,'too many input arguments - aborted'
         stop

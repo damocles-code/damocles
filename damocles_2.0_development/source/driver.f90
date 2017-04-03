@@ -48,6 +48,8 @@ contains
                 call construct_freq_grid()
                 call build_emissivity_dist()
                 call n_e_const()
+                
+                PRINT*,mothergrid%n_rho_dust_av*dust%lambda_ext*(dust_geometry%r_max_cm-dust_geometry%r_min_cm)
 
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))

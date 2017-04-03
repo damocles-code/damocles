@@ -315,7 +315,6 @@ contains
         packet%step_no=packet%step_no+1
         if (packet%step_no>500) then
             packet%lg_active=.false.
-            print*, packet%step_no
             return
         end if
     end subroutine

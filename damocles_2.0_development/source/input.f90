@@ -21,15 +21,15 @@ contains
 
     subroutine read_input()
 
-        !!roger addition - check
+        !check number of input arguments is 1 (the name of the input file)
         n_args=command_argument_count()
         if (n_args==1) then
             call get_command_argument(1,input_file)
             input_file=trim(input_file)
             print*, 'reading input from file ', input_file
         else if (n_args==0) then
-            input_file='input.in'
-            print*,'reading input from file input.in...'
+            input_file='input/input.in'
+            print*,'reading input from file input/input.in...'
         else
             print*,'too many input arguments - aborted'
             stop

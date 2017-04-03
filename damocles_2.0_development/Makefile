@@ -1,7 +1,7 @@
 FC=gfortran
 LD=gfortran
 FFLAGS += -cpp -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"${PREFIX}\"
-PREFIX=/Users/antoniabevan/Documents/Work/DAMOCLES/damocles_2.0_dev
+PREFIX=/usr/local
 
 ifeq ($(CO),debug)
   FFLAGS += -g -pg -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal
@@ -30,7 +30,8 @@ clean:
 install: damocles
 	test -e ${DESTDIR}${PREFIX}/share/damocles || mkdir -p ${DESTDIR}${PREFIX}/share/damocles
 	test -e ${DESTDIR}${PREFIX}/bin || mkdir -p ${DESTDIR}${PREFIX}/bin
-	cp -r dustData ${DESTDIR}${PREFIX}/share/damocles
+	echo ${DESTDIR}${PREFIX}
+	cp -r dustData ${DESTDIR}${PREFIX}/share/damocles/
 	install damocles ${DESTDIR}${PREFIX}/bin
 
 uninstall:

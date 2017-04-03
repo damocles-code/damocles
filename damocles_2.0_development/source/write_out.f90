@@ -38,7 +38,7 @@ contains
             run_no_string = time(1:2) // '.' // time(3:4) // '.' // time(5:6)
 
             call system('mkdir -p output/output_' // date // '/run_' // run_no_string)
-            call system('cp *.in output/output_' // date // '/run_' // run_no_string // '/.')
+            call system('cp input/*.in output/output_' // date // '/run_' // run_no_string // '/.')
 
             !open output files to record resultant modelled line profile, input parameters and properties of model
             open(25,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile.out')

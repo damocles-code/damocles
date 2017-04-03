@@ -246,7 +246,6 @@ contains
         dust%lambda_g_param=0
 
         !for each species, calculate extinction coefficients
-        !!work out what these quanities actually are... extinction per unit mass? per unit csa?
         do ii=1,dust%n_species
 
             !calculate mass of a grain for each size for each species and the average grain mass for each species

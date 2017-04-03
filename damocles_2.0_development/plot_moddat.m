@@ -1,17 +1,18 @@
-s=0.14;
-lim=0.6;
+s=1.05;
+lim=0.4;
 limy=0.8e4;
 doublet=0;
 sm=1;
 sf=1;
-cont=0.12e4
+cont=000
 
-str='day 714';
+shift = -0.02
+
+str='day 915';
 add=0;
 wav_space=0
 
 if (add==1) 
-    
 load 'd714_OI_ext.txt';
 fluxext=d714_OI_ext(:,2);
 velext=d714_OI_ext(:,1);
@@ -20,10 +21,10 @@ end
 %importdata('line.out',' ',1);
 %line_out=ans.data;
 %clearvars ans
-importdata('line.in',' ',2);
+importdata('input/line.in',' ',2);
 line_in=ans.data;
 clearvars ans
-importdata('output/output.out',' ',1);
+importdata('output/integrated_line_profile.out',' ',1);
 output=ans.data;
 clearvars ans
 
@@ -60,10 +61,11 @@ box on;
 if add==1
     plot(veldat*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
 else
+    
     if wav_space == 1
     plot(veldat*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
     else
-    plot(line_in(:,1)*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
+    plot(line_in(:,1)*1e-4,fluxdat*sf,(vel*1e-4)-shift,fluxmod*sf,'linewidth',1.25);
     end
 end 
 
@@ -75,7 +77,7 @@ leg=legend('observed','model');
 leg.FontSize=13;
 %legend boxoff
 xlabel('velocity (10$^{4}$ km s$ ^{-1}$)','Interpreter','LaTex','FontSize',14);
-ylabel('flux ($10^{-15}$ ergs cm$^{-2}$ s$^{-1}$ \AA $^{-1}$)','Interpreter','LaTex','FontSize',14);
+%ylabel('flux ($10^{-15}$ ergs cm$^{-2}$ s$^{-1}$ \AA $^{-1}$)','Interpreter','LaTex','FontSize',14);
 h=annotation('textbox');
 h.FontSize=13;
 h.LineStyle='none';
