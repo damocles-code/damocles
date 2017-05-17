@@ -1,0 +1,53 @@
+                                          active rest wavelength:       656.30
+
+ dust geometry:
+                                          maximum velocity (km/s)     16000.00
+                                              dust velocity index         1.00
+                                               dust density index         0.50
+                                                Rmax dust (e15cm)         4.15
+                                                Rmin dust (e15cm)         0.21
+                                         dust R ratio (Rmax/Rmin)         0.05
+
+ gas geometry:
+                                          maximum velocity (km/s)     16000.00
+                                               gas velocity index         1.00
+                                                gas density index         0.50
+                                                 Rmax gas (e15cm)         4.15
+                                                 Rmin gas (e15cm)         0.21
+                                                      gas r ratio         0.05
+                                  minimum velocity at Rmin (km/s)       800.00
+
+ properties of the dust:
+                                          Cext at line wavelength     0.40E-12
+                                          Csca at line wavelength     0.43E-15
+                                        albedo at line wavelength         0.00
+                forward scattering parameter g at line wavelength         0.00
+                         average optical depth at line wavelength         0.00
+                          average optical depth at V band (547nm)         0.00
+
+ properties of the grid:
+              volume of grid cell (and therefore clump) (e42cm^3)     0.46E+01
+                                        grid cell width (x) in cm     0.17E+15
+                                        grid cell width (y) in cm     0.17E+15
+                                        grid cell width (z) in cm     0.17E+15
+                   total analytical volume of supernova (e42cm^3)     0.30E+06
+                     volume of total grid cells inside sn (e42cm)     0.30E+06
+                                      average dust number density     0.00E+00
+               average optical depth of a cell at line wavelength         0.00
+                average optical depth of a cell at V band (547nm)         0.00
+                                 dust grain number density at Rin     0.00E+00
+                                dust grain number density at Rout     0.00E+00
+
+ dust mass check (calculated as rho*v):
+                                                         using -      0.00E+00
+                                                      requested -     0.00E+00
+
+ packet resolution:
+                              total number of packets initialised       500000
+                            number of active (propagated) packets       500000
+                                       number of inactive packets            0
+                       number of escaped packets in line of sight       500000
+                            % of escaped packets in line of sight       100.00
+                                       number of absorbed packets            0
+                                            % of absorbed packets         0.00
+                                                absorbed weight %         0.00

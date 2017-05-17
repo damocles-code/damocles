@@ -1,0 +1,5 @@
+=====================ELECTRON SCATTERING PARAMETERS==============================
+0.2		!  total Halpha luminosity in e40 ergs-1 (for electron densities)
+10000		!  electron scattering temperature (set to 0 if no es)
+
+

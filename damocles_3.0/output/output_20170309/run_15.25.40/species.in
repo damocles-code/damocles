@@ -1,0 +1,4 @@
+1
+NOTE THAT RELATIVE SPECIES WEIGHTS ARE FRACTIONAL CROSS_SECTIONAL AREAS - OTHER WEIGHTINGS CALCULATED WITHIN THE CODE
+id	filename	   	       		weight	amin	amax	power	no of divisions
+1	'dustData/amC-zb1.nk'			1.0	0.01	0.01	0.0	1

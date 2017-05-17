@@ -1,0 +1,14 @@
+================DUST OPTIONS=========================================
+0.0003           !  Total dust mass (Msun)
+================DUST CLUMPING OPTIONS================================
+0.0		!  mass fraction in clumps (set to 0 for no clumping)
+0.0		!  filling factor (volume in clumps)
+2.0             !  clump number density distribution
+================DUST GEOMETRY========================================
+3000		!  max dust velocity in km/s
+0.08		!  Rin/Rout ratio
+1.0		!  value of l where velocity profile is v~r^l
+1.6		!  value of  where density profile is rho~r^-q
+2.0		!  value of b where emissivity~r^-qb (applicable only if dust and gas coupled)
+
+
