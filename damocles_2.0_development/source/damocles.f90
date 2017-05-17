@@ -33,6 +33,9 @@
 !-----------------------------------------------------------------------------!
 program damocles
 
+    use globals
+    use mcmc_handler
+    use mcmc_sampler
     use input
     use initialise
     use vector_functions
@@ -40,7 +43,8 @@ program damocles
 
     implicit none
 
-    character(len=50)       ::  infile
+    character(len=50)       ::  infile        !specified input file
+
 
     !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
@@ -54,6 +58,14 @@ program damocles
         stop
     end if
 
-    call run_damocles()
+    open(30,file=infile)
+    read(30,*)
+    read(30,*) lg_mcmc
+    close(30)
 
+    if (.not. lg_mcmc) then
+        call run_damocles()
+    else
+        call mcmc()
+    end if
 end program

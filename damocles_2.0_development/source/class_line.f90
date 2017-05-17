@@ -15,6 +15,7 @@ module class_line
         real        ::  doublet_wavelength_2    !wavelength (nm) of the second component of the doublet (if applic.)
         real        ::  doublet_ratio           !flux ratio between 2 components of doublet (wavelength_1/wavelength_2)
         real        ::  initial_energy          !energy of a single packet at emission
+        real        ::  peak_flux               !peak flux used to scaled modelled line profile to in order to calclulate chi sq.
 
         integer     ::  wav_bin                 !array index of nearest wavelength bin to rest frame wavelength being modelled
         integer     ::  wav_bin_v               !array index of nearest wavelength bin to v band (547nm)

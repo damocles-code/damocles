@@ -1,180 +1,125 @@
 module model_comparison
 
     use globals
-    use input
-    use initialise
+    use class_line
+    use class_geometry
+    use class_dust
+    use class_grid
+    use class_freq_grid
 
 
     implicit none
 
-    real :: chi2
+    type obs_profile
+        integer             :: n_data                               !no of divisions in observed profile (i.e. no of lines to read in)
+        real,allocatable    :: vel(:)                               !array of velocities of observed profile
+        real,allocatable    :: flux(:)                              !array of fluxes of observed profile
+        logical,allocatable :: exclude(:)                           !logical array that with certain elements assigned true if they are excluded from chi sq calcn.
+    end type
+
+    type(obs_profile) obs_data,model_rebinned
+
+    integer              :: bin_id_low,bin_id_high                  !ids of modelled velocity bins that are used to interpolate to obs data bins
+    real                 :: scale_factor,sf,scale_factor_final      !scale factors used to scale model to maximise chi sq
+    real                 :: chi_sq_new                              !updated chi_sq
+    real,parameter       :: error=0.5e-15                           !error used in chi_sq calculation !!may want to make dynamic or non=const
+    integer              :: no_exclusion_zones                      !no of regions to exclude from chi sq calulation
+    real,allocatable     :: exclusion_zone(:,:)                     !upper and lower bounds of excluded zone in velocity space
 
 contains
 
-    subroutine linear_interp(marg_chi)
+    subroutine read_in_data()
 
-        real                ::  xmod(nu_grid%n_bins),ymod(nu_grid%n_bins),ydatnew(nu_grid%n_bins)       !xmod are the model wavelengths, ymod are the model fluxes
-        real,allocatable    ::  xdat(:),ydat(:),ydatnew_rest(:),ymod_rest(:),x_rest(:)    !
-        real                ::  norm_const                      !to normalise the fluxes
-        real,intent(out)    ::  marg_chi
-        real                ::  marg_chi2,chi,chi2
-        real                ::  s,s2
-        real                ::  err
-        real                :: limit_min, limit_max  !limits (in x) for the narrow line so nomalisation works
-        real                :: ylimit_min, ylimit_max
-        integer             ::  n_bins_dat                      !number of data point to read in
-        integer             ::  inu_dat(1)
-        integer             ::  arr_size
-        integer             ::  ilim(1),nn
+        !read in observed data number of lines
+        open(35,file=data_file)
+        read(35,*) obs_data%n_data
 
-        open(25,file='output/line.out')
-        write(25,*) 'wavelength   modelled flux   observed flux'
+        !allocate size of data array accordingly
+        allocate(obs_data%vel(obs_data%n_data))
+        allocate(obs_data%flux(obs_data%n_data))
 
-        !set up and normalise model data
-        do ii=1,nu_grid%n_bins
-            ymod(ii)=profile_array(ii)
-            if (ii /= nu_grid%n_bins) then
-                xmod(nu_grid%n_bins-ii+1)=c*10**9/((nu_grid%bin(ii,1)+nu_grid%bin(ii+1,1))/2)   !calc lambda at centre of bin
-            else
-                xmod(1)=c*10**9/((nu_grid%bin(ii,1)+nu_grid%fmax)/2)
-            end if
-            !write(22,*) inu,xmod(nu_grid%n_bins-inu+1),xmod(inu),ymod(inu)*e_0
+        !read in observed line data
+        do ii = 1,obs_data%n_data
+            read(35,*) obs_data%vel(ii),obs_data%flux(ii)
+        end do
+        close(35)
+
+        !read in excluded zones
+        open(36,file=data_exclusions_file)
+        read(36,*) no_exclusion_zones
+        allocate(exclusion_zone(no_exclusion_zones,2))
+
+        do ii = 1,no_exclusion_zones
+            read(36,*) exclusion_zone(ii,1),exclusion_zone(ii,2)
+            if (exclusion_zone(ii,1)>exclusion_zone(ii,2)) print*,'warning: please re-order your exclusion zone limits to be in ascending order and re-run.'
+        end do
+        close(36)
+    end subroutine
+
+    subroutine calculate_chi_sq()
+
+        !allocate space for new modelled line profile binned to same velocity bins as observed data
+        allocate(model_rebinned%vel(obs_data%n_data))
+        allocate(model_rebinned%flux(obs_data%n_data))
+        allocate(model_rebinned%exclude(obs_data%n_data))
+
+        !set model velocity bins to be the same as those of observed line profile
+        model_rebinned%vel = obs_data%vel
+
+        !interpolate between nearest modelled velocity bins to find new flux in observed data velocity bins
+        do ii = 1,obs_data%n_data
+            bin_id_high=minloc(nu_grid%vel_bin(:)-model_rebinned%vel(ii),1,(nu_grid%vel_bin(:)-model_rebinned%vel(ii)>0))
+            bin_id_low=maxloc(nu_grid%vel_bin(:)-model_rebinned%vel(ii),1,(nu_grid%vel_bin(:)-model_rebinned%vel(ii)<0))
+            model_rebinned%flux(ii) = line%initial_energy*(profile_array(bin_id_low)+((profile_array(bin_id_high)-profile_array(bin_id_low))*((model_rebinned%vel(ii)-nu_grid%vel_bin(bin_id_low))/(nu_grid%vel_bin(bin_id_high)-nu_grid%vel_bin(bin_id_low)))))
         end do
 
-        arr_size=size(xmod)
-        xmod = xmod(arr_size:1:-1)
+        !scale modelled fluxes to data flux using peak observed line flux
+        scale_factor=line%peak_flux/(sum(model_rebinned%flux(maxloc(model_rebinned%flux,1)-5:maxloc(model_rebinned%flux,1)+5))/size(model_rebinned%flux(maxloc(model_rebinned%flux,1)-5:maxloc(model_rebinned%flux,1)+5)))
 
-        !read in observed data
-        open(21,file=data_file)
-        read(21,*) n_bins_dat
-
-!        read(21,*) err
-!        read(21,*)
-!        read(21,*) limit_min, limit_max
-!        read(21,*)
-        allocate(xdat(n_bins_dat))
-        allocate(ydat(n_bins_dat))
-        
-        xdat=0
-        ydat=0
-
-        do ii=1,n_bins_dat
-            read(21,*) xdat(ii),ydat(ii)
-            !if in vel space (kms-1) include this line
-            !xdat(ii)=((xdat(ii)*1000/c)+1)*line%wavelength
-            !if in angstroms include this line
-            !xdat(inu)=xdat(inu)/10
-            !if in nm do nothing
-            !print*,ydat(inu)
-        end do
-
-        !print*,xmod(1),xdat(1)
-        !print*,xmod(nu_grid%n_bins),xdat(n_bins_dat)
-
-        ydatnew=0
-        nn=0
-
-        !interpolate
-        do ii=1,nu_grid%n_bins
-            inu_dat=minloc((xmod(ii)-xdat),(xmod(ii)-xdat)>0)
-            if (inu_dat(1) /=0) then
-                if (inu_dat(1) /=n_bins_dat) then
-                    ydatnew(ii)=ydat(inu_dat(1))+((xmod(ii)-xdat(inu_dat(1)))*(ydat(inu_dat(1)+1)-ydat(inu_dat(1)))/(xdat(inu_dat(1)+1)-xdat(inu_dat(1))))
-                    !print*,ydat(inu_dat),ydatnew(inu),ydat(inu_dat+1)
-                    jj=ii
-                    nn=nn+1
+        !check whether velocity bins should be excluded from chi squared calculation (due to e.g. narrow line contamination)
+        model_rebinned%exclude = .false.
+        do ii = 1,obs_data%n_data
+            do jj = 1,no_exclusion_zones
+                if ((model_rebinned%vel(ii)>exclusion_zone(jj,1)) .and. (model_rebinned%vel(ii)<exclusion_zone(jj,2))) then
+                    model_rebinned%exclude(ii) = .true.
                 end if
+            end do
+        end do
+
+        !calculate chi_sq
+        do ii = 1,obs_data%n_data
+            if (model_rebinned%exclude(ii) .eqv. .false.) then
+                chi_sq = chi_sq+((model_rebinned%flux(ii)*scale_factor-obs_data%flux(ii))/error)**2
             end if
         end do
 
-        !print*,nn,jj,jj-nn,nu_grid%n_bins
-        
-        !restrict range of model output to the range of the data
-        allocate(ydatnew_rest(nn))
-        allocate(ymod_rest(nn))
-        allocate(x_rest(nn))
-        ydatnew_rest=0
-        ymod_rest=0
-        kk=1
-        do ii=jj-nn+1,jj
-                ydatnew_rest(kk)=ydatnew(ii)
-                ymod_rest(kk)=ymod(ii)
-                x_rest(kk)=xmod(ii)
-                kk=kk+1                
+        !optimise scale factor to give best fit by trying a range of scale factors between 0.6 and 1.5 times the initial factor above
+        do jj =1,20
+            sf = scale_factor*(0.5+0.05*jj)
+            chi_sq_new=0
+            do ii = 1,obs_data%n_data
+                if (model_rebinned%exclude(ii) .eqv. .false.) then
+                    chi_sq_new = chi_sq_new+((model_rebinned%flux(ii)*sf-obs_data%flux(ii))/error)**2
+                end if
+            end do
+            if (chi_sq_new<chi_sq) then
+                scale_factor_final=sf
+                chi_sq=chi_sq_new
+            end if
         end do
+        model_rebinned%flux=model_rebinned%flux*scale_factor_final
 
-        !normalise over restricted observed data array and restricted model array
-
-        !print*,limit_min,limit_max
-        ilim=minloc(abs(limit_min-x_rest))
-        ylimit_min=ydatnew_rest(ilim(1))
-        ilim=minloc(abs(limit_max-x_rest))
-        ylimit_max=ydatnew_rest(ilim(1))
-        norm_const=0
-        do ii=1,nn
-              norm_const=norm_const+ymod_rest(ii)
-        end do
-
-        if (norm_const==0) then
-            print*,'normalisation constant =0 - maybe not enough packets used - 100% absorbed?'
+        !write out rebinned and rescaled modelled line to file
+        if (.not. lg_mcmc) then
+            print*,'chi squared',chi_sq
+            open(37,file='line.out')
+            do ii = 1,obs_data%n_data
+                write(37,*) model_rebinned%vel(ii),model_rebinned%flux(ii)
+            end do
+            close(37)
         end if
-        ymod_rest=ymod_rest/(norm_const)
 
-        norm_const=0
-        do ii=1,nn
-!           if ((x_rest(inu)<limit_min) .or. (x_rest(inu)>limit_max)) then
-              norm_const=norm_const+ydatnew_rest(ii)
-!           else
-              !here we are compensating for the narrow line component
-              !the narrow line adds extra flux that is not being modelled he_re
-              !this throws off the comparison of the lines by normalising
-              !instead we identify the limits of the narrow component
-              !to normalise we interpolate linearly in this region
-           !   print*,
-!              norm_const=norm_const+(ylimit_min+((ylimit_max-ylimit_min)*(x_rest(inu)-limit_min)/(limit_max-limit_min)))
-              !print*,'check',x_rest(inu),ylimit_min+((ylimit_max-ylimit_min)*(x_rest(inu)-limit_min)/(limit_max-limit_min))
-!           end if
-           !print*,ymod_rest(inu)
- 
-        end do
-!        norm_const=norm_const
-        ydatnew_rest=ydatnew_rest/(norm_const)
+    end subroutine
 
-
-        !this section will calculate chi2 values but needs updating to read in errors
-        !perform this calculation using post-processing
-
-
-        !marginalised chi squared calculation
-        !note that the following only true if err is constant
-        !s=0
-        !s2=0
-        !do inu=1,i
-            !introduce error and check formula!!!!!!!!
-        !    s=s+(ymod_rest(inu)*ydatnew_rest(inu))
-        !    s2=s2+(ymod_rest(inu)**2)
-        !    write(25,*) x_rest(inu),ydatnew_rest(inu),ymod_rest(inu)
-        !end do
-        !s=s/s2
-
-        !chi2=0
-        !marg_chi2=0
-        !err=0.1
-        !do inu=1,i
-        !    chi2=chi2+((ydatnew_rest(inu)-ymod_rest(inu))/err)**2
-        !    marg_chi2=marg_chi2+((ydatnew_rest(inu)-s*ymod_rest(inu))/err)**2
-        !end do
-
-        !marg_chi=marg_chi2
-        !chi=chi2
-
-        deallocate(ydatnew_rest)
-        deallocate(ymod_rest)
-        deallocate(xdat)
-        deallocate(ydat)
-
-        close(25)
-
-    end subroutine linear_interp
 
 end module model_comparison

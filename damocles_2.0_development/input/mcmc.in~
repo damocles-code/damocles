@@ -1,0 +1,3 @@
+!!!!!!! MCMC OPTIONS !!!!!!!!!
+10000	     ! number of points in parameter space to sample
+0.5e-15	     ! peak flux to scale model to

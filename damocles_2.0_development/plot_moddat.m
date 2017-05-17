@@ -1,14 +1,14 @@
-s=1.05;
-lim=0.4;
-limy=0.8e4;
+s=0.14;
+lim=2;
+limy=1.0;
 doublet=0;
 sm=1;
-sf=1;
-cont=000
+sf=1e15;
+cont=0.0
 
-shift = -0.02
+shift = -0.0
 
-str='day 915';
+str='SN 2005ip day 80 Halpha';
 add=0;
 wav_space=0
 
@@ -57,7 +57,9 @@ fluxmod=smooth(fluxmod,sm);
 fluxdat=smooth(fluxdat,1);
 
 box on;
+%figure;
 
+%subplot(2,1,1)
 if add==1
     plot(veldat*1e-4,fluxdat*sf,vel*1e-4,fluxmod*sf,'linewidth',1.25);
 else
@@ -70,6 +72,8 @@ else
 end 
 
 
+residual = fluxdat*sf-interp1(vel*1e-4,fluxmod*sf,line_in(:,1)*1e-4)
+
 
 ylim([0 limy]);
 xlim([-lim lim]);
@@ -77,7 +81,7 @@ leg=legend('observed','model');
 leg.FontSize=13;
 %legend boxoff
 xlabel('velocity (10$^{4}$ km s$ ^{-1}$)','Interpreter','LaTex','FontSize',14);
-%ylabel('flux ($10^{-15}$ ergs cm$^{-2}$ s$^{-1}$ \AA $^{-1}$)','Interpreter','LaTex','FontSize',14);
+ylabel('flux ($10^{-15}$ ergs cm$^{-2}$ s$^{-1}$ \AA $^{-1}$)','Interpreter','LaTex','FontSize',14);
 h=annotation('textbox');
 h.FontSize=13;
 h.LineStyle='none';
@@ -85,3 +89,7 @@ h.Position=[0.15 0.83 0.2 0.07];
 h.String=str;
 line([0,0],ylim,'Color','black','LineWidth',0.01,'LineStyle',':');
 
+
+
+%subplot(2,1,2)
+%plot(line_in(:,1)*1e-4,residual)

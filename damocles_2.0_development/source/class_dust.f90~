@@ -123,7 +123,7 @@ contains
             dust%species(ii)%v_weight=(1.0/(1.0+(1.0/dust%species(ii)%weight-1)**(1.5)))
 
             write(55,*) 'area weight',dust%species(ii)%weight
-            write(55,*) 'volume weight',dust%species(ii)%v_weight
+            write(55,*),'volume weight',dust%species(ii)%v_weight
         end do
 
         close(21)

@@ -36,6 +36,8 @@ contains
             !generate random seed for random number generators (ensures random numbers change on each run)
             call init_random_seed
 
+
+
             !construct all grids and initialise rest line wavelength/freq
             if (i_doublet==1) then
                 !set active rest frame wavelength
@@ -48,15 +50,13 @@ contains
                 call construct_freq_grid()
                 call build_emissivity_dist()
                 call n_e_const()
-                
-                PRINT*,mothergrid%n_rho_dust_av*dust%lambda_ext*(dust_geometry%r_max_cm-dust_geometry%r_min_cm)
 
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))
                 allocate(phi_array(n_angle_divs))
                 do ii=1,n_angle_divs-1
-                        cos_theta_array(ii) = (2*real(ii-1)/20.0)-1
-                        phi_array(ii)=2*real(ii)*pi/20
+                    cos_theta_array(ii) = (2*real(ii-1)/20.0)-1
+                    phi_array(ii)=2*real(ii)*pi/20
                 end do
 
 
@@ -76,6 +76,7 @@ contains
                 line%wavelength=line%doublet_wavelength_2
                 line%frequency=c*10**9/line%wavelength
             end if
+
 
             !emit and propagate packets through grid
             print*,"propagating packets..."
@@ -122,14 +123,26 @@ contains
             end select
         end do
 
-        !calculate goodness of fit to data if supplied
-        if (lg_data) call linear_interp(chi2)
+        !calculate energies
+        if (lg_doublet) then
+            line%initial_energy=line%luminosity/real(2.0*n_init_packets-n_inactive_packets)
+        else
+            line%initial_energy=line%luminosity/real(n_init_packets-n_inactive_packets)
+        end if
 
         !write out log file
-        call write_to_file()
+        if (.not. lg_mcmc) call write_to_file()
+
+        !calculate goodness of fit to data if supplied
+        if (lg_data) then
+            call read_in_data()
+            call calculate_chi_sq()
+        end if
 
         !decallocate all allocated memory
         deallocate(grid_cell)
+        deallocate(nu_grid%lambda_bin)
+        deallocate(nu_grid%vel_bin)
         deallocate(nu_grid%bin)
         deallocate(mothergrid%x_div)
         deallocate(mothergrid%y_div)
@@ -139,6 +152,13 @@ contains
         deallocate(dust%species)
         deallocate(cos_theta_array)
         deallocate(phi_array)
+        deallocate(obs_data%vel)
+        deallocate(obs_data%flux)
+        deallocate(profile_los_array)
+        deallocate(exclusion_zone)
+        deallocate(model_rebinned%vel)
+        deallocate(model_rebinned%flux)
+        deallocate(model_rebinned%exclude)
         if (dust_geometry%type == "shell") deallocate(shell_radius)
 
         print*,'complete!'
@@ -146,11 +166,7 @@ contains
     end subroutine run_damocles
 
     subroutine run_packets()
-
-        !!!!!openmp has not been updated after recent amendments so do not employ without thorough checking first!!!!!!!!!!!
-        !!$omp parallel default(private) shared(dust_geometry%ff,gas_geometry%rho_power,line%doublet_ratio,i_doublet,n_los_packets,n_inactive,n_abs_packets,shell_width,width,profile_array,num_packets_array,ish,shell_radius,dust_geometry%r_min,dust_geometry%r_max,gas_geometry%r_min,gas_geometry%r_max,lg_los,lg_es,grid,mothergrid%n_cells,nu_grid%bin,dust_geometry%v_max,gas_geometry%v_max,l,gas_geometry%v_power,dummy,mgrid,dust,lg_vel_shift)
-
-        !!$omp do schedule(dynamic)
+        !!$OMP  PARALLEL
         do ii=1,num_packets_array(id_no)
 
             call emit_packet()
@@ -162,31 +178,33 @@ contains
 
                 !if packet has been absorbed then record
                 if (packet%lg_abs) then
-                    !!$omp critical
+
                     n_abs_packets=n_abs_packets+1
                     if (i_doublet==2) then
                         abs_frac=abs_frac+packet%weight/line%doublet_ratio
                     else
                         abs_frac=abs_frac+packet%weight
                     end if
-                    !!$omp end critical
+
                 else
-                !if the packet has not been absorbed then record in resultant profile
+                    !if the packet has not been absorbed then record in resultant profile
 
                     !if taking integrated profile and not interested in line of sight, record all escaped packets
+
                     if (.not. lg_los) then
-                         call add_packet_to_profile()
+                        call add_packet_to_profile()
                     else
                         !only add active packets to profile for those in los
                         if (packet%lg_los) call add_packet_to_profile()
 
                     end if !line of sight
+
                 end if  !absorbed/escaped
             end if  !active
         end do
-        !!$omp end do
 
-        !!$omp end parallel
+
+        !!$OMP END PARALLEL
 
     end subroutine
 
@@ -204,6 +222,7 @@ contains
             end if
             !!$omp critical
             !add packet to primary profile array
+
             profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
 
             if (lg_multi_los) then
@@ -220,3 +239,5 @@ contains
     end subroutine
 
 end module driver
+
+

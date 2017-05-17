@@ -53,11 +53,6 @@ contains
         end if
 
         !write out modelled line profile
-        if (lg_doublet) then
-            line%initial_energy=line%luminosity/real(2.0*n_init_packets-n_inactive_packets)
-        else
-            line%initial_energy=line%luminosity/real(n_init_packets-n_inactive_packets)
-        end if
 
         do ii=1,nu_grid%n_bins-1
             write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)

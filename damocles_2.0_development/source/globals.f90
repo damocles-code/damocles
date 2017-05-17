@@ -17,6 +17,7 @@ module globals
     integer             ::  i_dir
     integer             ::  i_spec
     integer             ::  i_doublet
+    integer             ::  i_mcmc
 
     !dummy counters
     integer             ::  xx,yy,zz
@@ -59,6 +60,7 @@ module globals
     real                ::  m_clumps_check          !calculated mass of dust in clumps
 
     !different options and cases
+    logical                 ::  lg_mcmc       !use an mcmc routine to map parameter space and return trace and likelihoods
     logical             ::  lg_los                  !use a line of sight?
     logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
     logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
@@ -72,19 +74,21 @@ module globals
     real                ::  abs_frac                !total fraction of emitted energy that has been absorbed
     real,allocatable    ::  cos_theta_array(:)
     real,allocatable    ::  phi_array(:)
+    real                ::  chi_sq                  !measure of goodness of fit of model to data
 
     !names of input files
     character(len=50)   ::  input_file              !name of input file to read in
     character(len=50)   ::  data_file               !name of data file containing details of observed line to read in
+    character(len=50)   ::  data_exclusions_file    !name of data file containing details of regions of observed line to exclude in chi sq. calculation
     character(len=50)   ::  e_scat_file             !name of file containing electron scattering parameters (temperature, halpha luminosity etc.)
     character(len=50)   ::  dust_file               !name of file containing dust grain parameters (geometry, mass etc.)
     character(len=50)   ::  gas_file                !name of file containing electron scattering parameters (geometry, luminosity etc.)
     character(len=40)   ::  species_file            !filename containing details of dust species
-    character(len=1024) :: junk                 !dummy for reading in material from files
+    character(len=1024) ::  junk                    !dummy for reading in material from files
 
     !system variables (used in naming output files)
     character(8)        ::  date
     character(10)       ::  time
-    character(8)       ::  run_no_string
+    character(8)        ::  run_no_string
 
 end module globals

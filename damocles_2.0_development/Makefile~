@@ -1,6 +1,6 @@
 FC=gfortran
 LD=gfortran
-FFLAGS += -p -cpp -fbounds-check -ffree-line-length-0 -fopenmp -openmp-report2 -Jsource/ -DPREFIX=\"${PREFIX}\"
+FFLAGS += -pg -cpp -fbounds-check -ffree-line-length-0 -fopenmp -openmp-report2 -Jsource/ -DPREFIX=\"${PREFIX}\"
 PREFIX=/usr/local
 
 ifeq ($(CO),debug)
