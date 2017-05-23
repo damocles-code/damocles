@@ -23,7 +23,7 @@ shell   	  !  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
 50		  !  number of cells in each direction
 20		  !  number of divisions in phi and theta to generate lines of sight covering whole ejecta
 =======================PHOTON PACKETS==================================================
-100000          !  number of photons
+1000000          !  number of photons
 50000		  !  number of frequency bins for output energy distribution
 100		  !  number of shells
 1		  !  number of threads to run on

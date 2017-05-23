@@ -24,24 +24,21 @@ module radiative_transfer
 
     implicit none
 
-    real    ::  v_therm(3)             !sampled velocity of electron based on specified electron temperature
-    real    ::  s_face(3)              !distance to each (x/y/z) cell boundary in direction of travel
-    real    ::  s_min                  !distance to nearest face in packet's direction of travel
-    real    ::  s                      !distance travelled by packet based on sampled optical depth
-
     integer ::  i_min                  !index of nearest face in packet's direction of travel
     integer ::  wav_id                 !wavelength bin that contains the current packet
-
     character(9) :: event_type         !is packet experiences an event, this describes whether it is
                                        !dust scattering, electron scattering or absorption by dust
 
     !----variables below are properties of current active packet at its current wavelength
-    real    ::  tau                    !optical depth sampled from cumulative frequency dsitribution
     real    ::  kappa_rho              !opacity * mass density = c_ext (cross-section of interaction) * number density
     real    ::  c_ext_tot              !total extinction cross-section of interaction
     real    ::  c_sca_tot              !total scattering cross-section of interaction
     real    ::  g_param_tot            !total forward scattering parameter g (from mie calculation, to be used with henyey-greenstein approx)
     real    ::  albedo                 !albedo in cell
+
+
+
+    !$OMP THREADPRIVATE(kappa_rho,c_ext_tot,c_sca_tot,g_param_tot,albedo,i_min,wav_id,event_type)
 
 contains
 
@@ -49,11 +46,21 @@ contains
 
         implicit none
 
+
+
+        real    ::  v_therm(3)             !sampled velocity of electron based on specified electron temperature
+        real    ::  s_face(3)              !distance to each (x/y/z) cell boundary in direction of travel
+        real    ::  s_min                  !distance to nearest face in packet's direction of travel
+        real    ::  s                      !distance travelled by packet based on sampled optical depth
+
+            !----variables below are properties of current active packet at its current wavelength
+            real    ::  tau                    !optical depth sampled from cumulative frequency dsitribution
+
         call check_step_no()
         call update_cell_no()
         call calculate_extinction()
 
-    !calculate distance to nearest face:
+        !calculate distance to nearest face:
 
         !unit vector direction of travel of packet in cartesian
         packet%dir_cart=normalise(packet%dir_cart)
@@ -70,11 +77,12 @@ contains
         s_min=minval(s_face)
         i_min=minloc(s_face,1)
 
-
-    !sample optical depth and calculate distance travelled:
+        !sample optical depth and calculate distance travelled:
 
         !call random number and sample from cfd to obtain tau
-        call random_number(ran)
+!        call random_number(ran)
+        ran = r4_uni_01()
+
         tau=-(alog((1-ran)))
         !work out potential distance travelled by packet based on optical depth tau
         !(distance in units of cm, since kappa_rho in units cm^-1)
@@ -89,16 +97,16 @@ contains
             if (lg_es) then
                 s=tau/(sigma_t*grid_cell(packet%cell_no)%n_e)
             else
-                s=(grid_cell(packet%cell_no)%width(1)**2+grid_cell(packet%cell_no)%width(2)**2+grid_cell(packet%cell_no)%width(3)**2)**0.5
+                s=(sum(grid_cell(packet%cell_no)%width**2))**0.5
             end if
         end if
 
 
-    !event occurs when distance travelled (as determined by tau) is < distance to nearest face
-    !else continues to cell boundary with no event occurring:
+        !event occurs when distance travelled (as determined by tau) is < distance to nearest face
+        !else continues to cell boundary with no event occurring:
 
         if ((s>s_min)) then
-        !packet travels to cell boundary (direction of travel remains the same):
+            !packet travels to cell boundary (direction of travel remains the same):
 
             !position updated to be on boundary with next cell
             !actually moves just past boundary by small factor...
@@ -131,23 +139,22 @@ contains
             end if
 
             !calculate packet radial position
-            packet%r=(packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5
+            packet%r=(sum(packet%pos_cart**2))**0.5
 
             call check_packet_in_right_cell()
             call check_escaped()
             call propagate()
 
         else
-        !event does occur:
+            !event does occur:
 
             !calculate position and radius of event
             packet%pos_cart(:)=packet%pos_cart(:)+s*packet%dir_cart(:)
-            packet%r=(packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5
+            packet%r=(sum(packet%pos_cart**2))**0.5
 
             call calculate_velocity()
             call check_escaped()
             call determine_event_type()
-
 
             select case(event_type)
 
@@ -260,7 +267,13 @@ contains
 
     subroutine scatter()
         !sample new propagation direction
-        call random_number(random)
+        !call random_number(random)
+        random(1) = r4_uni_01()
+        random(2) = r4_uni_01()
+        random(3) = r4_uni_01()
+        random(4) = r4_uni_01()
+        random(5) = r4_uni_01()
+
         if (dust%scat_type == 'hg' .and. event_type == 'dust_scat') then
             packet%dir_sph(:)=(/ (1.0/(2*g_param_tot))*(1+g_param_tot**2-((1-g_param_tot**2)/(1-g_param_tot+2*g_param_tot*random(1)))**2), &
                 & random(2)*2*pi /)
@@ -324,22 +337,25 @@ contains
     !---------------------------------------------------------------------
 
     subroutine check_los()
-    if (acos(packet%pos_cart(3)/sum(packet%pos_cart**2)**0.5) < pi/6) then
-                packet%lg_los = .true.
-                end if
+        if (acos(packet%pos_cart(3)/sum(packet%pos_cart**2)**0.5) < pi/6) then
+            packet%lg_los = .true.
+        end if
     end subroutine
 
     !---------------------------------------------------------------------
 
     subroutine determine_event_type()
-        call random_number(ran)
+
+!        call random_number(ran)
+        ran = r4_uni_01()
 
         !if es used then establish whether dust event or e- scattering event
         if ((.not. lg_es) .or. (ran<kappa_rho/(kappa_rho+sigma_t*grid_cell(packet%cell_no)%n_e))) then
             !dust event - either scattering or absorption...
 
             !generate random number to compare to dust albedo in order to determine whether dust absorption or scattering
-            call random_number(ran)
+!            call random_number(ran)
+            ran = r4_uni_01()
 
             if (ran<albedo) then
                 !dust scattering event

@@ -26,11 +26,13 @@ module globals
     !identifiers
     integer             ::  ig
     integer             ::  id_theta,id_phi
-    integer             ::  id_no
+    integer             ::  id_no, i_packet
+    !$OMP THREADPRIVATE(id_no, i_packet)
 
-    !random numbers
-    real                ::  random(5),ran
-    !$OMP THREADPRIVATE(random)
+    !random numbers and functions
+    real                ::  random(5), ran
+    real,external       ::  r4_uni_01
+    !$OMP THREADPRIVATE(random,ran)
 
     !constants
     real, parameter     ::  pi=3.141592654

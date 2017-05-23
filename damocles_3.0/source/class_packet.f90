@@ -52,7 +52,12 @@ contains
 
         implicit none
 
-        call random_number(random)
+        !call random_number(random)
+        random(1) = r4_uni_01()
+        random(2) = r4_uni_01()
+        random(3) = r4_uni_01()
+        random(4) = r4_uni_01()
+        random(5) = r4_uni_01()
 
         !packets are weighted according to their frequency shit (energy is altered when doppler shifted)
         packet%weight=1
@@ -160,7 +165,7 @@ contains
             print*,'inactive photon'
         end if
 
-        if (n_inactive_packets/n_init_packets > 0.1) print*, 'warning: number of inactive packets greater than 10% of number requested.'
+        !if (n_inactive_packets/n_init_packets > 0.1) print*, 'warning: number of inactive packets greater than 10% of number requested.'
 
         packet%pos_cart=packet%pos_cart*1e15
 

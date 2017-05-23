@@ -1,6 +1,6 @@
 FC=gfortran
 LD=gfortran
-FFLAGS += -cpp -fbounds-check -ffree-line-length-0 -fopenmp -openmp-report2 -Jsource/ -DPREFIX=\"${PREFIX}\"
+FFLAGS += -cpp -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"${PREFIX}\"
 PREFIX=/usr/local
 
 ifeq ($(CO),debug)
@@ -18,7 +18,7 @@ new:    clean all
 source/%.o: source/%.f90
 	$(FC) $(FFLAGS) $^ -c -o $@
 
-damocles: source/init_random_seed.o source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o \
+damocles: source/rnglib.f90 source/init_random_seed.o source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o \
    source/class_grid.o source/electron_scattering.o source/input.o source/random_routines.o source/vector_functions.o \
 source/write_out.o source/class_packet.o source/BHmie.o  source/radiative_transfer.o \
 source/model_comparison.o source/driver.o source/damocles.o

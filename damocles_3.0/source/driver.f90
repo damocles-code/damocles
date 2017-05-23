@@ -27,12 +27,6 @@ contains
 
     subroutine run_damocles()
 
-        integer, dimension(3) :: time
-
-        !print start time
-        call itime(time)
-        print *, 'start time - ', time(2),'m', time(3),'s'
-
         !read input:
         call read_input()
         
@@ -49,23 +43,11 @@ contains
                 line%frequency=c*10**9/line%wavelength
 
                 !construct grids
-                call itime(time)
-                print *, 'input read time - ', time(2),'m', time(3),'s'
                 call calculate_opacities()
-                call itime(time)
-                print *, 'opcaities calculated time - ', time(2),'m', time(3),'s'
                 call build_dust_grid()
-                call itime(time)
-                print *, 'grid built time - ', time(2),'m', time(3),'s'
                 call construct_freq_grid()
-                call itime(time)
-                print *, 'freq grid built time - ', time(2),'m', time(3),'s'
                 call build_emissivity_dist()
-                call itime(time)
-                print *, 'emisivity grid built time - ', time(2),'m', time(3),'s'
                 call n_e_const()
-                call itime(time)
-                print *, 'e- scat const time - ', time(2),'m', time(3),'s'
 
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))
@@ -74,7 +56,6 @@ contains
                     cos_theta_array(ii) = (2*real(ii-1)/20.0)-1
                     phi_array(ii)=2*real(ii)*pi/20
                 end do
-
 
                 !initialise counters to zero
                 n_init_packets=0
@@ -93,9 +74,6 @@ contains
                 line%frequency=c*10**9/line%wavelength
             end if
 
-            call itime(time)
-            print *, 'initialise time - ', time(2),'m', time(3),'s'
-
             !emit and propagate packets through grid
             print*,"propagating packets..."
 
@@ -103,13 +81,19 @@ contains
             !absorbed weight stored for complete doublet (i.e. both components)
             !initialise absorbed weight of packets to zero
             abs_frac=0
+
+            !prepare parallelised region with number of threads to use
             call omp_set_num_threads(num_threads)
+
             select case(gas_geometry%type)
 
                 case('shell')
                     !if all emission from clumps within shell structure
                     if (gas_geometry%clumped_mass_frac == 1) then
-                        do id_no=1,mothergrid%tot_cells
+                        !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ii,id_theta,id_phi,ixx,iyy,izz,thread_id)  REDUCTION(+:n_abs_packets,abs_frac,profile_array,profile_los_array,n_los_packets,n_inactive_packets)
+                        !$OMP DO
+                        do ii=1,mothergrid%tot_cells
+                            id_no=ii
                             if (grid_cell(id_no)%lg_clump) then
                                 !equal number of packets to be emitted in each clump
                                 num_packets_array(id_no)=n_packets/n_clumps
@@ -117,23 +101,34 @@ contains
                                 call run_packets()
                             end if
                         end do
+                        !$OMP END DO
+                        !$OMP END PARALLEL
                     !else if all emission from smooth shell
                     else
-                        do id_no=1,n_shells
+                        !$OMP PARALLEL DEFAULT(FIRSTPRIVATE) PRIVATE(id_theta,id_phi,ixx,iyy,izz,thread_id)  REDUCTION(+:n_abs_packets,abs_frac,profile_array,profile_los_array,n_los_packets,n_inactive_packets,n_init_packets)
+                        !$OMP DO
+                        do ii=1,n_shells
+                            id_no=ii
+                            thread_id = omp_get_thread_num()
                             n_init_packets=n_init_packets+num_packets_array(id_no)
                             call run_packets()
-                            call itime(time)
-                            print *, 'run time - shell no',id_no, time(2),'m', time(3),'s'
                         end do
+                        !$OMP END DO
+                        !$OMP END PARALLEL
                     end if
 
                 case('arbitrary')
+                    !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ii,id_theta,id_phi,ixx,iyy,izz,thread_id)  REDUCTION(+:n_abs_packets,abs_frac,profile_array,profile_los_array,n_los_packets,n_inactive_packets)
+                    !$OMP DO
                     !emission per cell scaled with dust mass from specified dust grid
-                    do id_no=1,mothergrid%tot_cells
+                    do ii=1,mothergrid%tot_cells
+                        id_no=ii
                         !n is cumulative number of packets run through grid (check number)
                         n_init_packets=n_init_packets+num_packets_array(id_no)
                         call run_packets()
                     end do
+                    !$OMP END DO
+                    !$OMP END PARALLEL
 
                 case default
                     print*,'you have not selected a shell or arbitrary distribution.  alternative distributions have not yet been included.'
@@ -187,19 +182,14 @@ contains
 
     subroutine run_packets()
 
-        !$OMP PARALLEL DEFAULT(SHARED) PRIVATE(ii,id_theta,id_phi,ixx,iyy,izz,thread_id)  REDUCTION(+:n_abs_packets,abs_frac,profile_array,profile_los_array,n_los_packets,n_inactive_packets)
-        !$OMP DO
+        do i_packet=1,num_packets_array(id_no)
 
-        do ii=1,num_packets_array(id_no)
-
-            thread_id = omp_get_thread_num()
-            !print*,thread_id,ii
             call emit_packet()
 
             if (packet%lg_active) then
 
                 !propagate active packet through grid
-                !call propagate()
+                call propagate()
 
                 !if packet has been absorbed then record
                 if (packet%lg_abs) then
@@ -227,8 +217,6 @@ contains
                 end if  !absorbed/escaped
             end if  !active
         end do
-        !$OMP END DO
-        !$OMP END PARALLEL
 
     end subroutine
 
@@ -244,9 +232,8 @@ contains
             if (i_doublet==2) then
                 packet%weight=packet%weight/line%doublet_ratio
             end if
-            !!$omp critical
-            !add packet to primary profile array
 
+            !add packet to primary profile array
             profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
 
             if (lg_multi_los) then
@@ -257,11 +244,9 @@ contains
 
             !incremement number of packets in line of sight
             n_los_packets=n_los_packets+1
-            !!$omp end critical
+
         end if
 
     end subroutine
 
 end module driver
-
-

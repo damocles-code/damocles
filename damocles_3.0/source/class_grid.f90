@@ -166,7 +166,8 @@ contains
                     do while (n_clumps<(dust_geometry%n_clumps))
 
                         !select a random cell from the grid
-                        call random_number(ran)
+                        !call random_number(ran)
+                        ran = r4_uni_01()
                         ig=ceiling(mothergrid%tot_cells*ran)
                         if (ig==0) cycle
 
@@ -175,7 +176,8 @@ contains
                             & (grid_cell(ig)%r>(dust_geometry%r_min_cm)) .and. &
                             & (.not. grid_cell(ig)%lg_clump)) then
 
-                            call random_number(ran)
+                            !call random_number(ran)
+                            ran = r4_uni_01()
                             if (ran<((dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%clump_power)) then
                                 grid_cell(ig)%lg_clump=.true.
                                 n_clumps=n_clumps+1

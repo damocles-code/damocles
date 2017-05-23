@@ -26,4 +26,4 @@ shell   	  !  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
 100000          !  number of photons
 50000		  !  number of frequency bins for output energy distribution
 100		  !  number of shells
-4		  !  number of threads to run on
+8		  !  number of threads to run on
