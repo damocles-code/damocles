@@ -1,0 +1,9 @@
+#!/bin/bash
+
+make clean
+make
+
+f2py -c --fcompiler=gfortran -lgomp -I. source/rnglib.f90 source/init_random_seed.o source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o \
+   source/class_grid.o source/electron_scattering.o source/input.o source/random_routines.o source/vector_functions.o \
+source/write_out.o source/class_packet.o source/BHmie.o  source/radiative_transfer.o \
+source/model_comparison.o source/driver.o -m damocleslib source/damocles_wrap.f90

@@ -280,10 +280,11 @@ contains
                         end do
                     end do
 
-                    !calculate true average dust number density by dividing by total number of active cells in shell
-                    mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av/no_active_cells
-
                 end if
+
+                !calculate true average dust number density by dividing by total number of active cells in shell
+                mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av/no_active_cells
+                print*,mothergrid%n_rho_dust_av
 
             case("torus")
                 print*, 'you have selected a torus distribution of dust.  this routine has not been written yet.  &

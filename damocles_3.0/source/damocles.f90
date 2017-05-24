@@ -43,7 +43,6 @@ program damocles
 
     character(len=50)       ::  infile        !specified input file
 
-
     !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
     if (n_args==1) then
@@ -60,7 +59,6 @@ program damocles
     read(30,*)
     read(30,*) lg_mcmc
     close(30)
-
 
     call run_damocles()
 

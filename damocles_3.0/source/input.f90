@@ -22,19 +22,24 @@ contains
     subroutine read_input()
 
         !check number of input arguments is 1 (the name of the input file)
-        n_args=command_argument_count()
-        if (n_args==1) then
-            call get_command_argument(1,input_file)
-            input_file=trim(input_file)
-            print*, 'reading input from file ', input_file
-        else if (n_args==0) then
-            input_file='input/input.in'
-            print*,'reading input from file input/input.in...'
-        else
-            print*,'too many input arguments - aborted'
-            stop
-        end if
+        if (.not. lg_mcmc) then
+            n_args=command_argument_count()
+            if (n_args==1) then
+                call get_command_argument(1,input_file)
+                input_file=trim(input_file)
+                print*, 'reading input from file ', input_file
+            else if (n_args==0) then
+                input_file='input/input.in'
+                print*,'reading input from file input/input.in...'
+            else
 
+                print*,'too many input arguments - aborted'
+                stop
+
+            end if
+        else
+            input_file='input/input.in'
+        end if
         !open log file (will be closed at end of model)
         open(55,file='output/log_file.out')
 
@@ -43,7 +48,6 @@ contains
 
             !general options
             read(10,*)
-            read(10,*) lg_mcmc
             read(10,*) lg_store_all
             read(10,*) lg_data
             read(10,*) data_file
@@ -114,10 +118,18 @@ contains
                 read(12,*) dust_geometry%ff
                 read(12,*) dust_geometry%clump_power
                 read(12,*)
-                read(12,*) dust_geometry%v_max
+                if (lg_mcmc) then
+                    read(12,*)
+                else
+                    read(12,*) dust_geometry%v_max
+                end if
                 read(12,*) dust_geometry%r_ratio
                 read(12,*) dust_geometry%v_power
-                read(12,*) dust_geometry%rho_power
+                if (lg_mcmc) then
+                    read(12,*)
+                else
+                    read(12,*) dust_geometry%rho_power
+                end if
                 read(12,*) dust_geometry%emis_power
                 close(12)
             end if
@@ -144,7 +156,6 @@ contains
                     stop
                 end if
             end if
-
 
     end subroutine read_input
 
