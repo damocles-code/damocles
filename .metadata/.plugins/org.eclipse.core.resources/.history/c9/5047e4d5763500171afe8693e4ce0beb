@@ -1,0 +1,40 @@
+module mcmc_sampler
+
+use globals
+    use class_line
+    use class_freq_grid
+    use class_grid
+    use electron_scattering
+    use input
+    use initialise
+    use vector_functions
+    use class_packet
+
+implicit none
+
+    type mcmc_param_space
+        integer :: n_points
+        integer :: dimension
+        real    :: v_max_bounds(2)
+    end type
+
+    type(mcmc_param_space) param_space
+
+contains
+
+    subroutine mcmc_sample()
+
+        param_space%dimension = 1
+        param_space%v_max_bounds(1) = 13000
+        param_space%v_max_bounds(2) = 20000
+
+        !velocity test run
+        do ii=1,param_space%n_points
+            call random_number(ran)
+            dust_geometry%v_max = param_space%v_max_bounds(1)+ran*(param_space%v_max_bounds(2)-param_space%v_max_bounds(1))
+            print*,dust_geometry%v_max
+        end do
+
+    end subroutine
+
+end module mcmc_sampler

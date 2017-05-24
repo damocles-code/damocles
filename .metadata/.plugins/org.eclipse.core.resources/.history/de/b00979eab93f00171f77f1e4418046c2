@@ -1,0 +1,6 @@
+subroutine damocles_wrap
+    implicit none
+
+    call run_damocles()
+
+end subroutine damocles_wrap

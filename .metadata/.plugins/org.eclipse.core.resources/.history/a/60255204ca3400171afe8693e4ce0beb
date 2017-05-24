@@ -1,0 +1,58 @@
+module model_comparison
+
+    use globals
+    use class_line
+    use class_geometry
+    use class_dust
+    use class_grid
+    use class_freq_grid
+
+    implicit none
+
+    type obs_profile
+        integer          :: n_data
+        real,allocatable :: vel(:)
+        real,allocatable :: flux(:)
+    end type
+
+    integer              :: tmp_bin_id
+
+    type(obs_profile) obs_data,model_rebinned
+
+contains
+
+    subroutine read_in_data()
+
+        open(55,file=data_file)
+        read(55,*) obs_data%n_data
+
+        allocate(obs_data%vel(obs_data%n_data))
+        allocate(obs_data%flux(obs_data%n_data))
+
+        do ii = 1,obs_data%n_data
+            read(55,*) obs_data%vel(ii),obs_data%flux(ii)
+        end do
+
+    end subroutine
+
+    subroutine calculate_likelihood()
+
+    !modelled line profile looks as nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
+
+    allocate(model_rebinned%vel(obs_data%n_data))
+    allocate(model_rebinned%flux(obs_data%n_data))
+
+    model_rebinned%vel = obs_data%vel
+
+    do ii = 1,obs_data%n_data
+        tmp_bin_id=minloc(nu_grid%vel_bin(:)-model_rebinned%vel(ii),1,(nu_grid%vel_bin(:)-model_rebinned%vel(ii)>0))
+        PRINT*,model_rebinned%vel(ii),nu_grid%vel_bin(tmp_bin_id),nu_grid%vel_bin(tmp_bin_id-1)
+        PRINT*,nu_grid%flux(tmp_bin_id),nu_grid%flux(tmp_bin_id-1)
+        model_rebinned%flux(ii)=nu_grid%flux(tmp_bin_id)
+        !model_rebinned%flux(ii)=
+    end do
+
+    end subroutine
+
+
+end module model_comparison

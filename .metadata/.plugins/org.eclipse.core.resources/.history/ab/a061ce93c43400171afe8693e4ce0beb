@@ -1,0 +1,14 @@
+module model_comparison
+
+    implicit none
+
+    real    ::  chi_sq
+
+    contains
+
+    subroutine calculate_likelihood(chi_sq)
+
+
+
+
+end module model_comparison

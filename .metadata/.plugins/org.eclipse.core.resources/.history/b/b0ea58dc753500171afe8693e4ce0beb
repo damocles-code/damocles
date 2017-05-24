@@ -1,0 +1,20 @@
+module mcmc_sampler
+
+implicit none
+contains
+    subroutine mcmc_sampler()
+        param_space%dimension = 1
+
+        param_space%v_max_bounds(1) = 13000
+        param_space%v_max_bounds(2) = 20000
+
+        !velocity test run
+        do ii=1,param_space%n_points
+            call random_number(ran)
+            dust_geometry%v_max = param_space%v_max_bounds(1)+ran*(param_space%v_max_bounds(2)-param_space%v_max_bounds(1))
+            print*,dust_geometry%v_max
+        end do
+
+    end subroutine
+
+end module mcmc_sampler

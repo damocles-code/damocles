@@ -1,0 +1,13 @@
+module MCMC
+
+    implicit none
+
+    type(mcmc)
+        integer :: n_points
+    end type
+
+    open(51,file='MCMC.in')
+    read(51,*)
+    read(51,*) mcmc%n_points
+
+end module MCMC

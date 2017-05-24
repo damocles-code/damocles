@@ -1,0 +1,13 @@
+subroutine damocles_wrap
+
+    use globals
+    use input
+    use initialise
+    use vector_functions
+    use driver
+
+    implicit none
+
+    call run_damocles()
+
+end subroutine damocles_wrap

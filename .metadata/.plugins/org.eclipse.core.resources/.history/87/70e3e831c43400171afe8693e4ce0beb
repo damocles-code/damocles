@@ -1,0 +1,3 @@
+module model_comparison
+    implicit none
+end module model_comparison

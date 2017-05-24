@@ -1,0 +1,216 @@
+MODULE input
+
+    USE class_line
+    USE class_geometry
+    USE class_dust
+    USE class_grid
+
+    IMPLICIT NONE
+
+    INTEGER             ::  i,j,k                   !counters
+
+    !!es type?
+    INTEGER             ::  ES_temp                 !electron scattering temperature (0 if no ES)
+    REAL                ::  L_Halpha                !total Halpha luminosity (for e- scattering calcn)
+
+    INTEGER(8)          ::  n_packets               !number of packets to use in simulation
+    INTEGER(8)          ::  n_shells                !number of shells to use when generating packets
+    INTEGER             ::  n_bins                  !number of frequency bins
+    INTEGER             ::  ncells(3)               !number of cells in x/y/z directions
+    INTEGER             ::  totcells                !total number of cells
+
+    INTEGER             ::  day_no                  !time in days since outburst - used with v_max to calculate Rout
+    INTEGER             ::  nargs                   !number of input arguments
+
+    LOGICAL             ::  lg_LOS                  !use a line of sight?
+    LOGICAL             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
+    LOGICAL             ::  lg_ES                   !use electron scattering?
+    LOGICAL             ::  lg_data                 !read in an observed line/doublet?
+    LOGICAL             ::  lg_decoupled            !decouple = 0 or 1 (1 if dust and gas distributions are not coupled)
+    LOGICAL             ::  lg_doublet              !is the 'line' to be modelled a doublet?
+
+    CHARACTER(LEN=50)   ::  input_file              !name of input file to read in
+    CHARACTER(LEN=50)   ::  data_file               !name of data file containing details of observed line to read in
+    CHARACTER(LEN=50)   ::  e_scat_file             !name of file containing electron scattering parameters (temperature, Halpha luminosity etc.)
+    CHARACTER(LEN=50)   ::  dust_file               !name of file containing dust grain parameters (geometry, mass etc.)
+    CHARACTER(LEN=50)   ::  gas_file                !name of file containing electron scattering parameters (geometry, luminosity etc.)
+    CHARACTER(LEN=40)   ::  species_file            !filename containing details of dust species
+
+    REAL, PARAMETER     ::  pi=3.141592654
+    REAL,PARAMETER      ::  c=3E8                   !in SI units (m/s)
+
+contains
+
+    SUBROUTINE read_input()
+
+        nargs=command_argument_count()
+        IF (nargs==1) THEN
+            call get_command_argument(1,input_file)
+            input_file=trim(input_file)
+            PRINT*, 'reading input from file ', input_file
+        ELSE IF (nargs==0) THEN
+            input_file='input.in'
+            PRINT*,'reading input from file input.in'
+        ELSE
+            PRINT*,'too many input arguments - aborted'
+            STOP
+        END IF
+
+        !READ IN INPUT FILE AND STORE
+        OPEN(10,file=input_file)
+
+        !general options
+        READ(10,*)
+        READ(10,*) lg_data
+        READ(10,*) data_file
+        READ(10,*) lg_doublet
+        READ(10,*) lg_vel_shift
+        READ(10,*) lg_LOS
+        READ(10,*) lg_ES
+        READ(10,*) e_scat_file
+        READ(10,*) day_no
+
+        !geometry options
+        READ(10,*)
+        READ(10,*) lg_decoupled
+        READ(10,*) dust_geometry%type
+        READ(10,*) dust_file
+        READ(10,*) gas_geometry%type
+        READ(10,*) gas_file
+
+        READ(10,*)
+        READ(10,*) ncells(1)
+        READ(10,*)
+        READ(10,*) n_packets
+        READ(10,*) n_bins
+        READ(10,*) n_shells
+        CLOSE(10)
+
+        !check for conflict in specified dust and gas distributions
+        IF (.not. lg_decoupled) THEN
+            IF (gas_geometry%type /= dust_geometry%type) THEN
+                PRINT*, 'You have requested that dust and gas should be coupled but specified differetn geometry types. Aborted'
+                STOP
+            END IF
+        END IF
+
+        !read in gas options
+        OPEN(11,file=gas_file)
+        READ(11,*)
+        READ(11,*) line%doublet_wavelength_1
+        READ(11,*) line%doublet_wavelength_2
+        READ(11,*) line%luminosity
+        READ(11,*) line%doublet_ratio
+        READ(11,*)
+        READ(11,*) gas_geometry%clumped_mass_frac  !!!CURRENTLY RESTRICTED TO 0 or 1
+        READ(11,*) gas_geometry%v_max
+        READ(11,*) gas_geometry%R_ratio
+        READ(11,*) gas_geometry%v_power
+        READ(11,*) gas_geometry%rho_power
+        READ(11,*) gas_geometry%emis_power
+        CLOSE(11)
+
+        !!read in dust options
+        OPEN(12,file=dust_file)
+        READ(12,*)
+        READ(12,*) dust%mass
+        READ(12,*) species_file
+        READ(12,*)
+        READ(12,*) dust_geometry%clumped_mass_frac
+        READ(12,*) dust_geometry%ff
+        READ(12,*) dust_geometry%clump_power
+        READ(12,*)
+        READ(12,*) dust_geometry%v_max
+        READ(12,*) dust_geometry%R_ratio
+        READ(12,*) dust_geometry%v_power
+        READ(12,*) dust_geometry%rho_power
+        READ(12,*) dust_geometry%emis_power
+        CLOSE(12)
+
+        call check_dust_clumped()
+
+        !read in electron scattering options (if using electron scattering)
+        IF (lg_ES) THEN
+            OPEN(13,file = e_scat_file)
+            READ(13,*)
+            READ(13,*) L_Halpha
+            READ(13,*) ES_temp
+            CLOSE(13)
+            IF ((ES_temp /= 5000) .AND. (ES_temp /= 10000) .AND. (ES_temp /= 20000)) THEN
+                PRINT*,'You have requested electron scattering.  Please enter a gas temperature of 5000K, 10000K or 20000K'
+                STOP
+            END IF
+        END IF
+
+
+        !!everything below needs review
+
+        !set number of cells in each direction and calculate total cells
+        !note that vector is used to allow for different numbers in each axis in future
+        ncells(2)=ncells(1)
+        ncells(3)=ncells(1)
+        totcells=ncells(1)*ncells(2)*ncells(3)
+        
+
+        IF (lg_decoupled) THEN
+            !gas_geometry%R_ratio=(v_min_obs/gas_geometry%v_max)**(1/l)
+            gas_geometry%R_max=gas_geometry%v_max*day_no*8.64E-6
+            gas_geometry%R_min=gas_geometry%R_ratio*gas_geometry%R_max
+            !gas_geometry%v_power=(LOG10(v_min_obs/gas_geometry%v_max))/LOG10(gas_geometry%R_min/gas_geometry%R_max)
+            !1dust_geometry%R_ratio=10**((LOG10(v_min_obs/dust_geometry%v_max))/l)
+            dust_geometry%R_min=gas_geometry%R_min
+            !calculate dust_geometry%R_max (dust) based on maximum velocity and day no
+            dust_geometry%R_max=dust_geometry%v_max*day_no*8.64E-6
+            dust_geometry%R_min=dust_geometry%R_ratio*dust_geometry%R_max
+        ELSE
+            !if gas and dust coupled then set gas and dust the same radii (temp)
+            !also set same parameters
+            !calculate dust_geometry%R_max (dust) based on maximum velocity and day no
+            dust_geometry%R_max=dust_geometry%v_max*day_no*8.64E-6
+            !dust_geometry%R_ratio=(v_min_obs/dust_geometry%v_max)**(1/l)
+            gas_geometry%R_ratio=dust_geometry%R_ratio
+            dust_geometry%R_min=dust_geometry%R_ratio*dust_geometry%R_max
+            gas_geometry%R_min=dust_geometry%R_min
+            gas_geometry%R_max=dust_geometry%R_max
+            gas_geometry%v_power=dust_geometry%v_power
+            gas_geometry%rho_power=dust_geometry%rho_power
+            gas_geometry%emis_power=dust_geometry%emis_power
+            gas_geometry%v_max=dust_geometry%v_max
+        END IF
+
+        PRINT*,'minimum velocity',(gas_geometry%R_min/gas_geometry%R_max)*gas_geometry%v_max
+
+        PRINT*,'dust vel index',dust_geometry%v_power
+        PRINT*,'gas vel index',gas_geometry%v_power
+        PRINT*,'dust density index',dust_geometry%rho_power
+        PRINT*,'gas density index',gas_geometry%rho_power
+        PRINT*,'Rmax dust',dust_geometry%R_max
+        PRINT*,'Rmin dust',dust_geometry%R_min
+        PRINT*,'Rmax gas',gas_geometry%R_max
+        PRINT*,'Rmin gas',gas_geometry%R_min
+        IF (dust_geometry%R_min>dust_geometry%R_max) THEN
+            PRINT*, "dust_geometry%R_min greater than dust_geometry%R_max.  Abort."
+            STOP
+        END IF
+        PRINT*,'dust r ratio',dust_geometry%R_ratio
+        PRINT*,'gas r ratio',gas_geometry%R_ratio
+
+        !convert supernova bounds from e15cm to cm
+        dust_geometry%R_min_cm=dust_geometry%R_min*1e15
+        dust_geometry%R_max_cm=dust_geometry%R_max*1e15
+
+        !convert dust mass from M_sun to grams
+        dust%mass_grams=dust%mass*1.98855e33
+
+        !set bound of grid to be radius of SN
+        grid%x_min=-1*MAX(dust_geometry%R_max_cm,gas_geometry%R_max*1e15)
+        grid%y_min=grid%x_min
+        grid%z_min=grid%x_min
+        grid%x_max=-grid%x_min
+        grid%y_max=grid%x_max
+        grid%z_max=grid%x_max
+
+    END SUBROUTINE read_input
+
+END MODULE input
+

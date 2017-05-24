@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+integer.tabwidth=0
+rgb.comments=97,206,88
+rgb.cpp=128,128,128
+rgb.directives=180,100,50
+rgb.identifiers=246,205,208
+rgb.intrinsics=160,212,208
+rgb.keywords=200,17,175
+rgb.nums_punc=245,140,84
+rgb.strings=254,193,56
+string.modelbuilder=defaultModelBilder

@@ -1,0 +1,14 @@
+MODULE class_grid
+
+    implicit none
+
+    TYPE grid_obj
+        REAL        ::  x_min,y_min,z_min       !minimum bounds of grid (cm)
+        REAL        ::  x_max,y_max,z_max       !maximum bounds of grid (cm)
+
+    END TYPE grid_obj
+
+    TYPE(grid_obj)  ::  grid
+
+
+END MODULE class_grid

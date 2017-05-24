@@ -1,0 +1,21 @@
+MODULE class_grid
+
+    implicit none
+
+    TYPE grid_obj
+        REAL        ::  x_min,y_min,z_min       !minimum bounds of grid (cm)
+        REAL        ::  x_max,y_max,z_max       !maximum bounds of grid (cm)
+        INTEGER     ::  ncells(3)               !number of cells in x/y/z directions
+        INTEGER     ::  totcells                !total number of cells
+    END TYPE grid_obj
+
+    TYPE(grid_obj)  ::  mothergrid
+
+    TYPE grid_cell_obj
+        REAL    ::  axis(3),rho,nrho,subaxes(3,2),N_e
+        INTEGER ::  id(3), cellStatus,sgStatus,numPhots
+    END TYPE
+
+    TYPE(grid_cell_obj),ALLOCATABLE(:)  :: grid_cell(:)
+
+END MODULE class_grid

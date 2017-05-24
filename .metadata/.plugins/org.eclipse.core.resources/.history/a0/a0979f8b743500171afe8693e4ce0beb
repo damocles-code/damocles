@@ -1,0 +1,37 @@
+module mcmc
+
+    implicit none
+
+    type mcmc_param_space
+        integer :: n_points
+        integer :: dimension
+        real,allocatable    :: bounds(:,:)
+    end type
+
+    type(mcmc_param_space) param_space
+
+contains
+
+    subroutine mcmc_sampler()
+
+        open(53,file='input/MCMC.in')
+        read(53,*)
+        read(53,*) param_space%n_points
+
+        param_space%dimension = 1
+        allocate(bounds(param_space%dimension,2))
+
+        bounds(1,1) = 13000
+        bounds(1,2) = 20000
+
+        !velocity test run
+        do ii=1,param_space%n_points
+            call random_number(ran)
+            dust_geometry%v_max = bounds(1,1)+ran*(bounds(1,2)-bounds(1,1))
+            print*,dust_geometry%v_max
+        end do
+
+
+    end subroutine
+
+end module mcmc

@@ -1,0 +1,6 @@
+false
+/damocles_2.0_development/source/propagate.f90,14499,0
+Error parsing /damocles_2.0_development/source/propagate.f90: Syntax error: Unexpected end of input (/damocles_2.0_development/source/propagate.f90, line 303, column 1).  Expected one of the following: block, close, contains, abstract, class, identifier, return, interface, call, end of statement, go, print, subroutine, stop, allocatable, end, private, doubleprecision, all, implicit, if, end of input, dimension, goto, write, data, submodule, where, recursive, blockdata, select, allstop, codimension, import, use, intent, pause, backspace, endfile, selectcase, open, associate, elemental, character, nullify, rewind, bind, do, pointer, syncall, program, syncimages, syncmemory, wait, unlock, optional, double, module, read, allocate, equivalence, integer, entry, real, cycle, procedure, pure, integer constant, lock, intrinsic, format, namelist, asynchronous, critical, value, logical, forall, save, sync, inquire, assign, external, volatile, complex, protected, common, endprogram, public, enddo, contiguous, impure, enum, parameter, target, doublecomplex, type, deallocate, function, continue, exit
+false
+/damocles_2.0_development/source/photon_emit.f90,28,6
+There are no files that export a module named common

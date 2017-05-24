@@ -1,0 +1,7 @@
+10:20:56 **** Incremental Build of configuration Default for project damocles_3.0 ****
+make all 
+gfortran -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"/usr/local\" -O3 source/class_grid.f90 -c -o source/class_grid.o
+gfortran  -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp -Jsource/ -DPREFIX=\"/usr/local\" -O3 -o damocles source/rnglib.f90 source/init_random_seed.o source/globals.o source/class_line.o source/class_geometry.o source/class_dust.o source/class_freq_grid.o source/class_grid.o source/electron_scattering.o source/input.o source/random_routines.o source/vector_functions.o source/write_out.o source/class_packet.o source/BHmie.o source/radiative_transfer.o source/model_comparison.o source/driver.o source/damocles_wrap.o source/damocles.o
+
+10:20:57 Build Finished (took 1s.112ms)
+
