@@ -1,0 +1,5 @@
+1
+NOTE THAT RELATIVE SPECIES WEIGHTS ARE FRACTIONAL CROSS_SECTIONAL AREAS - OTHER WEIGHTINGS CALCULATED WITHIN THE CODE
+id	filename	weight	amin	amax	power	no of divisions
+s
+1	'dustData/sil-dlee.nk'			1.0	0.07	0.07	00.0	1
