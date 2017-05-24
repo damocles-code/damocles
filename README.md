@@ -1,1 +1,1 @@
-damocles_1.0
+damocles
