@@ -17,6 +17,7 @@ module class_grid
     real,allocatable        ::  profile_array(:)          !array to store the resultant line profile
     real,allocatable        ::  profile_los_array(:,:,:)  !array to store resultant profiles divided into lines of sight
     real,allocatable        ::  shell_radius(:,:)         !radial bounds of each shell in 1e15cm (if using shell geometry)
+    real,allocatable        ::  frac_shell_radius(:,:)    !radial bounds of each shell as a fraction of the whole scaled to  r_max = 1 and r_min = r_ratio
     integer(8),allocatable  ::  num_packets_array(:)      !number of packets to be emitted in each cell/shell
 
     type grid_obj
@@ -432,6 +433,7 @@ contains
                 if (gas_geometry%clumped_mass_frac /= 1) then
                     allocate(num_packets_array(n_shells+1))
                     allocate(shell_radius(n_shells+1,2))
+                    allocate(frac_shell_radius(n_shells+1,2))
                 else if (gas_geometry%clumped_mass_frac == 1) then
                     allocate(num_packets_array(mothergrid%tot_cells))
                 end if
@@ -442,6 +444,7 @@ contains
 
                 do ii=1,n_shells
                     shell_radius(ii+1,1:2)=(/ shell_radius(ii,2),shell_radius(ii,2)+(gas_geometry%r_max-gas_geometry%r_min)/n_shells /)
+                    frac_shell_radius(ii,1:2)=(/gas_geometry%r_ratio + (1-gas_geometry%r_ratio)*(ii-1)/n_shells, gas_geometry%r_ratio + (1-gas_geometry%r_ratio)*ii/n_shells /)
                 end do
 
                 !calculate number of packets in each shell
