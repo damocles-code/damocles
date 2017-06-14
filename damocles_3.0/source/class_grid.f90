@@ -449,8 +449,9 @@ contains
                     norm=n_packets/(log(gas_geometry%r_max/gas_geometry%r_min))
                     num_packets_array(:)=nint(norm*log(shell_radius(:,2)/shell_radius(:,1)))
                 else
-                    norm=n_packets*(gas_geometry%emis_power*gas_geometry%rho_power-3)/(gas_geometry%r_min**(3-gas_geometry%emis_power*gas_geometry%rho_power)-gas_geometry%r_max**(3-gas_geometry%emis_power*gas_geometry%rho_power))
-                    num_packets_array(:)=nint(norm*(shell_radius(:,1)**(3-gas_geometry%emis_power*gas_geometry%rho_power)-shell_radius(:,2)**(3-gas_geometry%emis_power*gas_geometry%rho_power))/(gas_geometry%emis_power*gas_geometry%rho_power-3))
+                    norm=n_packets/(gas_geometry%r_ratio**(3-gas_geometry%emis_power*gas_geometry%rho_power)-1)
+                    num_packets_array(:)=nint(norm*(frac_shell_radius(:,1)**(3-gas_geometry%emis_power*gas_geometry%rho_power)-frac_shell_radius(:,2)**(3-gas_geometry%emis_power*gas_geometry%rho_power)))
+                    if (isnan(norm) .or. norm == 0.0) stop 'R_in too small for this steep an emissivity distribution.'
                 end if
 
             case("torus")
