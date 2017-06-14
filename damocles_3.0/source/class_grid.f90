@@ -248,8 +248,8 @@ contains
                         dust_geometry%rho_in=(dust_geometry%r_min**(-dust_geometry%rho_power))*((dust%mass*1.989e33)/(log(dust_geometry%r_max/dust_geometry%r_min)*4*pi))
                         dust_geometry%rho_in=dust_geometry%rho_in*(1.989e-12)
                     else
-                        dust_geometry%rho_in=(dust_geometry%r_min**(-dust_geometry%rho_power))*((dust%mass*(3-dust_geometry%rho_power)) &
-                            & /(4*pi*(dust_geometry%r_max**(3-dust_geometry%rho_power)-dust_geometry%r_min**(3-dust_geometry%rho_power))))
+                        dust_geometry%rho_in = ((dust%mass*(3-dust_geometry%rho_power)) &
+                            & /(4*pi*(dust_geometry%r_ratio**(dust_geometry%rho_power)*(dust_geometry%r_max**3)-dust_geometry%r_min**3)))
                         dust_geometry%rho_in=dust_geometry%rho_in*(1.989e-12)
                     end if
 
