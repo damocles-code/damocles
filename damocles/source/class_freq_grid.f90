@@ -47,17 +47,23 @@ contains
 
         !set maximum and minimum frequency range for bins in frequency grid
         !if doing a doublet, then the min and max are set to be as large as possible based on the wavelengths of interest
-        !maximum is set to be (arbitrarily) 5 times larger than the frequency obtained by shifting by v_max towards the blue
-        !minimum is set to be (arbitrarily) 5 times smaller than the frequency obtained by shifting by v_max towards the red
+        !maximum is set to be (arbitrarily) 1.2 times larger than the frequency obtained by shifting by v_max towards the blue
+        !minimum is set to be (arbitrarily) 1.2 times smaller than the frequency obtained by shifting by v_max towards the red
         !this is to allow for frequency being shifted beyond the theoretical for a single scattering event due to multiple scatterings
         !!this array could be simplified
         if (lg_doublet) then
-            if (line%doublet_wavelength_2>line%doublet_wavelength_1) then
-                nu_grid%fmax=5*((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*10**3/c))        !arbitrary factor of 5 to compensate for multiple scatterings
-                nu_grid%fmin=0.2*((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*10**3/c))        !as above
-            else
-                nu_grid%fmax=5*((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*10**3/c))        !arbitrary factor of 5 to compensate for multiple scatterings
-                nu_grid%fmin=0.2*((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*10**3/c))        !as above
+           if (lg_data) then
+              !set bounds of frequency grid to match the observed line profile (plus an extra 20% to ensure coverage)
+              nu_grid%fmax = (line%frequency/(1+obs_data%vel(1)*1.2*10**3/c))
+              nu_grid%fmin = (line%frequency/(1+obs_data%vel(obs_data%n_data)*1.2*10**3/c))
+           else
+              if (line%doublet_wavelength_2>line%doublet_wavelength_1) then
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+              else
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+              end if
            end if
         else
             if (lg_data) then
