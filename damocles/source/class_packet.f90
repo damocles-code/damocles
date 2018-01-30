@@ -80,6 +80,7 @@ contains
            !packets are emitted from grid cells
            !locate the cell to emit the next packet from
            packet%init_cell = minloc((num_packets_array(:,2)-packet%id),1,((num_packets_array(:,2)-packet%id) .ge. 0))
+
            !calculate the starting position of the the packet at an arbitary location in that cell
             packet%pos_cart= (grid_cell(packet%init_cell)%axis+random(1:3)*grid_cell(packet%init_cell)%width)
             packet%pos_sph(1)=((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5)*1e-15
@@ -111,43 +112,15 @@ contains
             !velocity vector comes from radial position vector of particle
             packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)
             packet%vel_vect=normalise(packet%pos_cart)*packet%v
-
             packet%nu=line%frequency
             packet%lg_active=.true.
 
             call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"emsn")
 
             !identify cell which contains emitting particle (and therefore packet)
-            !!could be made more efficient but works...
-            do ixx=1,mothergrid%n_cells(1)
-                if ((packet%pos_cart(1)*1e15-mothergrid%x_div(ixx))<0) then  !identify grid axis that lies just beyond position of emitter in each direction
-                    packet%axis_no(1)=ixx-1                                  !then the grid cell id is the previous one
-                    exit
-                end if
-                if (ixx==mothergrid%n_cells(1)) then
-                    packet%axis_no(1)=mothergrid%n_cells(1)
-                end if
-
-            end do
-            do iyy=1,mothergrid%n_cells(2)
-                if ((packet%pos_cart(2)*1e15-mothergrid%y_div(iyy))<0) then
-                    packet%axis_no(2)=iyy-1
-                    exit
-                end if
-                if (iyy==mothergrid%n_cells(2)) then
-                    packet%axis_no(2)=mothergrid%n_cells(2)
-                end if
-
-            end do
-            do izz=1,mothergrid%n_cells(3)
-                if ((packet%pos_cart(3)*1e15-mothergrid%z_div(izz))<0) then
-                    packet%axis_no(3)=izz-1
-                    exit
-                end if
-                if (izz==mothergrid%n_cells(3)) then
-                    packet%axis_no(3)=mothergrid%n_cells(3)
-                end if
-            end do
+            packet%axis_no(1) = minloc(packet%pos_cart(1)*1e15-mothergrid%x_div,1,(packet%pos_cart(1)*1e15-mothergrid%x_div)>0)
+            packet%axis_no(2) = minloc(packet%pos_cart(2)*1e15-mothergrid%y_div,1,(packet%pos_cart(2)*1e15-mothergrid%y_div)>0)
+            packet%axis_no(3) = minloc(packet%pos_cart(3)*1e15-mothergrid%z_div,1,(packet%pos_cart(3)*1e15-mothergrid%z_div)>0)        
 
             !check to ensure that for packets emitted from cells, the identified cell is the same as the original...
             if ((gas_geometry%type == 'shell' .and. gas_geometry%clumped_mass_frac == 1) &
