@@ -1,3 +1,0 @@
-program damocles_wrap
-    implicit none
-end program damocles_wrap

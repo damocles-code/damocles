@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;damocles_development/Users&apos;" deleteContents="false" description="Delete resource &apos;damocles_development/Users&apos;" element1="/damocles_development/Users" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1472811854014"/>&#x0A;<refactoring comment="Delete resource &apos;damocles_development&apos;" deleteContents="false" description="Delete resource &apos;damocles_development&apos;" element1="/damocles_development" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1472811913349"/>
-</session>

@@ -1,3 +1,0 @@
-module MCMC
-    implicit none
-end module MCMC
