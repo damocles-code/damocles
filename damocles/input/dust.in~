@@ -6,7 +6,7 @@
 2.0             !  clump number density distribution
 ================DUST GEOMETRY========================================
 1900            !  max dust velocity in km/s
-0.0001             !  Rin/Rout ratio
+0.001             !  Rin/Rout ratio
 1.0             !  value of l where velocity profile is v~r^l
 1.2            !  value of  where density profile is rho~r^-q
 2.0             !  value of b where emissivity~r^-qb (applicable only if dust and gas coupled)

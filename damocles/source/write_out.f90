@@ -13,14 +13,13 @@ module initialise
     use class_freq_grid
     use input
 
-
     implicit none
 
 contains
 
     subroutine write_to_file()
 
-        print*,'writing to file...'
+        if (.not. lg_mcmc) print*,'writing to file...'
 
         !real number format, 6 characters, 2dp
 101     format(a65'   'f10.2)
@@ -44,25 +43,37 @@ contains
             open(25,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile.out')
             open(26,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_line_profiles.out')
             open(27,file='output/output_' // date // '/run_' // run_no_string // '/model_properties.out')
+            open(28,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile_binned.out')
 
         else
             !open output files to record resultant modelled line profile, input parameters and properties of model
             open(25,file='output/integrated_line_profile.out')
             open(26,file='output/multiple_los_line_profiles.out')
             open(27,file='output/model_properties.out')
+            open(28,file='output/integrated_line_profile_binned.out')
+            open(29,file='output/multiple_los_bins.out')
         end if
 
         !write out modelled line profile
 
         do ii=1,nu_grid%n_bins-1
             write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
-            if (lg_multi_los) then
-                do jj=1,n_angle_divs
-                    do kk=1,n_angle_divs
-                        write(26,*) nu_grid%lambda_bin(ii),line%initial_energy*profile_los_array(ii,jj,kk)
-                    end do
-                end do
-            end if
+         end do
+
+         if (lg_multi_los) then
+            do kk=1,n_angle_divs
+               do jj=1,n_angle_divs
+                     write(29,*) (kk-1)*20+jj,kk,jj,phi_array(kk),cos_theta_array(jj)
+                  do ii=1,nu_grid%n_bins-1
+                     write(26,*) nu_grid%lambda_bin(ii),line%initial_energy*profile_los_array(ii,jj,kk)
+                  end do
+               end do
+            end do
+         end if
+        
+
+        do ii = 1,obs_data%n_data
+            write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
         end do
 
         write(27,101)  'active rest wavelength:',line%wavelength
@@ -171,6 +182,7 @@ contains
         close(25)
         close(26)
         close(27)
+        close(28)
 
     end subroutine
 

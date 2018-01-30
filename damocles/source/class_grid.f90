@@ -11,14 +11,21 @@ module class_grid
     use class_geometry
     use class_dust
     use class_freq_grid
+    use rnglib
 
     implicit none
 
     real,allocatable        ::  profile_array(:)          !array to store the resultant line profile
     real,allocatable        ::  profile_los_array(:,:,:)  !array to store resultant profiles divided into lines of sight
+    real,allocatable        ::  profile_array_data_bins(:)!array to store the resultant line profile binned into the same frequencies as the observed line
+    real,allocatable        ::  square_weight_data_bins(:)!array to store the sums of the square of the weights in each bin
+    real,allocatable        ::  n_packets_data_bins(:)    !array to store the number of packets in each bin
+    real,allocatable        ::  total_weight_data_bins(:) !array to store the total packet weight in each bin
+    real,allocatable        ::  mc_error_data_bins(:)     !array to store the monte carlo error in each bin
+    real                    ::  delta                     !dummy variable used in calculation the mean and sigma of the packet weights in each bin
     real,allocatable        ::  shell_radius(:,:)         !radial bounds of each shell in 1e15cm (if using shell geometry)
     real,allocatable        ::  frac_shell_radius(:,:)    !radial bounds of each shell as a fraction of the whole scaled to  r_max = 1 and r_min = r_ratio
-    integer(8),allocatable  ::  num_packets_array(:)      !number of packets to be emitted in each cell/shell
+    integer(8),allocatable  ::  num_packets_array(:,:)      !number of packets to be emitted in each cell and cumulative total 
 
     type grid_obj
         integer          ::  n_cells(3)                   !number of cells in x/y/z directions
@@ -36,7 +43,7 @@ module class_grid
 
     type grid_cell_obj
         real             ::  rho                          !mass density of grid cell
-        real             ::  n_rho                         !number density of grid cell
+        real             ::  n_rho                        !number density of grid cell
         real             ::  n_e                          !electron density of grid cell
         real             ::  r                            !radial distance from (0,0,0) to the centre of the cell
         real             ::  vol                          !volume of cell
@@ -48,11 +55,12 @@ module class_grid
 
     type(grid_cell_obj),allocatable :: grid_cell(:)       !mothergrid is comprised of'tot_cells' grid_cells
 
+
 contains
 
     subroutine build_dust_grid()
 
-        print*, 'constructing grid...'
+        if (.not. lg_mcmc) print*, 'constructing grid...'
 
         select case(dust_geometry%type)
 
@@ -169,6 +177,7 @@ contains
                         !select a random cell from the grid
                         !call random_number(ran)
                         ran = r4_uni_01()
+
                         ig=ceiling(mothergrid%tot_cells*ran)
                         if (ig==0) cycle
 
@@ -263,6 +272,7 @@ contains
                                 ig=ig+1
                                 if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. (grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
                                     !calculate densities for cells inside shell
+                                    !grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
                                     grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
                                     grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
                                     mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av+grid_cell(ig)%n_rho
@@ -285,7 +295,6 @@ contains
 
                 !calculate true average dust number density by dividing by total number of active cells in shell
                 mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av/no_active_cells
-                print*,mothergrid%n_rho_dust_av
 
             case("torus")
                 print*, 'you have selected a torus distribution of dust.  this routine has not been written yet.  &
@@ -400,12 +409,21 @@ contains
 
     subroutine build_emissivity_dist()
 
-        print*,'building emissivity distribution...'
+        if (.not. lg_mcmc) print*,'building emissivity distribution...'
 
         allocate(profile_array(nu_grid%n_bins))
         allocate(profile_los_array(nu_grid%n_bins,n_angle_divs,n_angle_divs))
+        allocate(profile_array_data_bins(obs_data%n_data))
+        allocate(n_packets_data_bins(obs_data%n_data))
+        allocate(square_weight_data_bins(obs_data%n_data))
+        allocate(total_weight_data_bins(obs_data%n_data))
+        allocate(mc_error_data_bins(obs_data%n_data))
         profile_array=0
         profile_los_array=0
+        profile_array_data_bins=0
+        square_weight_data_bins=0
+        total_weight_data_bins=0
+
         select case(gas_geometry%type)
 
             case("shell")
@@ -429,32 +447,9 @@ contains
                     gas_geometry%v_max=dust_geometry%v_max
                 end if
 
-                !allocate memory for array to store number of packets to be emitted in each cell/shell
-                if (gas_geometry%clumped_mass_frac /= 1) then
-                    allocate(num_packets_array(n_shells+1))
-                    allocate(shell_radius(n_shells+1,2))
-                    allocate(frac_shell_radius(n_shells+1,2))
-                else if (gas_geometry%clumped_mass_frac == 1) then
-                    allocate(num_packets_array(mothergrid%tot_cells))
-                end if
-
-                !calculate upper and lower radius bound for each shell and shell width
-                shell_radius(1,1)=gas_geometry%r_min
-                shell_radius(1,2)=gas_geometry%r_min+(gas_geometry%r_max-gas_geometry%r_min)/n_shells
-
-                do ii=1,n_shells
-                    shell_radius(ii+1,1:2)=(/ shell_radius(ii,2),shell_radius(ii,2)+(gas_geometry%r_max-gas_geometry%r_min)/n_shells /)
-                    frac_shell_radius(ii,1:2)=(/gas_geometry%r_ratio + (1-gas_geometry%r_ratio)*(ii-1)/n_shells, gas_geometry%r_ratio + (1-gas_geometry%r_ratio)*ii/n_shells /)
-                end do
-
-                !calculate number of packets in each shell
-                if ((gas_geometry%emis_power*gas_geometry%rho_power)==3) then
-                    norm=n_packets/(log(gas_geometry%r_max/gas_geometry%r_min))
-                    num_packets_array(:)=nint(norm*log(shell_radius(:,2)/shell_radius(:,1)))
-                else
-                    norm=n_packets/(gas_geometry%r_ratio**(3-gas_geometry%emis_power*gas_geometry%rho_power)-1)
-                    num_packets_array(:)=nint(norm*(frac_shell_radius(:,1)**(3-gas_geometry%emis_power*gas_geometry%rho_power)-frac_shell_radius(:,2)**(3-gas_geometry%emis_power*gas_geometry%rho_power)))
-                    if (isnan(norm) .or. norm == 0.0) stop 'R_in too small for this steep an emissivity distribution.'
+                !allocate memory for array to store number of packets to be emitted in each cell
+                if (gas_geometry%clumped_mass_frac == 1) then
+                    allocate(num_packets_array(mothergrid%tot_cells,2))
                 end if
 
             case("torus")
@@ -471,16 +466,48 @@ contains
                     print*,"haven't yet included provision for two different arbitrary distributions of dust and gas. aborted."
                     stop
                 else
-                    allocate(num_packets_array(mothergrid%tot_cells))
-                    num_packets_array=0
-                    print*,'calculating number of packets to be emitted in each cell...'
-                    !number of packets to be emitted in each cell scaled with square of number density of particles in cell
-                    num_packets_array(:)=nint((grid_cell(:)%n_rho**2)*real(n_packets)*(grid_cell(ii)%vol/sum((grid_cell%n_rho**2)*(grid_cell%vol))))
+
+                   !update the gas geometry parameters
+                   !these values have been read in from the dust grid file
+                   !all other parameters are taken from the gas.in file
                     gas_geometry%v_max=dust_geometry%v_max
                     gas_geometry%r_max=dust_geometry%r_max
                     gas_geometry%v_power=dust_geometry%v_power
                     gas_geometry%r_max_cm=gas_geometry%r_max*1e15
-                end if
+
+                    !calculate the number of packets to emit in each cell
+                    print*,'calculating number of packets to be emitted in each cell...'
+                    allocate(num_packets_array(mothergrid%tot_cells,2))
+                    num_packets_array=0
+                    if (gas_geometry%emis_power == 0) then
+                       !handle the strange case of a uniform emissivity grid
+                       print*, 'WARNING: You have created a uniform emissivity grid.  & 
+                            & To couple the emissivity grid to the dust grid, please  & 
+                            & enter a non-zero emissivity power in the gas input file.&
+                            & Note that this is cuboidal distribution, not a shell.'
+                       if (n_packets .ge. mothergrid%tot_cells) then
+                          num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
+                       else
+                          print*,'ERROR: You have specified fewer packets than there & 
+                               & are cells in the grid.  Please increase the number  &
+                               & of packets to be used if you would like a uniform emissivity grid. Aborted.'
+                          STOP
+                       end if
+                       num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
+                    else
+                       !the normal case of an emissivity grid coupled to some power of the dust grid
+                       num_packets_array(:,1) = nint((grid_cell(:)%n_rho**gas_geometry%emis_power)*real(n_packets)*(grid_cell(:)%vol/sum((grid_cell(:)%n_rho**gas_geometry%emis_power)*(grid_cell(:)%vol))))
+                       num_packets_array(1,2) = num_packets_array(1,1)
+                    end if
+
+                    !calculate the cumulative number of packets to be emitted
+                    do iG = 2, mothergrid%tot_cells
+                       num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
+                    end do
+                 end if
+
+                 !update the total number of packets to be run
+                 n_packets = sum(num_packets_array(:,1))
 
             case("bipolar")
                 if (lg_decoupled) then

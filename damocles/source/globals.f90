@@ -17,8 +17,11 @@ module globals
     integer             ::  ixx,iyy,izz
     integer             ::  ish
     integer             ::  i_dir
-    integer             ::  i_spec
     integer             ::  i_doublet
+    integer             ::  i_packet
+    integer             ::  i_clump
+
+  !  save i_packet
 
     !dummy counters
     integer             ::  xx,yy,zz
@@ -26,12 +29,10 @@ module globals
     !identifiers
     integer             ::  ig
     integer             ::  id_theta,id_phi
-    integer             ::  id_no, i_packet
-    !$OMP THREADPRIVATE(id_no, i_packet)
 
     !random numbers and functions
     real                ::  random(5), ran
-    real,external       ::  r4_uni_01
+    !real,external         ::  r4_uni_01
     !$OMP THREADPRIVATE(random,ran)
 
     !constants
@@ -42,14 +43,14 @@ module globals
     real                ::  norm
 
     !properties of the model
-    integer(8)          ::  n_packets=0             !number of packets requested
-    integer(8)          ::  n_init_packets=0        !total number of initialised packets
-    integer(8)          ::  n_inactive_packets=0    !total number of inactive packets
-    integer(8)          ::  n_abs_packets=0         !total number of absorbed packets
-    integer(8)          ::  n_los_packets=0         !total number of packets in the line of sight
-    integer(8)          ::  n_shells=0              !number of shells to use when generating packets
+    integer(8)          ::  n_packets             !number of packets requested
+    integer(8)          ::  n_init_packets        !total number of initialised packets
+    integer(8)          ::  n_inactive_packets    !total number of inactive packets
+    integer(8)          ::  n_abs_packets         !total number of absorbed packets
+    integer(8)          ::  n_los_packets         !total number of packets in the line of sight
     integer(8)          ::  no_active_cells=0       !number of active (i.e. non-zero) cells inside ejecta
     integer(8)          ::  n_clumps=0              !actual number of clumps used
+    integer(8)          ::  n_recorded_packets    !number of packets contributing to the final line profile
 
     integer             ::  n_args                  !number of input arguments
     integer             ::  n_angle_divs            !number of division in each of phi and theta to divide grid into multiple lines of sight

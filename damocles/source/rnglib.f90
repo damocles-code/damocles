@@ -1,3 +1,18 @@
+!-----------------------------------------------------------------------!
+! This collection of random number generators was obtained online under !
+!the GNU LGPL license.  References are included in the headers below.   !
+!                                                                       !
+! It was adapted by Antonia Bevan 2017 to module format.                !
+! ----------------------------------------------------------------------!
+
+module rnglib
+
+use globals
+
+implicit none
+
+contains
+
 subroutine advance_state ( k )
 
 !*****************************************************************************80
@@ -35,7 +50,6 @@ subroutine advance_state ( k )
 !    advanced by 2^K values.
 !    0 <= K.
 !
-  implicit none
 
   integer ( kind = 4 ), parameter :: a1 = 40014
   integer ( kind = 4 ), parameter :: a2 = 40692
@@ -43,14 +57,14 @@ subroutine advance_state ( k )
   integer ( kind = 4 ) b2
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
-  logical initialized_get
+  !logical initialized_get
   integer ( kind = 4 ) k
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399
-  integer ( kind = 4 ) multmod
+  !integer ( kind = 4 ) multmod
 
   if ( k < 0 ) then
     write ( *, '(a)' ) ' '
@@ -64,7 +78,7 @@ subroutine advance_state ( k )
   if ( .not. initialized_get ( ) ) then
     write ( *, '(a)' ) ' '
     write ( *, '(a)' ) 'ADVANCE_STATE - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+   !!ANTONIA EDIT!! write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -86,7 +100,7 @@ subroutine advance_state ( k )
   call cg_set ( g, cg1, cg2 )
 
   return
-end
+end subroutine
 function antithetic_get ( )
 
 !*****************************************************************************80
@@ -109,7 +123,7 @@ function antithetic_get ( )
 !
 !    Output, logical ANTITHETIC_GET, is TRUE if generator G is antithetic.
 !
-  implicit none
+
 
   logical antithetic_get
   integer ( kind = 4 ) i
@@ -121,7 +135,7 @@ function antithetic_get ( )
   antithetic_get = value
 
   return
-end
+end function
 subroutine antithetic_memory ( i, value )
 
 !*****************************************************************************80
@@ -150,12 +164,12 @@ subroutine antithetic_memory ( i, value )
 !    Input/output, logical VALUE.  For I = -1, VALUE is an output
 !    quantity, for I = +1, an input quantity.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: g_max = 32
 
   logical a_save(g_max)
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
   logical value
@@ -175,7 +189,7 @@ subroutine antithetic_memory ( i, value )
   end if
 
   return
-end
+end subroutine
 subroutine antithetic_set ( value )
 
 !*****************************************************************************80
@@ -198,7 +212,7 @@ subroutine antithetic_set ( value )
 !
 !    Input, logical VALUE, is TRUE if generator G is to be antithetic.
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
   logical value
@@ -207,7 +221,7 @@ subroutine antithetic_set ( value )
   call antithetic_memory ( i, value )
 
   return
-end
+end subroutine
 subroutine cg_get ( g, cg1, cg2 )
 
 !*****************************************************************************80
@@ -233,7 +247,7 @@ subroutine cg_get ( g, cg1, cg2 )
 !
 !    Output, integer ( kind = 4 ) CG1, CG2, the CG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
@@ -244,7 +258,7 @@ subroutine cg_get ( g, cg1, cg2 )
   call cg_memory ( i, g, cg1, cg2 )
 
   return
-end
+end subroutine
 subroutine cg_memory ( i, g, cg1, cg2 )
 
 !*****************************************************************************80
@@ -278,7 +292,7 @@ subroutine cg_memory ( i, g, cg1, cg2 )
 !    these arguments are ignored.  When used, the arguments are
 !    old or new values of the CG parameter for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: g_max = 32
 
@@ -314,7 +328,7 @@ subroutine cg_memory ( i, g, cg1, cg2 )
   end if
 
   return
-end
+end subroutine
 subroutine cg_set ( g, cg1, cg2 )
 
 !*****************************************************************************80
@@ -340,7 +354,7 @@ subroutine cg_set ( g, cg1, cg2 )
 !
 !    Input, integer ( kind = 4 ) CG1, CG2, the CG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
@@ -351,7 +365,7 @@ subroutine cg_set ( g, cg1, cg2 )
   call cg_memory ( i, g, cg1, cg2 )
 
   return
-end
+end subroutine
 function cgn_get ( )
 
 !*****************************************************************************80
@@ -375,7 +389,7 @@ function cgn_get ( )
 !    Output, integer ( kind = 4 ) CGN_GET, the current generator index.
 !    1 <= CGN_GET <= 32.
 !
-  implicit none
+
 
   integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
@@ -387,7 +401,7 @@ function cgn_get ( )
   cgn_get = g
 
   return
-end
+end function
 subroutine cgn_memory ( i, g )
 
 !*****************************************************************************80
@@ -416,7 +430,7 @@ subroutine cgn_memory ( i, g )
 !    Input/output, integer ( kind = 4 ) G.  For I = -1 or 0,
 !    this is output, for I = +1, this is input.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: g_max = 32
 
@@ -451,7 +465,7 @@ subroutine cgn_memory ( i, g )
   end if
 
   return
-end
+end subroutine
 subroutine cgn_set ( g )
 
 !*****************************************************************************80
@@ -475,7 +489,7 @@ subroutine cgn_set ( g )
 !    Input, integer ( kind = 4 ) G, the index of the generator.
 !    1 <= G <= 32.
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
@@ -484,7 +498,7 @@ subroutine cgn_set ( g )
   call cgn_memory ( i, g )
 
   return
-end
+end subroutine
 subroutine get_state ( cg1, cg2 )
 
 !*****************************************************************************80
@@ -516,20 +530,20 @@ subroutine get_state ( cg1, cg2 )
 !    Output, integer ( kind = 4 ) CG1, CG2, the CG values for the
 !    current generator.
 !
-  implicit none
+
 
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
-  logical initialized_get
+  !logical initialized_get
 !
 !  Check whether the package must be initialized.
 !
   if ( .not. initialized_get ( ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'GET_STATE - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+    !write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) 'GET_STATE - Note:'
+    !write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -542,7 +556,7 @@ subroutine get_state ( cg1, cg2 )
   call cg_get ( g, cg1, cg2 )
 
   return
-end
+end subroutine
 function i4_uni ( )
 
 !*****************************************************************************80
@@ -581,17 +595,17 @@ function i4_uni ( )
 !
 !    Output, integer ( kind = 4 ) I4_UNI, the random integer.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: a1 = 40014
   integer ( kind = 4 ), parameter :: a2 = 40692
-  logical antithetic_get
+  !logical antithetic_get
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i4_uni
-  logical initialized_get
+  !logical initialized_get
   integer ( kind = 4 ) k
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399
@@ -601,9 +615,9 @@ function i4_uni ( )
 !  Check whether the package must be initialized.
 !
   if ( .not. initialized_get ( ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'I4_UNI - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+    !write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) 'I4_UNI - Note:'
+    !write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -654,7 +668,7 @@ function i4_uni ( )
   i4_uni = z
 
   return
-end
+end function
 subroutine ig_get ( g, ig1, ig2 )
 
 !*****************************************************************************80
@@ -680,7 +694,7 @@ subroutine ig_get ( g, ig1, ig2 )
 !
 !    Output, integer ( kind = 4 ) IG1, IG2, the IG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
@@ -691,7 +705,7 @@ subroutine ig_get ( g, ig1, ig2 )
   call ig_memory ( i, g, ig1, ig2 )
 
   return
-end
+end subroutine
 subroutine ig_memory ( i, g, ig1, ig2 )
 
 !*****************************************************************************80
@@ -725,7 +739,7 @@ subroutine ig_memory ( i, g, ig1, ig2 )
 !    these arguments are ignored.  When used, the arguments are
 !    old or new values of the IG parameter for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: g_max = 32
 
@@ -761,7 +775,7 @@ subroutine ig_memory ( i, g, ig1, ig2 )
   end if
 
   return
-end
+end subroutine
 subroutine ig_set ( g, ig1, ig2 )
 
 !*****************************************************************************80
@@ -787,7 +801,7 @@ subroutine ig_set ( g, ig1, ig2 )
 !
 !    Input, integer ( kind = 4 ) IG1, IG2, the IG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
@@ -798,7 +812,7 @@ subroutine ig_set ( g, ig1, ig2 )
   call ig_memory ( i, g, ig1, ig2 )
 
   return
-end
+end subroutine
 subroutine init_generator ( t )
 
 !*****************************************************************************80
@@ -832,30 +846,30 @@ subroutine init_generator ( t )
 !    1, use the last seed.
 !    2, use a new seed set 2^30 values away.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: a1_w = 1033780774
   integer ( kind = 4 ), parameter :: a2_w = 1494757890
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
   integer ( kind = 4 ) ig1
   integer ( kind = 4 ) ig2
-  logical initialized_get
+  !logical initialized_get
   integer ( kind = 4 ) lg1
   integer ( kind = 4 ) lg2
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399
-  integer ( kind = 4 ) multmod
+  !integer ( kind = 4 ) multmod
   integer ( kind = 4 ) t
 !
 !  Check whether the package must be initialized.
 !
   if ( .not. initialized_get ( ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'INIT_GENERATOR - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+    !write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) 'INIT_GENERATOR - Note:'
+    !write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -903,7 +917,7 @@ subroutine init_generator ( t )
   call cg_set ( g, cg1, cg2 )
 
   return
-end
+end subroutine
 subroutine initialize ( )
 
 !*****************************************************************************80
@@ -934,13 +948,19 @@ subroutine initialize ( )
 !
 !    None
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ), parameter :: g_max = 32
   integer ( kind = 4 ) ig1
   integer ( kind = 4 ) ig2
   logical value
+
+  !---------ANTONIA EDIT---------
+    integer              :: i, num, clock
+    integer, allocatable :: seed(:)
+  !-------------------------------
+
 !
 !  Remember that we have called INITIALIZE().
 !
@@ -956,8 +976,27 @@ subroutine initialize ( )
 !
 !  Set the initial seeds.
 !
-  ig1 = 1234567890
+  !ig1 = 1234567890
   ig2 = 123456789
+
+!!--------------ANTONIA EDIT------------------
+!Edited to change the intial seed to depend on system clock
+
+if (.not. lg_mcmc) then
+    call random_seed(size = num)
+    allocate(seed(num))
+
+    call system_clock(count=clock)
+    seed = clock + 37 * (/ (i - 1, i = 1, num) /)
+    !call random_seed(put = seed)
+    ig1 = seed(1)
+    deallocate(seed)
+else
+    ig1 = 1234567890
+end if
+
+!----------------------------------------------
+
   call set_initial_seed ( ig1, ig2 )
 !
 !  Initialize the current generator index to the first one.
@@ -965,12 +1004,12 @@ subroutine initialize ( )
   g = 1
   call cgn_set ( g )
 
-  write ( *, '(a)' ) ' '
-  write ( *, '(a)' ) 'INITIALIZE - Note:'
-  write ( *, '(a)' ) '  The RNGLIB package has been initialized.'
+  !write ( *, '(a)' ) ' '
+  !write ( *, '(a)' ) 'INITIALIZE - Note:'
+  !write ( *, '(a)' ) '  The RNGLIB package has been initialized.'
 
   return
-end
+end subroutine
 function initialized_get ( )
 
 !*****************************************************************************80
@@ -994,7 +1033,7 @@ function initialized_get ( )
 !    Output, logical INITIALIZED_GET, is TRUE if the package has 
 !    been initialized.
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
   logical initialized
@@ -1006,7 +1045,7 @@ function initialized_get ( )
   initialized_get = initialized
 
   return
-end
+end function
 subroutine initialized_memory ( i, initialized )
 
 !*****************************************************************************80
@@ -1036,7 +1075,7 @@ subroutine initialized_memory ( i, initialized )
 !    this is output, for I = +1, this is input, for I = 0,
 !    this argument is ignored.  
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
   logical initialized
@@ -1055,7 +1094,7 @@ subroutine initialized_memory ( i, initialized )
   end if
 
   return
-end
+end subroutine
 subroutine initialized_set ( )
 
 !*****************************************************************************80
@@ -1078,7 +1117,7 @@ subroutine initialized_set ( )
 !
 !    None
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
   logical initialized
@@ -1088,7 +1127,7 @@ subroutine initialized_set ( )
   call initialized_memory ( i, initialized )
 
   return
-end
+end subroutine
 subroutine lg_get ( g, lg1, lg2 )
 
 !*****************************************************************************80
@@ -1114,7 +1153,7 @@ subroutine lg_get ( g, lg1, lg2 )
 !
 !    Output, integer ( kind = 4 ) LG1, LG2, the LG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
@@ -1125,7 +1164,7 @@ subroutine lg_get ( g, lg1, lg2 )
   call lg_memory ( i, g, lg1, lg2 )
 
   return
-end
+end subroutine
 subroutine lg_memory ( i, g, lg1, lg2 )
 
 !*****************************************************************************80
@@ -1159,7 +1198,7 @@ subroutine lg_memory ( i, g, lg1, lg2 )
 !    these arguments are ignored.  When used, the arguments are
 !    old or new values of the LG parameter for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ), parameter :: g_max = 32
 
@@ -1195,7 +1234,7 @@ subroutine lg_memory ( i, g, lg1, lg2 )
   end if
 
   return
-end
+end subroutine
 subroutine lg_set ( g, lg1, lg2 )
 
 !*****************************************************************************80
@@ -1221,7 +1260,7 @@ subroutine lg_set ( g, lg1, lg2 )
 !
 !    Input, integer ( kind = 4 ) LG1, LG2, the LG values for generator G.
 !
-  implicit none
+
 
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
@@ -1232,7 +1271,7 @@ subroutine lg_set ( g, lg1, lg2 )
   call lg_memory ( i, g, lg1, lg2 )
 
   return
-end
+end subroutine
 function multmod ( a, s, m )
 
 !*****************************************************************************80
@@ -1272,7 +1311,7 @@ function multmod ( a, s, m )
 !    Output, integer ( kind = 4 ) MULTMOD, the value of the product of A and S, 
 !    modulo M.
 !
-  implicit none
+
 
   integer ( kind = 4 ) a
   integer ( kind = 4 ) a0
@@ -1391,7 +1430,8 @@ function multmod ( a, s, m )
   multmod = p
 
   return
-end
+end function
+
 function r4_uni_01 ( )
 
 !*****************************************************************************80
@@ -1428,19 +1468,20 @@ function r4_uni_01 ( )
 !
 !    Output, real ( kind = 4 ) R4_UNI_01, a uniform random value in [0,1].
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
-  integer ( kind = 4 ) i4_uni
-  logical initialized_get
+  !integer ( kind = 4 ) i4_uni
+  !logical initialized_get
   real ( kind = 4 ) r4_uni_01
+
 !
 !  Check whether the package must be initialized.
 !
   if ( .not. initialized_get ( ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'R4_UNI_01 - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+    !write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) 'R4_UNI_01 - Note:'
+    !write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -1453,7 +1494,7 @@ function r4_uni_01 ( )
   r4_uni_01 = real ( i, kind = 4 ) * 4.656613057E-10
 
   return
-end
+end function
 function r8_uni_01 ( )
 
 !*****************************************************************************80
@@ -1490,19 +1531,19 @@ function r8_uni_01 ( )
 !
 !    Output, real ( kind = 8 ) R8_UNI_01, a uniform random value in [0,1].
 !
-  implicit none
+
 
   integer ( kind = 4 ) i
-  integer ( kind = 4 ) i4_uni
-  logical initialized_get
+  !integer ( kind = 4 ) i4_uni
+  !logical initialized_get
   real ( kind = 8 ) r8_uni_01
 !
 !  Check whether the package must be initialized.
 !
   if ( .not. initialized_get ( ) ) then
-    write ( *, '(a)' ) ' '
-    write ( *, '(a)' ) 'R8_UNI_01 - Note:'
-    write ( *, '(a)' ) '  Initializing RNGLIB package.'
+    !write ( *, '(a)' ) ' '
+    !write ( *, '(a)' ) 'R8_UNI_01 - Note:'
+    !write ( *, '(a)' ) '  Initializing RNGLIB package.'
     call initialize ( )
   end if
 !
@@ -1515,7 +1556,7 @@ function r8_uni_01 ( )
   r8_uni_01 = real ( i, kind = 8 ) * 4.656613057D-10
 
   return
-end
+end function
 subroutine set_initial_seed ( ig1, ig2 )
 
 !*****************************************************************************80
@@ -1549,7 +1590,6 @@ subroutine set_initial_seed ( ig1, ig2 )
 !    1 <= IG1 < 2147483563
 !    1 <= IG2 < 2147483399
 !
-  implicit none
 
   integer ( kind = 4 ), parameter :: a1_vw = 2082007225
   integer ( kind = 4 ), parameter :: a2_vw = 784306273
@@ -1558,10 +1598,10 @@ subroutine set_initial_seed ( ig1, ig2 )
   integer ( kind = 4 ) i
   integer ( kind = 4 ) ig1
   integer ( kind = 4 ) ig2
-  logical initialized_get
+  !logical initialized_get
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399
-  integer ( kind = 4 ) multmod
+  !integer ( kind = 4 ) multmod
   integer ( kind = 4 ) t
 
   if ( ig1 < 1 .or. m1 <= ig1 ) then
@@ -1617,7 +1657,7 @@ subroutine set_initial_seed ( ig1, ig2 )
   call cgn_set ( g )
 
   return
-end
+end subroutine
 subroutine set_seed ( cg1, cg2 )
 
 !*****************************************************************************80
@@ -1650,14 +1690,14 @@ subroutine set_seed ( cg1, cg2 )
 !    1 <= CG1 < 2147483563
 !    1 <= CG2 < 2147483399
 !
-  implicit none
+
 
   integer ( kind = 4 ) cg1
   integer ( kind = 4 ) cg2
-  integer ( kind = 4 ) cgn_get
+  !integer ( kind = 4 ) cgn_get
   integer ( kind = 4 ) g
   integer ( kind = 4 ) i
-  logical initialized_get
+  !logical initialized_get
   integer ( kind = 4 ), parameter :: m1 = 2147483563
   integer ( kind = 4 ), parameter :: m2 = 2147483399
   integer ( kind = 4 ) t
@@ -1699,7 +1739,7 @@ subroutine set_seed ( cg1, cg2 )
   call init_generator ( t )
 
   return
-end
+end subroutine
 subroutine timestamp ( )
 
 !*****************************************************************************80
@@ -1726,7 +1766,7 @@ subroutine timestamp ( )
 !
 !    None
 !
-  implicit none
+
 
   character ( len = 8 ) ampm
   integer ( kind = 4 ) d
@@ -1777,4 +1817,5 @@ subroutine timestamp ( )
     d, trim ( month(m) ), y, h, ':', n, ':', s, '.', mm, trim ( ampm )
 
   return
-end
+end subroutine
+end module

@@ -8,6 +8,7 @@ module class_freq_grid
     use class_line
     use class_geometry
     use class_dust
+    use class_obs_data
 
     implicit none
 
@@ -33,7 +34,12 @@ contains
     !it is constructed at the start of the simulation in order to store packet data cumulativley as the rt progreses.
     subroutine construct_freq_grid()
 
-        print*, 'constructing frequency grid...'
+        call read_obs_data()
+
+        !calculate observed data frequency grid
+        obs_data%freq = line%frequency/(1+obs_data%vel*10**3/c)
+
+        if (.not. lg_mcmc) print*, 'constructing frequency grid...'
 
         allocate(nu_grid%bin(nu_grid%n_bins,2))
         allocate(nu_grid%lambda_bin(nu_grid%n_bins-1))
@@ -52,11 +58,16 @@ contains
             else
                 nu_grid%fmax=5*((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*10**3/c))        !arbitrary factor of 5 to compensate for multiple scatterings
                 nu_grid%fmin=0.2*((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*10**3/c))        !as above
-            end if
+           end if
         else
-            nu_grid%fmax=5*(line%frequency/(1-max(dust_geometry%v_max,2000.0)*10**3/c))
-                                                                                                !
-            nu_grid%fmin=0.2*(line%frequency/(1+max(dust_geometry%v_max,2000.0)*10**3/c))                !as above
+            if (lg_data) then
+                !set bounds of frequency grid to match the observed line profile (plus an extra 20% to ensure coverage)
+                nu_grid%fmax = (line%frequency/(1+obs_data%vel(1)*1.2*10**3/c))
+                nu_grid%fmin = (line%frequency/(1+obs_data%vel(obs_data%n_data)*1.2*10**3/c))
+            else
+                nu_grid%fmax=(line%frequency/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                nu_grid%fmin=(line%frequency/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))                !as above
+            end if
         end if
         nu_grid%bin_width=(nu_grid%fmax-nu_grid%fmin)/nu_grid%n_bins
 

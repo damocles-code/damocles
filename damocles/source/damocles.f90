@@ -23,7 +23,7 @@
 !                                                                             !
 ! DAMOCLES = Dust Affected Models Of Characteristic Line                      !
 !            Emission in Supernovae                                           !
-! Version 2.0                                                                 !
+! Version 3.0                                                                 !
 !-----------------------------------------------------------------------------!
 
 !-----------------------------------------------------------------------------!
@@ -55,10 +55,7 @@ program damocles
         stop
     end if
 
-    open(30,file=infile)
-    read(30,*)
-    read(30,*) lg_mcmc
-    close(30)
+    lg_mcmc = .false.
 
     call run_damocles()
 

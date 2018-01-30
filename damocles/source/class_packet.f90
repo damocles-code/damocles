@@ -13,6 +13,7 @@ module class_packet
     use input
     use initialise
     use vector_functions
+    use rnglib
 
     implicit none
 
@@ -32,6 +33,8 @@ module class_packet
         integer ::  axis_no(3)   !current cell ids in each axis
         integer ::  step_no      !number of steps that packet has experienced
         integer ::  freq_id      !id of frequency grid division that contains the frequency of the packet
+        integer ::  id           !id number of packet
+        integer ::  init_cell    !id number of cell in which packet initialised
 
         logical ::  lg_abs       !true indicates packet has been absored
         logical ::  lg_los       !true indicates packet is in line of sight (after it has escaped)
@@ -42,6 +45,7 @@ module class_packet
     type(packet_obj) :: packet
     save packet
     !$OMP THREADPRIVATE(packet)
+
 contains
 
     !this subroutine generates a packet and samples an emission position in the observer's rest frame
@@ -49,8 +53,7 @@ contains
     !and a frequency is assigned in this frame
     !frequency and propagation direction are updated in observer's rest frame and grid cell containing packet is identified
     subroutine emit_packet()
-
-        implicit none
+    use rnglib
 
         !call random_number(random)
         random(1) = r4_uni_01()
@@ -59,7 +62,7 @@ contains
         random(4) = r4_uni_01()
         random(5) = r4_uni_01()
 
-        !packets are weighted according to their frequency shit (energy is altered when doppler shifted)
+        !packets are weighted according to their frequency shift (energy is altered when doppler shifted)
         packet%weight=1
 
         !packet is declared inactive by default until declared active
@@ -74,15 +77,22 @@ contains
 
         !initial position of packet is generated in both cartesian and spherical coordinates
         if ((gas_geometry%clumped_mass_frac==1) .or. (gas_geometry%type == "arbitrary")) then
-            !packets are emitted from grid cells
-            packet%pos_cart= (grid_cell(id_no)%axis+random(1:3)*grid_cell(id_no)%width)
+           !packets are emitted from grid cells
+           !locate the cell to emit the next packet from
+           packet%init_cell = minloc((num_packets_array(:,2)-packet%id),1,((num_packets_array(:,2)-packet%id) .ge. 0))
+           !calculate the starting position of the the packet at an arbitary location in that cell
+            packet%pos_cart= (grid_cell(packet%init_cell)%axis+random(1:3)*grid_cell(packet%init_cell)%width)
             packet%pos_sph(1)=((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5)*1e-15
             packet%pos_sph(2)=atan(packet%pos_cart(2)/packet%pos_cart(1))
             packet%pos_sph(3)=acos(packet%pos_cart(3)*1e-15/packet%pos_sph(1))
             packet%pos_cart(:)=packet%pos_cart(:)*1e-15
         else
             !shell emissivity distribution
-            packet%pos_sph(:)=(/ (random(1)*(gas_geometry%r_max-gas_geometry%r_min)/n_shells+shell_radius(id_no,1)),(2*random(2)-1),random(3)*2*pi/)       !position of emitter idp - spherical coords - system sn - rf
+            packet%pos_sph(1) = (((gas_geometry%r_min**(3-gas_geometry%emis_power*gas_geometry%rho_power)) &
+            & +(random(1)*(gas_geometry%r_max**(3-gas_geometry%emis_power*gas_geometry%rho_power)-gas_geometry%r_min**(3-gas_geometry%emis_power*gas_geometry%rho_power)))) &
+            & **(1.0/(3-gas_geometry%emis_power*gas_geometry%rho_power)))
+            packet%pos_sph(2) = (2*random(2)-1)
+            packet%pos_sph(3) = random(3)*2*pi
             packet%pos_cart(:)=cartr(packet%pos_sph(1),acos(packet%pos_sph(2)),packet%pos_sph(3))
         end if
 
@@ -132,7 +142,6 @@ contains
             do izz=1,mothergrid%n_cells(3)
                 if ((packet%pos_cart(3)*1e15-mothergrid%z_div(izz))<0) then
                     packet%axis_no(3)=izz-1
-                    !print*,packet%pos_cart(3),mothergrid%z_div(izz)
                     exit
                 end if
                 if (izz==mothergrid%n_cells(3)) then
@@ -144,28 +153,22 @@ contains
             if ((gas_geometry%type == 'shell' .and. gas_geometry%clumped_mass_frac == 1) &
                 &    .or.  (gas_geometry%type == 'arbitrary')) then
 
-                if ((packet%axis_no(1) /= grid_cell(id_no)%id(1)) .and. &
-                    &   (packet%axis_no(2) /= grid_cell(id_no)%id(2)) .and. &
-                    &   (packet%axis_no(3) /= grid_cell(id_no)%id(3))) then
-                    print*,'cell calculation gone wrong in module init_packet. aborted.'
+                if ((packet%axis_no(1) /= grid_cell(packet%init_cell)%id(1)) .and. &
+                    &   (packet%axis_no(2) /= grid_cell(packet%init_cell)%id(2)) .and. &
+                    &   (packet%axis_no(3) /= grid_cell(packet%init_cell)%id(3))) then
+                    print*,'WARNING: cell calculation gone wrong in module class_packet. Aborted.'
                     stop
                 end if
             end if
+
         !if the photon lies outside the bounds of the sn then it is inactive and not processed
         else
-            !track total number of inactive photons
-            n_inactive_packets=n_inactive_packets+1
-            print*,'inactive photon'
             packet%lg_active=.false.
         end if
 
-        if (any(packet%axis_no == 0)) then
-            packet%lg_active=.false.
-            n_inactive_packets=n_inactive_packets+1
-            print*,'inactive photon'
+        if ((any(packet%axis_no == 0)) .and. (packet%lg_active)) then
+            print*,'WARNING: inactive packet. Does not exist in grid.'
         end if
-
-        !if (n_inactive_packets/n_init_packets > 0.1) print*, 'warning: number of inactive packets greater than 10% of number requested.'
 
         packet%pos_cart=packet%pos_cart*1e15
 

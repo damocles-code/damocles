@@ -42,13 +42,15 @@ contains
         r_max_es=gas_geometry%r_max
 
         maxwell_sigma=((es_temp*1.51563e7)**0.5)/1000
-
-        if (gas_geometry%type == "shell") then
-            es_const=(lum_q**0.5)*(((3-2*gas_geometry%rho_power)/(4*pi))/(((r_max_es*1e15)**(3-2*gas_geometry%rho_power)-(gas_geometry%r_min*1e15)**(3-2*gas_geometry%rho_power))))**0.5
-            grid_cell%n_e=es_const*(grid_cell%r**(-dust_geometry%rho_power))*1e20
-        else
-            print*,'provision for electron scattering with a non-shell emissivity distribution has not yet been included.Aborted.'
-            stop
+        
+        if (lg_es) then
+           if (gas_geometry%type == "shell") then
+              es_const=(lum_q**0.5)*(((3-2*gas_geometry%rho_power)/(4*pi))/(((r_max_es*1e15)**(3-2*gas_geometry%rho_power)-(gas_geometry%r_min*1e15)**(3-2*gas_geometry%rho_power))))**0.5
+              grid_cell%n_e=es_const*(grid_cell%r**(-dust_geometry%rho_power))*1e20
+           else
+              print*,'provision for electron scattering with a non-shell emissivity distribution has not yet been included.Aborted.'
+              stop
+           end if
         end if
 
         !print*,'av e- density',(es_const*1e20*((1e15)**(-gas_geometry%rho_power))*((r_max_es)**(3-gas_geometry%rho_power)-(gas_geometry%r_min)**(3-gas_geometry%rho_power)))/((3-dust_geometry%rho_power)*((r_max_es)**3-(gas_geometry%r_min)**3))

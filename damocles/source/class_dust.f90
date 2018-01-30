@@ -80,15 +80,19 @@ contains
         write(55,*) 'number of species',dust%n_species
 
         !allocate space for number of different dust species
-        allocate(dust%species(dust%n_species))
+        if (.not. lg_mcmc)  allocate(dust%species(dust%n_species))
 
         !read in properties for each species (weighting, amin, amax etc.)
         !allocate space for grain size distributions for each species
         !allocate space for mass of grain at each size for each species
         !initialise grain sizes in grain size distributions to 0
         do ii=1,dust%n_species
-            read(21,*) dust%species(ii)%id,dust%species(ii)%datafile, dust%species(ii)%weight,dust%species(ii)%amin, &
+            if (.not. lg_mcmc) then 
+               read(21,*) dust%species(ii)%id,dust%species(ii)%datafile, dust%species(ii)%weight,dust%species(ii)%amin, &
                 & dust%species(ii)%amax,dust%species(ii)%power,dust%species(ii)%nsizes
+            else
+               read(21,*) dust%species(ii)%id,dust%species(ii)%datafile, dust%species(ii)%weight
+            end if
 
             allocate(dust%species(ii)%radius(dust%species(ii)%nsizes,2))
             allocate(dust%species(ii)%mgrain(dust%species(ii)%nsizes))
@@ -149,7 +153,7 @@ contains
 
         character(len=50)       :: junk                             !holder
 
-        print*, 'calculating opacities...'
+        if (.not. lg_mcmc) print*, 'calculating opacities...'
 
         call generate_grain_radii()
 
