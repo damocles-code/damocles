@@ -68,6 +68,7 @@ contains
         read(10,*) dust_geometry%type
         read(10,*) dust_file
         read(10,*) species_file
+        read(10,*) grid_file
         read(10,*) gas_geometry%type
         read(10,*) gas_file
 
@@ -110,14 +111,14 @@ contains
         close(11)
 
         !read in dust options (for shell case)
+        open(12,file=dust_file)
+        read(12,*)
+        if (.not. lg_mcmc) then
+           read(12,*) dust%mass
+        else
+           read(12,*)
+        end if
         if (dust_geometry%type == 'shell') then
-            open(12,file=dust_file)
-            read(12,*)
-            if (.not. lg_mcmc) then
-               read(12,*) dust%mass
-            else
-               read(12,*)
-            end if
             read(12,*)
             read(12,*) dust_geometry%clumped_mass_frac
             read(12,*) dust_geometry%ff

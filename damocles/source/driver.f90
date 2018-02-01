@@ -1,4 +1,4 @@
-!-----------------------------------------------------------------------------------!
+a!-----------------------------------------------------------------------------------!
 !  this is the main driver of the code damocles.  it is included as a module        !
 !  in order to allow it to be run from other programs e.g. python wrappers.         !
 !  the run_damocles subroutine calls the subroutines that construct the grids,      !
@@ -124,7 +124,6 @@ contains
         deallocate(total_weight_data_bins)
         deallocate(n_packets_data_bins)
 
-        print*,n_init_packets,n_abs_packets,n_init_packets-n_abs_packets-n_inactive_packets,n_recorded_packets
         if (.not. lg_mcmc) print*,'complete!'
 
     end subroutine run_damocles

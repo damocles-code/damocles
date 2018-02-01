@@ -87,6 +87,7 @@ module globals
     character(len=50)   ::  data_exclusions_file    !name of data file containing details of regions of observed line to exclude in chi sq. calculation
     character(len=50)   ::  e_scat_file             !name of file containing electron scattering parameters (temperature, halpha luminosity etc.)
     character(len=50)   ::  dust_file               !name of file containing dust grain parameters (geometry, mass etc.)
+    character(len=50)   ::  grid_file               !name of file containing dust and gas  grid (x,y,z,dust_rho,gas_rho) for arbitrary geometries
     character(len=50)   ::  gas_file                !name of file containing electron scattering parameters (geometry, luminosity etc.)
     character(len=40)   ::  species_file            !filename containing details of dust species
     character(len=1024) ::  junk                    !dummy for reading in material from files
