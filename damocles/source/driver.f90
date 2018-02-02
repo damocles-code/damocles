@@ -1,4 +1,4 @@
-a!-----------------------------------------------------------------------------------!
+!-----------------------------------------------------------------------------------!
 !  this is the main driver of the code damocles.  it is included as a module        !
 !  in order to allow it to be run from other programs e.g. python wrappers.         !
 !  the run_damocles subroutine calls the subroutines that construct the grids,      !
@@ -49,9 +49,9 @@ contains
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))
                 allocate(phi_array(n_angle_divs))
-                do ii=1,n_angle_divs-1
-                    cos_theta_array(ii) = (2*real(ii-1)/20.0)-1
-                    phi_array(ii)=2*real(ii)*pi/20
+                do ii=1,n_angle_divs
+                    cos_theta_array(ii) = (2*real(ii-1)/real(n_angle_divs))-1
+                    phi_array(ii)=2*real(ii-1)*pi/(real(n_angle_divs))
                 end do
 
                 !initialise counters to zero

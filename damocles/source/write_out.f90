@@ -63,7 +63,8 @@ contains
          if (lg_multi_los) then
             do kk=1,n_angle_divs
                do jj=1,n_angle_divs
-                     write(29,*) (kk-1)*20+jj,kk,jj,phi_array(kk),cos_theta_array(jj)
+                  write(26,*) (kk-1)*n_angle_divs+jj, cos_theta_array(jj),phi_array(kk)    
+                  write(29,*) (kk-1)*20+jj,kk,jj,phi_array(kk),cos_theta_array(jj)
                   do ii=1,nu_grid%n_bins-1
                      write(26,*) nu_grid%lambda_bin(ii),line%initial_energy*profile_los_array(ii,jj,kk)
                   end do
