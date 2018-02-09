@@ -200,7 +200,7 @@ contains
             n_recorded_packets = n_recorded_packets+1
             !$OMP END CRITICAL
             else
-               if (acos(packet%dir_sph(1)) < pi/12) then
+               if (acos(packet%dir_sph(1)) < pi/6) then
                   profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
             !increment number of recorded packets
             !$OMP CRITICAL

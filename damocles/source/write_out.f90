@@ -59,8 +59,12 @@ contains
         !write out modelled line profile
 
         do ii=1,nu_grid%n_bins-1
-            write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
-         end do
+           if (lg_los) then
+              write(30,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
+           else
+              write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
+           end if
+        end do
 
          if (lg_multi_los) then
             do kk=1,n_angle_divs
@@ -76,9 +80,7 @@ contains
         
 
         do ii = 1,obs_data%n_data
-           if (lg_los) then
-              write(30,*) obs_data%vel(ii),profile_array_data_bins(ii)
-           else
+           if (.not. lg_los) then
               write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
            end if
         end do
