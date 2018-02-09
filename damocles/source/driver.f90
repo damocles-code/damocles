@@ -160,19 +160,7 @@ contains
                  call run_packet()
               else
                  !if the packet has not been absorbed then record in resultant profile
-                 
-                 !if taking integrated profile and not interested in line of sight, record all escaped packets
-                 
-                 if (.not. lg_los) then
-                    !increment the total number of recorded packets contributing to line profile
-                    !this will be reduced by one if the packet is evenutally absorbed
-                    call add_packet_to_profile()                
-                 else
-                    !only add active packets to profile for those in los
-                    if (packet%lg_los) then
-                       call add_packet_to_profile()
-                    end if
-                 end if !line of sight
+                 call add_packet_to_profile()                
                  
               end if  !absorbed/escaped
            else
@@ -205,12 +193,21 @@ contains
             end if
 
             !add packet to primary profile array
-            profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
-
+            if (.not. lg_los) then
+               profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
             !increment number of recorded packets
             !$OMP CRITICAL
             n_recorded_packets = n_recorded_packets+1
             !$OMP END CRITICAL
+            else
+               if (acos(packet%dir_sph(1)) < pi/12) then
+                  profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
+            !increment number of recorded packets
+            !$OMP CRITICAL
+            n_recorded_packets = n_recorded_packets+1
+            !$OMP END CRITICAL
+               end if
+            end if
 
             !add packet to line of sight
             if (lg_multi_los) then
@@ -218,6 +215,7 @@ contains
                 id_phi = minloc(packet%dir_sph(2)-phi_array,1,(packet%dir_sph(2)-phi_array)>0)
                 profile_los_array(packet%freq_id,id_theta,id_phi)=profile_los_array(packet%freq_id,id_theta,id_phi)+packet%weight
             end if
+
 
             !incremement number of packets in line of sight
             n_los_packets=n_los_packets+1

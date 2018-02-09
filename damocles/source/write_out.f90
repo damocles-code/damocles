@@ -44,7 +44,8 @@ contains
             open(26,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_line_profiles.out')
             open(27,file='output/output_' // date // '/run_' // run_no_string // '/model_properties.out')
             open(28,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile_binned.out')
-
+            open(29,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_bins.out')
+            open(30,file='output/output_' // date // '/run_' // run_no_string // '/los_line_profile.out')
         else
             !open output files to record resultant modelled line profile, input parameters and properties of model
             open(25,file='output/integrated_line_profile.out')
@@ -52,6 +53,7 @@ contains
             open(27,file='output/model_properties.out')
             open(28,file='output/integrated_line_profile_binned.out')
             open(29,file='output/multiple_los_bins.out')
+            open(30,file='output/los_line_profile.out')
         end if
 
         !write out modelled line profile
@@ -74,7 +76,11 @@ contains
         
 
         do ii = 1,obs_data%n_data
-            write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
+           if (lg_los) then
+              write(30,*) obs_data%vel(ii),profile_array_data_bins(ii)
+           else
+              write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
+           end if
         end do
 
         write(27,101)  'active rest wavelength:',line%wavelength
