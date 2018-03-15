@@ -72,8 +72,12 @@ contains
             case("shell")
 
                 !calculate r_max and r_min (dust) based on maximum velocity, day no (d=v*t) and r_min/r_max ratio
-                dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
-                dust_geometry%r_min=dust_geometry%r_ratio*dust_geometry%r_max
+!               dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
+               dust_geometry%r_max=17000*day_no*8.64e-6
+!               print*,'WARNING:  THE OUTER RADIUS CALCULATION HAS BEEN AMENDED FOR CSM SHELL'
+!               dust_geometry%r_max=(dust_geometry%v_max*(day_no)*8.64e-6)
+!               gas_geometry%r_max=8.8+(gas_geometry%v_max*(day_no-60)*8.64e-6)
+               dust_geometry%r_min=dust_geometry%r_ratio*dust_geometry%r_max
 
                 !check rin/rout ratio
                 if (dust_geometry%r_min>dust_geometry%r_max) then
@@ -86,6 +90,7 @@ contains
                 dust_geometry%r_max_cm=dust_geometry%r_max*1e15
 
                 !set bounds of grid to be radius of sn
+                print*,'WARNING: IF GAS AND DUST DECOUPLED AND GAS EXTENDS FURTHER THAN DUST, CODE NEEDS AMENDING'
                 mothergrid%x_min=-1*max(dust_geometry%r_max_cm,gas_geometry%r_max*1e15)
                 mothergrid%y_min=mothergrid%x_min
                 mothergrid%z_min=mothergrid%x_min
@@ -446,7 +451,8 @@ contains
                 if (lg_decoupled) then
                     !if decoupled then generate max/min radii from epoch and maximum velocity
                     gas_geometry%r_max=gas_geometry%v_max*day_no*8.64e-6
-                    gas_geometry%r_min=gas_geometry%r_ratio*gas_geometry%r_max
+!                   gas_geometry%r_max=8.8+(gas_geometry%v_max*(day_no-60)*8.64e-6)
+                   gas_geometry%r_min=gas_geometry%r_ratio*gas_geometry%r_max
                 else
                     !if decoupled then set gas geometry parameters to equal the dust geometry parameters
                     if (gas_geometry%type /= dust_geometry%type) then
@@ -465,6 +471,15 @@ contains
                 !allocate memory for array to store number of packets to be emitted in each cell
                 if (gas_geometry%clumped_mass_frac == 1) then
                     allocate(num_packets_array(mothergrid%tot_cells,2))
+                    num_packets_array(:,:)=0
+                    do iG=1,mothergrid%tot_cells
+                       if (grid_cell(iG)%lg_clump) num_packets_array(iG,1)=ceiling(real(n_packets)/real(n_clumps))
+                    end do
+                    !calculate the cumulative number of packets to be emitted
+                    do iG = 2, mothergrid%tot_cells
+                       num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
+                    end do
+
                 end if
 
             case("torus")

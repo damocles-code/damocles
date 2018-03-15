@@ -68,6 +68,7 @@ contains
         else
             if (lg_data) then
                 !set bounds of frequency grid to match the observed line profile (plus an extra 20% to ensure coverage)
+               print*,obs_data%vel(1),obs_data%vel(obs_data%n_data)
                 nu_grid%fmax = (line%frequency/(1+obs_data%vel(1)*1.2*10**3/c))
                 nu_grid%fmin = (line%frequency/(1+obs_data%vel(obs_data%n_data)*1.2*10**3/c))
             else

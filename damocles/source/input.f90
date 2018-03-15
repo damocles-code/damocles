@@ -42,7 +42,7 @@ contains
             input_file='input/input.in'
         end if
         !open log file (will be closed at end of model)
-        open(55,file='output/log_file.out')
+        if (.not. lg_mcmc) open(55,file='output/log_file.out')
 
         !read in input file and store
         open(10,file=input_file)

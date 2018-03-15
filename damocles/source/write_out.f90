@@ -46,6 +46,7 @@ contains
             open(28,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile_binned.out')
             open(29,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_bins.out')
             open(30,file='output/output_' // date // '/run_' // run_no_string // '/los_line_profile.out')
+            open(31,file='output/output_' // date // '/run_' // run_no_string // '/grid.out')
         else
             !open output files to record resultant modelled line profile, input parameters and properties of model
             open(25,file='output/integrated_line_profile.out')
@@ -54,6 +55,7 @@ contains
             open(28,file='output/integrated_line_profile_binned.out')
             open(29,file='output/multiple_los_bins.out')
             open(30,file='output/los_line_profile.out')
+            open(31,file='output/grid.out')
         end if
 
         !write out modelled line profile
@@ -188,10 +190,18 @@ contains
         write(27,101)  '% of absorbed packets', real(n_abs_packets)*100/real(n_init_packets-n_inactive_packets)
         write(27,101)  'absorbed weight %',abs_frac*100/real(n_packets-n_inactive_packets)
 
+        do iG=1,mothergrid%tot_cells
+           write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(iG,1),grid_cell(iG)%n_rho
+        end do
+
+
         close(25)
         close(26)
         close(27)
         close(28)
+        close(29)
+        close(30)
+        close(31)
 
     end subroutine
 
