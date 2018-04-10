@@ -37,9 +37,12 @@ contains
         end do
 
         !calculate chi_sq
-        chi_sq=0
+        !!check chi_sq scaling of chi squared calculation
+       chi_sq=0
+        n_data_points = 0
         do ii = 1,obs_data%n_data
             if (obs_data%exclude(ii) .eqv. .false.) then
+               n_data_points = n_data_points + 1
                 if (isnan(mc_error_data_bins(ii)) .or. isnan(obs_data%error(ii))) then
                     cycle
                 else
@@ -48,7 +51,13 @@ contains
             end if
         end do
 
-        print*, 'vmax',dust_geometry%v_max,'R_rat',dust_geometry%r_ratio,'rho',dust_geometry%rho_power,'mdust',dust%mass,'a',dust%species(1)%amin,'chi sq - ', chi_sq
+        print*, 'vmax',dust_geometry%v_max
+        print*, 'R_rat',dust_geometry%r_ratio
+        print*, 'rho',dust_geometry%rho_power
+        print*, 'mdust',dust%mass
+        print*, 'a',dust%species(1)%amin
+!        print*, 'chi sq - ', chi_sq
+!        print*,'number of data points',n_data_points
 
         !optimise scale factor to give best fit by trying a range of scale factors between 0.6 and 1.5 times the initial factor above
         !!!temp comment out

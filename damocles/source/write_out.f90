@@ -80,12 +80,16 @@ contains
             end do
          end if
         
-
-        do ii = 1,obs_data%n_data
-           if (.not. lg_los) then
-              write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
-           end if
-        end do
+         !if using observational data, then it is generally specified in equal velocity bins (unequal frequency bins)
+         !the data is collected in unequal frequency bins so must be rescaled accordingly
+         if (lg_data) then
+            obs_data%mean_freq_bin = (obs_data%freq(obs_data%n_data)-obs_data%freq(1))/obs_data%n_data
+            do ii = 1,obs_data%n_data-1
+               if (.not. lg_los) then
+                  write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii)),mc_error_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii))
+               end if
+            end do
+         end if
 
         write(27,101)  'active rest wavelength:',line%wavelength
         write(27,*)
@@ -189,10 +193,11 @@ contains
         write(27,102)  'number of absorbed packets',n_abs_packets
         write(27,101)  '% of absorbed packets', real(n_abs_packets)*100/real(n_init_packets-n_inactive_packets)
         write(27,101)  'absorbed weight %',abs_frac*100/real(n_packets-n_inactive_packets)
-
-        do iG=1,mothergrid%tot_cells
-           write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(iG,1),grid_cell(iG)%n_rho
-        end do
+        if (dust_geometry%lg_clumped) then
+           do iG=1,mothergrid%tot_cells
+              write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(iG,1),grid_cell(iG)%n_rho
+           end do
+        end if
 
 
         close(25)

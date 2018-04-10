@@ -182,7 +182,7 @@ contains
         packet%freq_id=minloc(packet%nu-nu_grid%bin(:,1),1,(packet%nu-nu_grid%bin(:,1))>0)
 
         if (packet%freq_id==0) then
-            !print*,'photon outside frequency range',packet%freq_id,packet%nu,packet%weight
+!            print*,'photon outside frequency range',packet%freq_id,packet%nu,packet%weight
            !$OMP CRITICAL
            n_inactive_packets = n_inactive_packets+1
            !$OMP END CRITICAL
@@ -196,17 +196,17 @@ contains
             !add packet to primary profile array
             if (.not. lg_los) then
                profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
-            !increment number of recorded packets
-            !$OMP CRITICAL
-            n_recorded_packets = n_recorded_packets+1
-            !$OMP END CRITICAL
+              !increment number of recorded packets
+               !$OMP CRITICAL
+               n_recorded_packets = n_recorded_packets+1
+               !$OMP END CRITICAL
             else
                if (acos(packet%dir_sph(1)) < pi/6) then
                   profile_array(packet%freq_id)=profile_array(packet%freq_id)+packet%weight
-            !increment number of recorded packets
-            !$OMP CRITICAL
-            n_recorded_packets = n_recorded_packets+1
-            !$OMP END CRITICAL
+                  !increment number of recorded packets
+                  !$OMP CRITICAL
+                  n_recorded_packets = n_recorded_packets+1
+                  !$OMP END CRITICAL
                end if
             end if
 
@@ -222,17 +222,19 @@ contains
             n_los_packets=n_los_packets+1
 
             !calculate the sum of the squares of the packet weights and the sum of the weights
-            packet%freq_id=minloc(packet%nu-obs_data%freq(:),1,(packet%nu-obs_data%freq(:))>0)
-            if (packet%freq_id /=0) then
-               !$OMP CRITICAL
-                n_packets_data_bins(packet%freq_id) = n_packets_data_bins(packet%freq_id) + 1
-                total_weight_data_bins(packet%freq_id) = total_weight_data_bins(packet%freq_id) + packet%weight
-                square_weight_data_bins(packet%freq_id) = square_weight_data_bins(packet%freq_id) + packet%weight**2
-                !$OMP END CRITICAL
-            else
-                if (.not. lg_mcmc) print*, 'WARNING: packet out of data wavelength range - either increase the range of the data or reduce v_max.'
+            if (lg_data) then
+               packet%freq_id=minloc(packet%nu-obs_data%freq(:),1,(packet%nu-obs_data%freq(:))>0)
+               if (packet%freq_id /=0) then
+                  !$OMP CRITICAL
+                  n_packets_data_bins(packet%freq_id) = n_packets_data_bins(packet%freq_id) + 1
+                  total_weight_data_bins(packet%freq_id) = total_weight_data_bins(packet%freq_id) + packet%weight
+                  square_weight_data_bins(packet%freq_id) = square_weight_data_bins(packet%freq_id) + packet%weight**2
+                  !$OMP END CRITICAL
+               else
+                  if (.not. lg_mcmc) print*, 'WARNING: packet out of data wavelength range - either increase the range of the data or reduce v_max.'
+                  call run_packet()
+               end if
             end if
-
         end if
 
     end subroutine

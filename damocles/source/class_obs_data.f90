@@ -10,7 +10,8 @@ module class_obs_data
         real,allocatable    :: freq(:)                              !array of frequencies of observed profile
         real,allocatable    :: flux(:)                              !array of fluxes of observed profile
         logical,allocatable :: exclude(:)                           !logical array that with certain elements assigned true if they are excluded from chi sq calcn.
-        real,allocatable     :: error(:)                            !error on measurement used in chi_sq calculation
+        real,allocatable    :: error(:)                            !error on measurement used in chi_sq calculation
+        real                :: mean_freq_bin                         !average width of a frequency bin in the obs data (used to rescale the binned profile to account for different width bins)
     end type
 
     type(obs_profile) obs_data

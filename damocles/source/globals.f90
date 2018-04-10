@@ -51,6 +51,7 @@ module globals
     integer(8)          ::  no_active_cells=0       !number of active (i.e. non-zero) cells inside ejecta
     integer(8)          ::  n_clumps=0              !actual number of clumps used
     integer(8)          ::  n_recorded_packets    !number of packets contributing to the final line profile
+    integer(8)          ::  n_data_points          !number of data points used in chi squared calculation (output in order to calculate red. chi square if desired)
 
     integer             ::  n_args                  !number of input arguments
     integer             ::  n_angle_divs            !number of division in each of phi and theta to divide grid into multiple lines of sight

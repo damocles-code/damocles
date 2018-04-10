@@ -1,5 +1,5 @@
 ================DUST OPTIONS=========================================
-5.0e-4        !  Total dust mass (Msun)
+0.0e-5        !  Total dust mass (Msun)
 ================DUST CLUMPING OPTIONS================================
 0.0             !  mass fraction in clumps (set to 0 for no clumping)
 0.2             !  filling factor (volume in clumps)

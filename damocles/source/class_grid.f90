@@ -72,11 +72,7 @@ contains
             case("shell")
 
                 !calculate r_max and r_min (dust) based on maximum velocity, day no (d=v*t) and r_min/r_max ratio
-!               dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
-               dust_geometry%r_max=17000*day_no*8.64e-6
-!               print*,'WARNING:  THE OUTER RADIUS CALCULATION HAS BEEN AMENDED FOR CSM SHELL'
-!               dust_geometry%r_max=(dust_geometry%v_max*(day_no)*8.64e-6)
-!               gas_geometry%r_max=8.8+(gas_geometry%v_max*(day_no-60)*8.64e-6)
+               dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
                dust_geometry%r_min=dust_geometry%r_ratio*dust_geometry%r_max
 
                 !check rin/rout ratio
