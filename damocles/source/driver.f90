@@ -111,18 +111,20 @@ contains
         deallocate(dust%species)
         deallocate(cos_theta_array)
         deallocate(phi_array)
-        deallocate(obs_data%vel)
-        deallocate(obs_data%flux)
-        deallocate(obs_data%exclude)
-        deallocate(obs_data%freq)
-        deallocate(obs_data%error)
+        if (lg_data) then
+           deallocate(obs_data%vel)
+           deallocate(obs_data%flux)
+           deallocate(obs_data%exclude)
+           deallocate(obs_data%freq)
+           deallocate(obs_data%error)
+           deallocate(exclusion_zone)
+           if (.not. lg_mcmc) deallocate(profile_array_data_bins)
+           deallocate(square_weight_data_bins)
+           deallocate(total_weight_data_bins)
+           deallocate(n_packets_data_bins)
+        end if
         deallocate(profile_array)
         deallocate(profile_los_array)
-        deallocate(exclusion_zone)
-        if (.not. lg_mcmc) deallocate(profile_array_data_bins)
-        deallocate(square_weight_data_bins)
-        deallocate(total_weight_data_bins)
-        deallocate(n_packets_data_bins)
 
         if (.not. lg_mcmc) print*,'complete!'
 

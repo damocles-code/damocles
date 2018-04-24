@@ -3,21 +3,21 @@ false		     !  create a unique folder to store all data? (false will overwrite c
 false		     !  using observed data? 
 'input/line.in'	     !  data file containing observed line
 'input/exclude.in'   !data file containing details of regions to exclude from chi calculation
-true                !  doublet?
+false                !  doublet?
 true		     !  include velocity scattering?
-true		     !  use line of sight
-true		     !  use multiple lines of sight? (complete coverage)
+false		     !  use line of sight
+false		     !  use multiple lines of sight? (complete coverage)
 false                !  include e- scattering?
 'input/e_scat.in'    !  e- scattering file
 365000		     !  day no (used to calculate R_out)
 hg		     !  dust scattering (enter isotropic or hg (henyey-greenstein))
 ========================GEOMETRY OPTIONS===============================================
 false		     !  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
-arbitrary		     !  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
+shell		     !  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
 'input/dust.in'	     !  dust geometry file (required - specifies parameters to create grid and specify dust mass)
 'input/species.in'   !  Name of file detailing dust species and grain sizes
-'input/dust_grid_maria.in' !dust grid file neme for use in arbitary geometries
-arbitrary   	     !  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
+'input/dust_grid.in' !dust grid file neme for use in arbitary geometries
+shell   	     !  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
 'input/gas.in'	     !  gas geometry file (required - - specifies parameters to create grid or is the grid file)
 =========================GRID==========================================================
 40		     !  number of cells in each direction

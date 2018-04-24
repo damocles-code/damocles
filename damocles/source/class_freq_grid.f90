@@ -34,11 +34,15 @@ contains
     !it is constructed at the start of the simulation in order to store packet data cumulativley as the rt progreses.
     subroutine construct_freq_grid()
 
-        call read_obs_data()
+      if (lg_data) then
+         call read_obs_data()
+         
+         !calculate observed data frequency grid
+         !note that these bins will be unequal and will be scaled later to account for this
+         obs_data%freq = line%frequency/(1+obs_data%vel*10**3/c)
+      end if
 
-        !calculate observed data frequency grid
-        !note that these bins will be unequal and will be scaled later to account for this
-        obs_data%freq = line%frequency/(1+obs_data%vel*10**3/c)
+
         if (.not. lg_mcmc) print*, 'constructing frequency grid...'
 
         allocate(nu_grid%bin(nu_grid%n_bins,2))

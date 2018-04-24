@@ -429,17 +429,20 @@ contains
 
         allocate(profile_array(nu_grid%n_bins))
         allocate(profile_los_array(nu_grid%n_bins,n_angle_divs,n_angle_divs))
-        allocate(profile_array_data_bins(obs_data%n_data))
-        allocate(n_packets_data_bins(obs_data%n_data))
-        allocate(square_weight_data_bins(obs_data%n_data))
-        allocate(total_weight_data_bins(obs_data%n_data))
-        allocate(mc_error_data_bins(obs_data%n_data))
+        if (lg_data) then
+           allocate(profile_array_data_bins(obs_data%n_data))
+           allocate(n_packets_data_bins(obs_data%n_data))
+           allocate(square_weight_data_bins(obs_data%n_data))
+           allocate(total_weight_data_bins(obs_data%n_data))
+           allocate(mc_error_data_bins(obs_data%n_data))
+
+           profile_array_data_bins=0
+           square_weight_data_bins=0
+           total_weight_data_bins=0      
+        end if
         profile_array=0
         profile_los_array=0
-        profile_array_data_bins=0
-        square_weight_data_bins=0
-        total_weight_data_bins=0
-
+      
         select case(gas_geometry%type)
 
             case("shell")
