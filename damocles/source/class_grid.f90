@@ -148,7 +148,7 @@ contains
                             grid_cell(ig)%r=((mothergrid%x_div(ixx)+mothergrid%cell_width(1)/2)**2+(mothergrid%y_div(iyy)+mothergrid%cell_width(2)/2)**2+(mothergrid%z_div(izz)+mothergrid%cell_width(3)/2)**2)**0.5
                             grid_cell(ig)%axis(:)=(/ mothergrid%x_div(ixx),mothergrid%y_div(iyy),mothergrid%z_div(izz)/)
                             grid_cell(ig)%id(:)=(/ ixx,iyy,izz /)
-                        end do
+                         end do
                     end do
                 end do
 
@@ -381,20 +381,24 @@ contains
                         & grid_cell(ig)%id(2) /= mothergrid%n_cells(2) .and. &
                         & grid_cell(ig)%id(3) /= mothergrid%n_cells(3)) then
 
-                        grid_cell(ig)%r=((((grid_cell(ig)%axis(1)+grid_cell(ig+1)%axis(1))/2)**2) + &
-                            & (((grid_cell(ig)%axis(2)+grid_cell(ig+1)%axis(2))/2)**2) + &
-                            & (((grid_cell(ig)%axis(3)+grid_cell(ig+1)%axis(3))/2)**2))**0.5
+
+                        grid_cell(ig)%r=1e15*((((grid_cell(ig)%axis(1)+grid_cell(ig+1)%axis(1))/2e15)**2) + &
+                            & (((grid_cell(ig)%axis(2)+grid_cell(ig+1)%axis(2))/2e15)**2) + &
+                            & (((grid_cell(ig)%axis(3)+grid_cell(ig+1)%axis(3))/2e15)**2))**0.5
+
                         grid_cell(ig)%vol=(mothergrid%x_div(grid_cell(ig)%id(1)+1)-mothergrid%x_div(grid_cell(ig)%id(1)))*1e-14* &
                             & (mothergrid%y_div(grid_cell(ig)%id(2)+1)-mothergrid%y_div(grid_cell(ig)%id(2)))*1e-14* &
                             & (mothergrid%z_div(grid_cell(ig)%id(3)+1)-mothergrid%z_div(grid_cell(ig)%id(3)))*1e-14
                         grid_cell(ig)%width(1)=mothergrid%x_div(grid_cell(ig)%id(1)+1)-mothergrid%x_div(grid_cell(ig)%id(1))
                         grid_cell(ig)%width(2)=mothergrid%x_div(grid_cell(ig)%id(2)+1)-mothergrid%x_div(grid_cell(ig)%id(2))
                         grid_cell(ig)%width(3)=mothergrid%x_div(grid_cell(ig)%id(3)+1)-mothergrid%x_div(grid_cell(ig)%id(3))
+
+
                     else if (grid_cell(ig)%id(3) == mothergrid%n_cells(3)) then
                         grid_cell(ig)%vol=grid_cell(ig-mothergrid%n_cells(3)+1)%vol
                         grid_cell(ig)%r=grid_cell(ig-mothergrid%n_cells(3)+1)%r
                         grid_cell(ig)%width=grid_cell(ig-mothergrid%n_cells(3)+1)%width
-                    else if (grid_cell(ig)%id(2) == mothergrid%n_cells(2)) then
+                     else if (grid_cell(ig)%id(2) == mothergrid%n_cells(2)) then
                         grid_cell(ig)%vol=grid_cell(ig-mothergrid%n_cells(2)*(grid_cell(ig)%id(2)-1))%vol
                         grid_cell(ig)%r=grid_cell(ig-mothergrid%n_cells(2)*(grid_cell(ig)%id(2)-1))%r
                         grid_cell(ig)%width=grid_cell(ig-mothergrid%n_cells(2)*(grid_cell(ig)%id(2)-1))%width
