@@ -21,7 +21,6 @@ module input
 contains
 
     subroutine read_input()
-    logical :: outputexists
 
         !check number of input arguments is 1 (the name of the input file)
         if (.not. lg_mcmc) then
@@ -42,13 +41,6 @@ contains
         else
             input_file='input/input.in'
         end if
-
-        inquire(file='./output/.', exist=outputexists)
-        if ( .not. outputexists ) then
-            print *,"output directory output/ doesn't exist - terminating"
-            stop
-        end if
-
         !open log file (will be closed at end of model)
         if (.not. lg_mcmc) open(55,file='output/log_file.out')
 
