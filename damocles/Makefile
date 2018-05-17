@@ -1,7 +1,14 @@
 FC=gfortran
 LD=gfortran
 FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp  -Jsource/ -DPREFIX=\"${PREFIX}\"
-PREFIX=/usr/local
+
+# set prefix depending on OS
+OS := $(shell uname)
+ifeq ($(OS),Darwin)
+  PREFIX=/usr/local
+else
+  PREFIX=/usr
+endif
 
 ifeq ($(CO),debug)
   FFLAGS += -g -fbounds-check -Wall -Wuninitialized -ffpe-trap=zero,overflow,invalid,underflow,denormal
