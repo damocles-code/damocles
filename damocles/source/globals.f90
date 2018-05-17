@@ -33,7 +33,7 @@ module globals
     !random numbers and functions
     real                ::  random(5), ran
     !real,external         ::  r4_uni_01
-    !$OMP THREADPRIVATE(random,ran)
+    !$OMP THREADPRIVATE(random,ran,i_dir)
 
     !constants
     real, parameter     ::  pi=3.141592654

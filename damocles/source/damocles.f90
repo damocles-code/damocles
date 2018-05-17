@@ -42,6 +42,7 @@ program damocles
     implicit none
 
     character(len=50)       ::  infile        !specified input file
+    logical :: outputexists
 
     !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
@@ -52,6 +53,13 @@ program damocles
         infile='input/input.in'
     else
         print*,'too many input arguments - aborted'
+        stop
+    end if
+
+    !check if output directory exists
+    inquire(file='./output/.', exist=outputexists)
+    if ( .not. outputexists ) then
+        print *,"output directory output/ doesn't exist - terminating"
         stop
     end if
 
