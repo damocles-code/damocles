@@ -32,7 +32,7 @@ install: damocles
 	test -e ${DESTDIR}${PREFIX}/bin || mkdir -p ${DESTDIR}${PREFIX}/bin
 	test -e ./output || mkdir -p ./output
 	echo ${DESTDIR}${PREFIX}
-	cp -r dustData ${DESTDIR}${PREFIX}/share/damocles/
+	cp -R dustData ${DESTDIR}${PREFIX}/share/damocles/
 	install damocles ${DESTDIR}${PREFIX}/bin
 
 uninstall:
