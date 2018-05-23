@@ -108,15 +108,16 @@ contains
             & .or. (gas_geometry%clumped_mass_frac==1) &
             & .or. (gas_geometry%type == 'arbitrary')) then
 
-            !calculate velocity of emitting particle from radial velocity distribution
-            !velocity vector comes from radial position vector of particle
-!!!EDIT!!!            
+           !calculate velocity of emitting particle from radial velocity distribution
+           !velocity vector comes from radial position vector of particle
            packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)
-            random(1) = r4_uni_01()
-            packet%v=300+random(1)*(2200-300)
+           !hard-coded option for random velocities instead of power-law
+           !random(1) = r4_uni_01()
+           !packet%v=300+random(1)*(2200-300)
+           
            packet%vel_vect=normalise(packet%pos_cart)*packet%v
-            packet%nu=line%frequency
-            packet%lg_active=.true.
+           packet%nu=line%frequency
+           packet%lg_active=.true.
 
             call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"emsn")
 

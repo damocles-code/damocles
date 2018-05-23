@@ -46,7 +46,7 @@ contains
                 call build_emissivity_dist()
                 call n_e_const()
 
-                print*,'WARNING:  CODE HAS BEEN CHANGED AND SHOULD BE PROPERLY AMENDED.  NOT USING CORRECT VELOCITY LAW'
+                !print*,'WARNING:  USING RANDOM VELOCITIES NOT POWER-LAW VELOCITIES.  SEE CLASS_PACKET FILE TO AMEND.'
 
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))
