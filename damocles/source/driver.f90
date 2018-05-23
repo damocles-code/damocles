@@ -46,6 +46,8 @@ contains
                 call build_emissivity_dist()
                 call n_e_const()
 
+                print*,'WARNING:  CODE HAS BEEN CHANGED AND SHOULD BE PROPERLY AMENDED.  NOT USING CORRECT VELOCITY LAW'
+
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))
                 allocate(phi_array(n_angle_divs))
@@ -83,7 +85,7 @@ contains
 
             do ii=1,n_packets
                packet%id = ii
-              call run_packet()
+               call run_packet()
             end do
             !$OMP END DO
             !$OMP END PARALLEL

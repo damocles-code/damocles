@@ -58,7 +58,8 @@ module globals
     integer             ::  day_no                  !time in days since outburst - used with v_max to calculate rout
     integer             ::  es_temp                 !electron scattering temperature (0 if no es)
     real                ::  l_halpha                !total halpha luminosity (for e- scattering calcn)
-    real                ::  tot_vol                 !total volume of ejecta in 1e42cm^3
+    real                ::  tot_vol                 !total volume of dusty ejecta in 1e42cm^3
+    real                ::  tot_vol_gas             !total volume of emitting gas (if different from dust)
 
     !variables used for checking dust mass calculations
     real                ::  m_tot_check             !calculated total mass of dust using densities and vols

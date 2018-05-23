@@ -71,10 +71,16 @@ contains
 
             case("shell")
 
-                !calculate r_max and r_min (dust) based on maximum velocity, day no (d=v*t) and r_min/r_max ratio
-               dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
+                !calculate r_max and r_min (dust) based on maximum velocity, day no (d=v*t) and r_min/r_max ratio if r and v coupled
+               if (dust_geometry%r_max == 0.0) dust_geometry%r_max=dust_geometry%v_max*day_no*8.64e-6
                dust_geometry%r_min=dust_geometry%r_ratio*dust_geometry%r_max
 
+                !calculate r_max and r_min (gas) based on maximum velocity, day no (d=v*t) and r_min/r_max ratio if r and v coupled
+               if (lg_decoupled) then
+                  if (gas_geometry%r_max == 0.0) gas_geometry%r_max=gas_geometry%v_max*day_no*8.64e-6
+                  gas_geometry%r_min=gas_geometry%r_ratio*gas_geometry%r_max
+               end if
+               
                 !check rin/rout ratio
                 if (dust_geometry%r_min>dust_geometry%r_max) then
                     print*, "please specify an r_min/r_max ratio that is less than 1.  aborted."
@@ -84,10 +90,11 @@ contains
                 !convert supernova bounds from e15cm to cm
                 dust_geometry%r_min_cm=dust_geometry%r_min*1e15
                 dust_geometry%r_max_cm=dust_geometry%r_max*1e15
+                gas_geometry%r_max_cm=gas_geometry%r_max*1e15
+                gas_geometry%r_min_cm=gas_geometry%r_min*1e15
 
                 !set bounds of grid to be radius of sn
-                print*,'WARNING: IF GAS AND DUST DECOUPLED AND GAS EXTENDS FURTHER THAN DUST, CODE NEEDS AMENDING'
-                mothergrid%x_min=-1*max(dust_geometry%r_max_cm,gas_geometry%r_max*1e15)
+                mothergrid%x_min=-1*max(dust_geometry%r_max_cm,gas_geometry%r_max_cm)
                 mothergrid%y_min=mothergrid%x_min
                 mothergrid%z_min=mothergrid%x_min
                 mothergrid%x_max=-mothergrid%x_min
@@ -171,8 +178,17 @@ contains
                 !generate grid for a clumped geometry
                 if (dust_geometry%lg_clumped) then
 
-                    !allocate certain cells to be clumps according to clump density distribution
-                    !repeat until required number of clumps reached
+                   !test for cases with high volume filling factor that
+                   !there more cells available in region than requested number of clumps
+                   if (dust_geometry%n_clumps > &
+                        & count((grid_cell(:)%r<dust_geometry%r_max_cm) .and. &
+                        & (grid_cell(:)%r > dust_geometry%r_min_cm))) then
+
+                      dust_geometry%n_clumps = count((grid_cell(:)%r<dust_geometry%r_max_cm) .and. (grid_cell(:)%r > dust_geometry%r_min_cm))
+                   end if
+
+                   !allocate certain cells to be clumps according to clump density distribution
+                   !repeat until required number of clumps reached
                     n_clumps=0
                     m_clumps_check=0
                     do while (n_clumps<(dust_geometry%n_clumps))
@@ -182,7 +198,7 @@ contains
                         ran = r4_uni_01()
 
                         ig=ceiling(mothergrid%tot_cells*ran)
-                        if (ig==0) cycle
+                        if ((ig==0) .or. (ig>mothergrid%tot_cells)) cycle
 
                         !test cell against clump probability distribution
                         if ( (grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. &
@@ -448,115 +464,174 @@ contains
         profile_los_array=0
       
         select case(gas_geometry%type)
+           
+        case("shell")
+           !assign parameters related to gas geometry
+           
+           if (.not. lg_decoupled) then
+              !if coupled then set gas geometry parameters to equal the dust geometry parameters
+              !note if not coupled then gas parameters have already been calculated
+              if (gas_geometry%type /= dust_geometry%type) then
+                 print*, 'you have requested that gas and dust distributions be coupled but specified different geometries.  aborted.'
+                 stop
+              end if
+              gas_geometry%r_ratio=dust_geometry%r_ratio
+              gas_geometry%r_min=dust_geometry%r_min
+              gas_geometry%r_max=dust_geometry%r_max
+              gas_geometry%v_power=dust_geometry%v_power
+              gas_geometry%rho_power=dust_geometry%rho_power
+              gas_geometry%emis_power=dust_geometry%emis_power
+              gas_geometry%v_max=dust_geometry%v_max
+    
+              gas_geometry%r_max_cm = gas_geometry%r_max*1e15
+              gas_geometry%r_min_cm = gas_geometry%r_min_cm*1e15
+           end if
+           
+           !allocate memory for array to store number of packets to be emitted in each cell 
+           !1st column is number of packets in cell
+           !2nd column is cumulative number of packets 
+           if (gas_geometry%clumped_mass_frac == 1) then
+              allocate(num_packets_array(mothergrid%tot_cells,2))
+              num_packets_array(:,:)=0
+              if (lg_decoupled) then
+                 !if clumped gas distribution decoupled from dust distribution   
+ 
+                 !calculate total volume of shell in 1e42cm^3
+                 tot_vol_gas=1000*4*pi*(gas_geometry%r_max**3-gas_geometry%r_min**3)/3 !in e42cm^3
+                 !calculate total number of gas clumps                 
+                 gas_geometry%n_clumps=floor(gas_geometry%ff*tot_vol_gas/mothergrid%cell_vol)
 
-            case("shell")
-                !assign parameters related to gas geometry
-                if (lg_decoupled) then
-                    !if decoupled then generate max/min radii from epoch and maximum velocity
-                    gas_geometry%r_max=gas_geometry%v_max*day_no*8.64e-6
-!                   gas_geometry%r_max=8.8+(gas_geometry%v_max*(day_no-60)*8.64e-6)
-                   gas_geometry%r_min=gas_geometry%r_ratio*gas_geometry%r_max
-                else
-                    !if decoupled then set gas geometry parameters to equal the dust geometry parameters
-                    if (gas_geometry%type /= dust_geometry%type) then
-                        print*, 'you have requested that gas and dust distributions be coupled but specified different geometries.  aborted.'
-                        stop
+                 !test for cases with high volume filling factor that 
+                 !there more cells available in region than requested number of clumps
+                 if (gas_geometry%n_clumps > count((grid_cell(:)%r<gas_geometry%r_max_cm) .and. (grid_cell(:)%r > gas_geometry%r_min_cm))) then
+                    gas_geometry%n_clumps = count((grid_cell(:)%r<gas_geometry%r_max_cm) .and. (grid_cell(:)%r > gas_geometry%r_min_cm))
+                 end if
+
+                 !allocate certain cells to be clumps according to clump density distribution
+                 !repeat until required number of clumps reached
+                 n_clumps=0
+                 do while (n_clumps<(gas_geometry%n_clumps))
+                    
+                    !select a random cell from the grid
+                    !call random_number(ran)
+                    ran = r4_uni_01()
+                    
+                    ig=ceiling(mothergrid%tot_cells*ran)
+                    if ((ig==0) .or. (ig>mothergrid%tot_cells)) cycle
+                    
+                    !test cell against clump probability distribution
+                    if ( (grid_cell(ig)%r<(gas_geometry%r_max_cm)) .and. &
+                         & (grid_cell(ig)%r>(gas_geometry%r_min_cm)) .and. &
+                         & (num_packets_array(ig,1) == 0)) then
+                       
+                       !call random_number(ran)
+                       ran = r4_uni_01()
+                       if (ran<((gas_geometry%r_min_cm/grid_cell(ig)%r)**gas_geometry%clump_power)) then
+                          n_clumps=n_clumps+1
+                          print*,'n clumps',n_clumps
+                          num_packets_array(iG,1)=ceiling(real(n_packets)/real(gas_geometry%n_clumps))
+                       end if
                     end if
-                    gas_geometry%r_ratio=dust_geometry%r_ratio
-                    gas_geometry%r_min=dust_geometry%r_min
-                    gas_geometry%r_max=dust_geometry%r_max
-                    gas_geometry%v_power=dust_geometry%v_power
-                    gas_geometry%rho_power=dust_geometry%rho_power
-                    gas_geometry%emis_power=dust_geometry%emis_power
-                    gas_geometry%v_max=dust_geometry%v_max
-                end if
+                 end do
 
-                !allocate memory for array to store number of packets to be emitted in each cell
-                if (gas_geometry%clumped_mass_frac == 1) then
-                    allocate(num_packets_array(mothergrid%tot_cells,2))
-                    num_packets_array(:,:)=0
-                    do iG=1,mothergrid%tot_cells
-                       if (grid_cell(iG)%lg_clump) num_packets_array(iG,1)=ceiling(real(n_packets)/real(n_clumps))
-                    end do
-                    !calculate the cumulative number of packets to be emitted
-                    do iG = 2, mothergrid%tot_cells
-                       num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
-                    end do
+                 open(33,file='output/gas_grid.out')
+                 do iG=1,mothergrid%tot_cells
+                    write(33,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(ig,1)
+                 end do
+                 close(33)
 
-                end if
+                 else
+                 !if clumped gas distribution coupled to clumped dust distribution
+                 do iG=1,mothergrid%tot_cells
+                    if (grid_cell(iG)%lg_clump) num_packets_array(iG,1)=ceiling(real(n_packets)/real(dust_geometry%n_clumps))
+                 end do
+              end if
+              
+              !calculate the cumulative number of packets to be emitted
+              do iG = 2, mothergrid%tot_cells
+                 num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
+              end do
 
-            case("torus")
-                if (lg_decoupled) then
-                    print*, 'you have selected a torus distribution of gas.  this routine has not been written yet.  &
-                & it is due to be added to the class_grid module in due course.'
-                    write(55,*) 'you have specified a torus distribution of gas.  damocles is not yet capable of creating this grid.  &
-                & it is due to be added to the class_grid module.  aborted.'
-                    stop
-                end if
-            case("arbitrary")
+              !adjust the total number of packets to be run
+              print*,'Recalculating total number of packets to run...'
+              n_packets = sum(num_packets_array(:,1))
+              print*,'Using ',n_packets,'packets'
+              
+           end if
 
-               !update the gas geometry parameters
-               !these values have been read in from the grid file
-               !all other parameters are taken from the gas.in file
-               !in this arbitrary geometry scenario, the max vel and r are used solely to determine the velocity field
-               gas_geometry%v_max=dust_geometry%v_max
-               gas_geometry%r_max=dust_geometry%r_max
-               gas_geometry%v_power=dust_geometry%v_power
-               gas_geometry%r_max_cm=gas_geometry%r_max*1e15
-               
-               !calculate the number of packets to emit in each cell
-               print*,'calculating number of packets to be emitted in each cell...'
-               allocate(num_packets_array(mothergrid%tot_cells,2))
-               num_packets_array=0
-               
-               if (gas_geometry%emis_power == 0 .and. (.not. lg_decoupled)) then
-                  !handle the strange case of a uniform emissivity grid
-                  print*, 'WARNING: You have created a uniform emissivity grid.  & 
-                       & To couple the emissivity grid to the dust grid, please  & 
-                       & enter a non-zero emissivity power in the gas input file.&
-                       & Note that this is cuboidal distribution, not a shell.'
-                  if (n_packets .ge. mothergrid%tot_cells) then
-                     num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
-                  else
-                     print*,'ERROR: You have specified fewer packets than there & 
-                          & are cells in the grid.  Please increase the number  &
-                          & of packets to be used if you would like a uniform emissivity grid. Aborted.'
-                     STOP
-                  end if
-                  num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
-               else
-                  !the normal case of an emissivity grid coupled to some power of the gas density grid
-                  !the gas density may have been derived directly from the dust density in the coupled case
-                  num_packets_array(:,1) = nint((grid_cell(:)%gas_rho**gas_geometry%emis_power)*real(n_packets)*(grid_cell(:)%vol/sum((grid_cell(:)%gas_rho**gas_geometry%emis_power)*(grid_cell(:)%vol))))
-                  num_packets_array(1,2) = num_packets_array(1,1)
-               end if
-               
-               !calculate the cumulative number of packets to be emitted
-               do iG = 2, mothergrid%tot_cells
-                  num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
-               end do
-
-            
-            !update the total number of packets to be run
-            n_packets = sum(num_packets_array(:,1))
-            
-            case("bipolar")
-                if (lg_decoupled) then
-                    print*, 'you have selected a bipolar distribution of gas.  this routine has not been written yet.  &
-                & it is due to be added to the class_grid module in due course.'
-                    write(55,*) 'you have specified a bipolar distribution of gas.  damocles is not yet capable of creating this grid.  &
-                & it is due to be added to the class_grid module.  aborted.'
-
-                    stop
-                end if
-            case default
-                if (lg_decoupled) then
-                    print*, 'please specify one of the following options for the geometry "shell", "torus", "arbitrary" or "bipolar". aborted.'
-                    write(55,*) 'aborted - dust geometry option was not one of "shell", "torus", "arbitrary" or "bipolar".'
-                    stop
-                end if
+        case("torus")
+           if (lg_decoupled) then
+              print*, 'you have selected a torus distribution of gas.  this routine has not been written yet.  &
+                   & it is due to be added to the class_grid module in due course.'
+              write(55,*) 'you have specified a torus distribution of gas.  damocles is not yet capable of creating this grid.  &
+                   & it is due to be added to the class_grid module.  aborted.'
+              stop
+           end if
+        case("arbitrary")
+           
+           !update the gas geometry parameters
+           !these values have been read in from the grid file
+           !all other parameters are taken from the gas.in file
+           !in this arbitrary geometry scenario, the max vel and r are used solely to determine the velocity field
+           gas_geometry%v_max=dust_geometry%v_max
+           gas_geometry%r_max=dust_geometry%r_max
+           gas_geometry%v_power=dust_geometry%v_power
+           gas_geometry%r_max_cm=gas_geometry%r_max*1e15
+           
+           !calculate the number of packets to emit in each cell
+           print*,'calculating number of packets to be emitted in each cell...'
+           allocate(num_packets_array(mothergrid%tot_cells,2))
+           num_packets_array=0
+           
+           if (gas_geometry%emis_power == 0 .and. (.not. lg_decoupled)) then
+              !handle the strange case of a uniform emissivity grid
+              print*, 'WARNING: You have created a uniform emissivity grid.  & 
+                   & To couple the emissivity grid to the dust grid, please  & 
+                   & enter a non-zero emissivity power in the gas input file.&
+                   & Note that this is cuboidal distribution, not a shell.'
+              if (n_packets .ge. mothergrid%tot_cells) then
+                 num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
+              else
+                 print*,'ERROR: You have specified fewer packets than there & 
+                      & are cells in the grid.  Please increase the number  &
+                      & of packets to be used if you would like a uniform emissivity grid. Aborted.'
+                 STOP
+              end if
+              num_packets_array(:,1) = nint(real(n_packets)/real(mothergrid%tot_cells))
+           else
+              !the normal case of an emissivity grid coupled to some power of the gas density grid
+              !the gas density may have been derived directly from the dust density in the coupled case
+              num_packets_array(:,1) = nint((grid_cell(:)%gas_rho**gas_geometry%emis_power)*real(n_packets)*(grid_cell(:)%vol/sum((grid_cell(:)%gas_rho**gas_geometry%emis_power)*(grid_cell(:)%vol))))
+              num_packets_array(1,2) = num_packets_array(1,1)
+           end if
+           
+           !calculate the cumulative number of packets to be emitted
+           do iG = 2, mothergrid%tot_cells
+              num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
+           end do
+           
+           
+           !update the total number of packets to be run
+           n_packets = sum(num_packets_array(:,1))
+           
+        case("bipolar")
+           if (lg_decoupled) then
+              print*, 'you have selected a bipolar distribution of gas.  this routine has not been written yet.  &
+                   & it is due to be added to the class_grid module in due course.'
+              write(55,*) 'you have specified a bipolar distribution of gas.  damocles is not yet capable of creating this grid.  &
+                   & it is due to be added to the class_grid module.  aborted.'
+              
+              stop
+           end if
+        case default
+           if (lg_decoupled) then
+              print*, 'please specify one of the following options for the geometry "shell", "torus", "arbitrary" or "bipolar". aborted.'
+              write(55,*) 'aborted - dust geometry option was not one of "shell", "torus", "arbitrary" or "bipolar".'
+              stop
+           end if
         end select
-
-    end subroutine build_emissivity_dist
-
-end module class_grid
+        
+      end subroutine build_emissivity_dist
+      
+    end module class_grid
+    

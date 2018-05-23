@@ -103,7 +103,11 @@ contains
         end if
         read(11,*)
         read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
+        read(11,*) gas_geometry%ff
+        read(11,*) gas_geometry%clump_power
+        read(11,*)
         read(11,*) gas_geometry%v_max
+        read(11,*) gas_geometry%r_max
         read(11,*) gas_geometry%r_ratio
         read(11,*) gas_geometry%v_power
         read(11,*) gas_geometry%rho_power
@@ -126,9 +130,11 @@ contains
             read(12,*)
             if (lg_mcmc) then
                 read(12,*)
+                read(12,*) dust_geometry%r_max
                 read(12,*)
             else
                 read(12,*) dust_geometry%v_max
+                read(12,*) dust_geometry%r_max
                 read(12,*) dust_geometry%r_ratio
             end if
             read(12,*) dust_geometry%v_power
@@ -147,6 +153,11 @@ contains
         end select
 
         call check_scat_type()
+
+        if ((gas_geometry%clumped_mass_frac /= 0) .and. (gas_geometry%clumped_mass_frac /= 1)) then
+           print*,'ERROR:  Please enter a gas clump mass fraction equal to 0 or 1.  There is currently no provision for partial clumped emission. Aborted.'
+           STOP
+        end if
 
         !read in electron scattering options (if using electron scattering)
         if (lg_es) then

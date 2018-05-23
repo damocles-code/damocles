@@ -193,11 +193,11 @@ contains
         write(27,102)  'number of absorbed packets',n_abs_packets
         write(27,101)  '% of absorbed packets', real(n_abs_packets)*100/real(n_init_packets-n_inactive_packets)
         write(27,101)  'absorbed weight %',abs_frac*100/real(n_packets-n_inactive_packets)
-        if (dust_geometry%lg_clumped) then
+!        if (dust_geometry%lg_clumped) then
            do iG=1,mothergrid%tot_cells
-              write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(iG,1),grid_cell(iG)%n_rho
+              write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),grid_cell(iG)%n_rho
            end do
-        end if
+!        end if
 
 
         close(25)

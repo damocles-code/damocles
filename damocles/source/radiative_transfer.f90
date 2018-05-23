@@ -335,7 +335,7 @@ contains
         packet%step_no=packet%step_no+1
         if (packet%step_no>500) then
             packet%lg_active=.false.
-            print*,'highly scattered packet removed'
+            print*,'Packet reached 500 steps and was removed - either highly scattered or very large grid.'
             return
         end if
     end subroutine
