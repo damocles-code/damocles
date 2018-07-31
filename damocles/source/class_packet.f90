@@ -45,7 +45,7 @@ module class_packet
     type(packet_obj) :: packet
     save packet
     !$OMP THREADPRIVATE(packet)
-
+    real   ::  indx          !indx used in velocity calculation (TESTING)
 contains
 
     !this subroutine generates a packet and samples an emission position in the observer's rest frame
@@ -109,12 +109,15 @@ contains
             & .or. (gas_geometry%type == 'arbitrary')) then
 
            !calculate velocity of emitting particle from radial velocity distribution
-           !velocity vector comes from radial position vector of particle
-           packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)
-           !hard-coded option for random velocities instead of power-law
-           !random(1) = r4_uni_01()
-           !packet%v=300+random(1)*(2200-300)
-           
+
+           !if using a velocity law that is independent of radius, assign velocity here
+           if (lg_vel_law) then
+              random(1) = r4_uni_01()
+              packet%v=(random(1)*(vel_max**(1+vel_power)-vel_min**(1+vel_power))+vel_min**(1+vel_power))**(1/(1+vel_power))
+           else
+              !velocity vector comes from radial position vector of particle
+              packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)
+           end if
            packet%vel_vect=normalise(packet%pos_cart)*packet%v
            packet%nu=line%frequency
            packet%lg_active=.true.

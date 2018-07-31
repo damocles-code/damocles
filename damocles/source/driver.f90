@@ -40,13 +40,14 @@ contains
                 line%frequency=c*10**9/line%wavelength
                 
                 !construct grids
+                call init_random_seed()
                 call calculate_opacities()
                 call build_dust_grid()
                 call construct_freq_grid()
                 call build_emissivity_dist()
                 call n_e_const()
 
-                !print*,'WARNING:  USING RANDOM VELOCITIES NOT POWER-LAW VELOCITIES.  SEE CLASS_PACKET FILE TO AMEND.'
+!                print*,'WARNING:  USING RANDOM VELOCITIES NOT POWER-LAW VELOCITIES.  SEE CLASS_PACKET FILE TO AMEND.'
 
                 !build multiple lines of sight array
                 allocate(cos_theta_array(n_angle_divs))

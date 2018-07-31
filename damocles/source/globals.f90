@@ -60,6 +60,8 @@ module globals
     real                ::  l_halpha                !total halpha luminosity (for e- scattering calcn)
     real                ::  tot_vol                 !total volume of dusty ejecta in 1e42cm^3
     real                ::  tot_vol_gas             !total volume of emitting gas (if different from dust)
+    real                ::  vel_max,vel_min         !if using a velocity law that is independent of radius, maximum and minimum gas velocity
+    real                ::  vel_power               !if using a velocity law that is independent of radius,  gas velocity power law
 
     !variables used for checking dust mass calculations
     real                ::  m_tot_check             !calculated total mass of dust using densities and vols
@@ -67,7 +69,7 @@ module globals
     real                ::  m_clumps_check          !calculated mass of dust in clumps
 
     !different options and cases
-    logical             ::  lg_mcmc       !use an mcmc routine to map parameter space and return trace and likelihoods
+    logical             ::  lg_mcmc                 !use an mcmc routine to map parameter space and return trace and likelihoods
     logical             ::  lg_los                  !use a line of sight?
     logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
     logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
@@ -76,6 +78,7 @@ module globals
     logical             ::  lg_decoupled            !decouple = 0 or 1 (1 if dust and gas distributions are not coupled)
     logical             ::  lg_doublet              !is the 'line' to be modelled a doublet?
     logical             ::  lg_store_all
+    logical             ::  lg_vel_law              !are you using a velocity law independent of radius?
 
     !properties of resultant line profile
     real                ::  abs_frac                !total fraction of emitted energy that has been absorbed

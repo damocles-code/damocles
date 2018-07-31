@@ -262,9 +262,14 @@ contains
     !---------------------------------------------------------------------
 
     subroutine calculate_velocity()
-        !calculate bulk velocity of scattering e- and velocity unit vector
-        packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
-        packet%vel_vect=normalise(packet%pos_cart)*packet%v
+      !calculate bulk velocity of scattering e- and velocity unit vector
+      if (lg_vel_law) then
+         ran = r4_uni_01()
+         packet%v=(ran*(vel_max**(1-vel_power)-vel_min**(1-vel_power))+vel_min**(1-vel_power))**(1/(1-vel_power))
+      else
+         packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
+      end if
+      packet%vel_vect=normalise(packet%pos_cart)*packet%v
     end subroutine
 
     !---------------------------------------------------------------------

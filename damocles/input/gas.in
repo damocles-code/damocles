@@ -7,6 +7,7 @@
 ========================SHELL GEOMETRY=================================================
 0               !  fraction of emission emanated from clumps (currently only 0 or 1)
 2000.		!  max gas velocity in km/s
+0.              !  Rout in 1e15cm. Set to 0 to couple to velocity (r=vt).
 0.05		!  Rin/Rout ratio for gas shell
 1.0		!  gas velocity profile
 1.2		!  gas density profile

@@ -79,6 +79,12 @@ contains
         read(10,*) n_packets
         read(10,*) nu_grid%n_bins
         read(10,*) num_threads
+        
+        read(10,*)
+        read(10,*) lg_vel_law
+        read(10,*) vel_max
+        read(10,*) vel_min
+        read(10,*) vel_power
         close(10)
 
         !check for conflict in specified dust and gas distributions

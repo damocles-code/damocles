@@ -87,6 +87,7 @@ contains
             do ii = 1,obs_data%n_data-1
                if (.not. lg_los) then
                   write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii)),mc_error_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii))
+                  print*,profile_array_data_bins(ii)
                end if
             end do
          end if
