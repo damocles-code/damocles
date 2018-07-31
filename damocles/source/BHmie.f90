@@ -119,8 +119,8 @@ subroutine bhmie (x,refrel,qext,qsca,ggsca)
 
         qsca=qsca+(2.*rn+1.)*(abs(an)*abs(an)+abs(bn)*abs(bn))
          
-        ggsca=ggsca+real(((2.*rn+1.)/(rn*(rn+1.))))*&
-            &((realpart(an)*realpart(bn)+imagpart(an)*imagpart(bn)))
+        ggsca=ggsca+real(((2.*rn+1.)/(rn*(rn+1.)))*&
+            &(realpart(an)*realpart(bn)+imagpart(an)*imagpart(bn)))
 
         if(n>1)then
             ggsca=ggsca+real(((rn-1.)*(rn+1.)/rn)*&

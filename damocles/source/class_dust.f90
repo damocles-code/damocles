@@ -77,7 +77,7 @@ contains
         read(21,*)
 
         !write to log file
-        if (.not. lg_mcmc) write(55,*) 'number of species',dust%n_species
+        write(55,*) 'number of species',dust%n_species
 
         !allocate space for number of different dust species
         if (.not. lg_mcmc)  allocate(dust%species(dust%n_species))
@@ -125,10 +125,9 @@ contains
 
             !calculate volume weighting (abundance) of species based on weighting by cross-sectional area
             dust%species(ii)%v_weight=(1.0/(1.0+(1.0/dust%species(ii)%weight-1)**(1.5)))
-            if (.not. lg_mcmc) then
+
             write(55,*) 'area weight',dust%species(ii)%weight
             write(55,*) 'volume weight',dust%species(ii)%v_weight
-            end if
         end do
 
         close(21)
@@ -159,13 +158,11 @@ contains
         call generate_grain_radii()
 
         !write out to log file
-        if (.not. lg_mcmc) then
         do ii=1,dust%n_species
             write(55,*) 'species',dust%species(ii)%id,'min grain radius',dust%species(ii)%amin
             write(55,*) 'species',dust%species(ii)%id,'max grain radius',dust%species(ii)%amax
             write(55,*) 'species',dust%species(ii)%id,'power law index for grain distriution',dust%species(ii)%power
         end do
-        end if
 
         !read in optical data (n and k values) for each species
         do ii=1,dust%n_species
