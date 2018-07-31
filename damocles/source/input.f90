@@ -38,12 +38,11 @@ contains
                 stop
 
             end if
-        else if (.not. lg_multiline) then
+        else
             input_file='input/input.in'
         end if
-
         !open log file (will be closed at end of model)
-        open(55,file='output/log_file.out')
+        if (.not. lg_mcmc) open(55,file='output/log_file.out')
 
         !read in input file and store
         open(10,file=input_file)
@@ -52,13 +51,8 @@ contains
         read(10,*)
         read(10,*) lg_store_all
         read(10,*) lg_data
-        if (.not. lg_multiline) then
-           read(10,*) data_file
-           read(10,*) data_exclusions_file
-        else
-           read(10,*)
-           read(10,*)
-        end if
+        read(10,*) data_file
+        read(10,*) data_exclusions_file
         read(10,*) lg_doublet
         read(10,*) lg_vel_shift
         read(10,*) lg_los
@@ -72,19 +66,12 @@ contains
         read(10,*)
         read(10,*) lg_decoupled
         read(10,*) dust_geometry%type
-        if (.not. lg_multiline) then
-           read(10,*) dust_file
-           read(10,*) species_file
-        else
-           read(10,*)
-           read(10,*)
-        end if
+        read(10,*) dust_file
+        read(10,*) species_file
+        read(10,*) grid_file
         read(10,*) gas_geometry%type
-        if (.not. lg_multiline) then
-           read(10,*) gas_file
-        else
-           read(10,*) 
-        end if
+        read(10,*) gas_file
+
         read(10,*)
         read(10,*) mothergrid%n_cells(1)
         read(10,*) n_angle_divs
@@ -92,6 +79,12 @@ contains
         read(10,*) n_packets
         read(10,*) nu_grid%n_bins
         read(10,*) num_threads
+        
+        read(10,*)
+        read(10,*) lg_vel_law
+        read(10,*) vel_max
+        read(10,*) vel_min
+        read(10,*) vel_power
         close(10)
 
         !check for conflict in specified dust and gas distributions
@@ -115,52 +108,39 @@ contains
            read(11,*) line%doublet_ratio
         end if
         read(11,*)
-        !if using a shell geometry
-        if (gas_geometry%type == 'shell') then
-
-                read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
-            if (.not. lg_mcmc) then
-                read(11,*) gas_geometry%v_max
-                read(11,*) gas_geometry%r_ratio
-            else
-                read(11,*)
-                read(11,*)
-            end if  
-                read(11,*) gas_geometry%v_power
-            if (.not. lg_mcmc) then
-                read(11,*) gas_geometry%rho_power
-            else
-                read(11,*)
-            end if
-                read(11,*) gas_geometry%emis_power
-            
-            close(11)
-        end if
+        read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
+        read(11,*) gas_geometry%ff
+        read(11,*) gas_geometry%clump_power
+        read(11,*)
+        read(11,*) gas_geometry%v_max
+        read(11,*) gas_geometry%r_max
+        read(11,*) gas_geometry%r_ratio
+        read(11,*) gas_geometry%v_power
+        read(11,*) gas_geometry%rho_power
+        read(11,*) gas_geometry%emis_power
+        close(11)
 
         !read in dust options (for shell case)
+        open(12,file=dust_file)
+        read(12,*)
+        if (.not. lg_mcmc) then
+           read(12,*) dust%mass
+        else
+           read(12,*)
+        end if
         if (dust_geometry%type == 'shell') then
-            open(12,file=dust_file)
-            read(12,*)
-            if (.not. lg_mcmc) then
-               read(12,*) dust%mass
-            else
-               read(12,*)
-            end if
             read(12,*)
             read(12,*) dust_geometry%clumped_mass_frac
-            if (lg_mcmc) then 
-                read(12,*)
-                read(12,*)
-            else
-                read(12,*) dust_geometry%ff
-                read(12,*) dust_geometry%clump_power
-            end if
+            read(12,*) dust_geometry%ff
+            read(12,*) dust_geometry%clump_power
             read(12,*)
             if (lg_mcmc) then
                 read(12,*)
+                read(12,*) dust_geometry%r_max
                 read(12,*)
             else
                 read(12,*) dust_geometry%v_max
+                read(12,*) dust_geometry%r_max
                 read(12,*) dust_geometry%r_ratio
             end if
             read(12,*) dust_geometry%v_power
@@ -180,11 +160,16 @@ contains
 
         call check_scat_type()
 
+        if ((gas_geometry%clumped_mass_frac /= 0) .and. (gas_geometry%clumped_mass_frac /= 1)) then
+           print*,'ERROR:  Please enter a gas clump mass fraction equal to 0 or 1.  There is currently no provision for partial clumped emission. Aborted.'
+           STOP
+        end if
+
         !read in electron scattering options (if using electron scattering)
         if (lg_es) then
             !!temporarily prevent electron scattering - needs review.
-            print*, 'the electron scattering module needs review following updates to the code. please contact antonia.bevan.12@ucl.ac.uk.  aborted.'
-            stop
+            !print*, 'the electron scattering module needs review following updates to the code. please contact antonia.bevan.12@ucl.ac.uk.  aborted.'
+            !stop
             open(13,file = e_scat_file)
             read(13,*)
             read(13,*) l_halpha

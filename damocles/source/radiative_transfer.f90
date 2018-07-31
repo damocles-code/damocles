@@ -27,6 +27,8 @@ module radiative_transfer
 
     integer ::  i_min                  !index of nearest face in packet's direction of travel
     integer ::  wav_id                 !wavelength bin that contains the current packet
+    integer ::  i_spec                 !loop index to loop over different species when calculating extinction
+    real    ::  nu_ext                 !value of frequency of packet in frame of particle (used to calculate extinction, not necessarily the packet frequency)
     character(9) :: event_type         !is packet experiences an event, this describes whether it is
                                        !dust scattering, electron scattering or absorption by dust
 
@@ -36,8 +38,8 @@ module radiative_transfer
     real    ::  c_sca_tot              !total scattering cross-section of interaction
     real    ::  g_param_tot            !total forward scattering parameter g (from mie calculation, to be used with henyey-greenstein approx)
     real    ::  albedo                 !albedo in cell
-
-    !$OMP THREADPRIVATE(kappa_rho,c_ext_tot,c_sca_tot,g_param_tot,albedo,i_min,wav_id,event_type)
+    
+    !$OMP THREADPRIVATE(kappa_rho,c_ext_tot,c_sca_tot,g_param_tot,albedo,i_min,wav_id,event_type,nu_ext,i_spec)
 
 contains
 
@@ -160,7 +162,7 @@ contains
 
                     if (lg_vel_shift) then
                         !inverse lorentz boost (observer frame to particle), sample new scat direction, lorentz boost (particle frame to observer)
-                        call inv_lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
+                       call inv_lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
                         call scatter()
                         call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
                     end if
@@ -209,34 +211,37 @@ contains
 
             !calculate difference between actual wavelength...
             !...and wavelength bins in order to calculate which bin photon is in for each species
-            wav_id=minloc(abs((dust%species(i_spec)%wav(:)-(c*1e6/packet%nu))),1)
+
+            !determine wavelength for extinction calculation in particle rest frame
+            call inv_lorentz_trans_for_ext(packet%vel_vect,packet%dir_cart,packet%nu,nu_ext)
+            wav_id=minloc(abs((dust%species(i_spec)%wav(:)-(c*1e6/nu_ext))),1)
 
             !calculate opactiy as function of rho for specific wavelength by interpolating between bins for each species
-            !!interpolate function?
-            if ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))<0) then
+            !!include interpolate function?
+            if ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))<0) then
                 c_ext(i_spec)=dust%species(i_spec)%c_ext(wav_id)-((dust%species(i_spec)%c_ext(wav_id)-dust%species(i_spec)%c_ext(wav_id-1))* &
-                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
+                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/nu_ext)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
             else
                 c_ext(i_spec)=dust%species(i_spec)%c_ext(wav_id)+((dust%species(i_spec)%c_ext(wav_id+1)-dust%species(i_spec)%c_ext(wav_id))* &
-                    & ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
+                    & ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
             end if
 
             !cumulative scattering component of extinction for albedo calculation
-            if ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))<0) then
+            if ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))<0) then
                 c_sca(i_spec)=dust%species(i_spec)%c_sca(wav_id)-((dust%species(i_spec)%c_sca(wav_id)-dust%species(i_spec)%c_sca(wav_id-1))* &
-                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
+                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/nu_ext)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
             else
                 c_sca(i_spec)=dust%species(i_spec)%c_sca(wav_id)+((dust%species(i_spec)%c_sca(wav_id+1)-dust%species(i_spec)%c_sca(wav_id))* &
-                    & ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
+                    & ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
             end if
 
             !cumulative scattering component of extinction for albedo calculation
-            if ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))<0) then
+            if ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))<0) then
                 g_param(i_spec)=dust%species(i_spec)%g_param(wav_id)-((dust%species(i_spec)%g_param(wav_id)-dust%species(i_spec)%g_param(wav_id-1))* &
-                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/packet%nu)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
+                    & ((dust%species(i_spec)%wav(wav_id)-c*1e6/nu_ext)/(dust%species(i_spec)%wav(wav_id)-dust%species(i_spec)%wav(wav_id-1))))
             else
                 g_param(i_spec)=dust%species(i_spec)%g_param(wav_id)+((dust%species(i_spec)%g_param(wav_id+1)-dust%species(i_spec)%g_param(wav_id))* &
-                    & ((c*1e6/packet%nu-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
+                    & ((c*1e6/nu_ext-dust%species(i_spec)%wav(wav_id))/(dust%species(i_spec)%wav(wav_id+1)-dust%species(i_spec)%wav(wav_id))))
             end if
         end do
 
@@ -257,9 +262,14 @@ contains
     !---------------------------------------------------------------------
 
     subroutine calculate_velocity()
-        !calculate bulk velocity of scattering e- and velocity unit vector
-        packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
-        packet%vel_vect=normalise(packet%pos_cart)*packet%v
+      !calculate bulk velocity of scattering e- and velocity unit vector
+      if (lg_vel_law) then
+         ran = r4_uni_01()
+         packet%v=(ran*(vel_max**(1-vel_power)-vel_min**(1-vel_power))+vel_min**(1-vel_power))**(1/(1-vel_power))
+      else
+         packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
+      end if
+      packet%vel_vect=normalise(packet%pos_cart)*packet%v
     end subroutine
 
     !---------------------------------------------------------------------
@@ -330,7 +340,7 @@ contains
         packet%step_no=packet%step_no+1
         if (packet%step_no>500) then
             packet%lg_active=.false.
-            print*,'highly scattered packet removed'
+            print*,'Packet reached 500 steps and was removed - either highly scattered or very large grid.'
             return
         end if
     end subroutine

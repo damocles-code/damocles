@@ -43,32 +43,54 @@ contains
             open(25,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile.out')
             open(26,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_line_profiles.out')
             open(27,file='output/output_' // date // '/run_' // run_no_string // '/model_properties.out')
-            open(28,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile_convolved.out')
-
+            open(28,file='output/output_' // date // '/run_' // run_no_string // '/integrated_line_profile_binned.out')
+            open(29,file='output/output_' // date // '/run_' // run_no_string // '/multiple_los_bins.out')
+            open(30,file='output/output_' // date // '/run_' // run_no_string // '/los_line_profile.out')
+            open(31,file='output/output_' // date // '/run_' // run_no_string // '/grid.out')
         else
             !open output files to record resultant modelled line profile, input parameters and properties of model
             open(25,file='output/integrated_line_profile.out')
             open(26,file='output/multiple_los_line_profiles.out')
             open(27,file='output/model_properties.out')
-            open(28,file='output/integrated_line_profile_convolved.out')
+            open(28,file='output/integrated_line_profile_binned.out')
+            open(29,file='output/multiple_los_bins.out')
+            open(30,file='output/los_line_profile.out')
+            open(31,file='output/grid.out')
         end if
 
         !write out modelled line profile
 
         do ii=1,nu_grid%n_bins-1
-            write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
-            if (lg_multi_los) then
-                do jj=1,n_angle_divs
-                    do kk=1,n_angle_divs
-                        write(26,*) nu_grid%lambda_bin(ii),line%initial_energy*profile_los_array(ii,jj,kk)
-                    end do
-                end do
-            end if
+           if (lg_los) then
+              write(30,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
+           else
+              write(25,*) nu_grid%lambda_bin(ii),nu_grid%vel_bin(ii),line%initial_energy*profile_array(ii)
+           end if
         end do
 
-        do ii = 1,obs_data%n_data
-            write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)
-        end do
+         if (lg_multi_los) then
+            do kk=1,n_angle_divs
+               do jj=1,n_angle_divs
+                  write(26,*) (kk-1)*n_angle_divs+jj, cos_theta_array(jj),phi_array(kk)    
+                  write(29,*) (kk-1)*20+jj,kk,jj,phi_array(kk),cos_theta_array(jj)
+                  do ii=1,nu_grid%n_bins-1
+                     write(26,*) nu_grid%lambda_bin(ii),line%initial_energy*profile_los_array(ii,jj,kk)
+                  end do
+               end do
+            end do
+         end if
+        
+         !if using observational data, then it is generally specified in equal velocity bins (unequal frequency bins)
+         !the data is collected in unequal frequency bins so must be rescaled accordingly
+         if (lg_data) then
+            obs_data%mean_freq_bin = (obs_data%freq(obs_data%n_data)-obs_data%freq(1))/obs_data%n_data
+            do ii = 1,obs_data%n_data-1
+               if (.not. lg_los) then
+                  write(28,*) obs_data%vel(ii),profile_array_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii)),mc_error_data_bins(ii)*obs_data%mean_freq_bin/(obs_data%freq(ii+1)-obs_data%freq(ii))
+                  print*,profile_array_data_bins(ii)
+               end if
+            end do
+         end if
 
         write(27,101)  'active rest wavelength:',line%wavelength
         write(27,*)
@@ -172,11 +194,20 @@ contains
         write(27,102)  'number of absorbed packets',n_abs_packets
         write(27,101)  '% of absorbed packets', real(n_abs_packets)*100/real(n_init_packets-n_inactive_packets)
         write(27,101)  'absorbed weight %',abs_frac*100/real(n_packets-n_inactive_packets)
+!        if (dust_geometry%lg_clumped) then
+           do iG=1,mothergrid%tot_cells
+              write(31,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),grid_cell(iG)%n_rho
+           end do
+!        end if
+
 
         close(25)
         close(26)
         close(27)
         close(28)
+        close(29)
+        close(30)
+        close(31)
 
     end subroutine
 

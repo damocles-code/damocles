@@ -23,7 +23,7 @@
 !                                                                             !
 ! DAMOCLES = Dust Affected Models Of Characteristic Line                      !
 !            Emission in Supernovae                                           !
-! Version 2.0                                                                 !
+! Version 3.0                                                                 !
 !-----------------------------------------------------------------------------!
 
 !-----------------------------------------------------------------------------!
@@ -41,28 +41,30 @@ program damocles
 
     implicit none
 
+    character(len=50)       ::  infile        !specified input file
+    logical :: outputexists
+
     !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
     if (n_args==1) then
-        call get_command_argument(1,input_file)
-        input_file=trim(input_file)
+        call get_command_argument(1,infile)
+        infile=trim(infile)
     else if (n_args==0) then
-        input_file='input/input.in'
+        infile='input/input.in'
     else
         print*,'too many input arguments - aborted'
         stop
     end if
 
+    !check if output directory exists
+    inquire(file='./output/.', exist=outputexists)
+    if ( .not. outputexists ) then
+        print *,"output directory output/ doesn't exist - terminating"
+        stop
+    end if
+
     lg_mcmc = .false.
-    lg_multiline = .false.
 
     call run_damocles()
-    if (lg_multiline_fixdust) then
-       deallocate(grid_cell)
-       deallocate(mothergrid%x_div)
-       deallocate(mothergrid%y_div)
-       deallocate(mothergrid%z_div)
-       deallocate(dust%species)
-    end if
 
 end program

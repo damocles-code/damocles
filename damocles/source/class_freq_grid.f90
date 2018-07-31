@@ -34,10 +34,14 @@ contains
     !it is constructed at the start of the simulation in order to store packet data cumulativley as the rt progreses.
     subroutine construct_freq_grid()
 
-        call read_obs_data()
+      if (lg_data) then
+         call read_obs_data()
+         
+         !calculate observed data frequency grid
+         !note that these bins will be unequal and will be scaled later to account for this
+         obs_data%freq = line%frequency/(1+obs_data%vel*10**3/c)
+      end if
 
-        !calculate observed data frequency grid
-        obs_data%freq = line%frequency/(1+obs_data%vel*10**3/c)
 
         if (.not. lg_mcmc) print*, 'constructing frequency grid...'
 
@@ -47,27 +51,21 @@ contains
 
         !set maximum and minimum frequency range for bins in frequency grid
         !if doing a doublet, then the min and max are set to be as large as possible based on the wavelengths of interest
-        !maximum is set to be (arbitrarily) 5 times larger than the frequency obtained by shifting by v_max towards the blue
-        !minimum is set to be (arbitrarily) 5 times smaller than the frequency obtained by shifting by v_max towards the red
+        !maximum is set to be (arbitrarily) 1.2 times larger than the frequency obtained by shifting by v_max towards the blue
+        !minimum is set to be (arbitrarily) 1.2 times smaller than the frequency obtained by shifting by v_max towards the red
         !this is to allow for frequency being shifted beyond the theoretical for a single scattering event due to multiple scatterings
         !!this array could be simplified
         if (lg_doublet) then
-            if (line%doublet_wavelength_2>line%doublet_wavelength_1) then
-                nu_grid%fmax=5*((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*10**3/c))        !arbitrary factor of 5 to compensate for multiple scatterings
-                nu_grid%fmin=0.2*((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*10**3/c))        !as above
-            else
-                nu_grid%fmax=5*((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*10**3/c))        !arbitrary factor of 5 to compensate for multiple scatterings
-                nu_grid%fmin=0.2*((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*10**3/c))        !as above
+              if (line%doublet_wavelength_2>line%doublet_wavelength_1) then
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+              else
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
            end if
         else
-            if (lg_data) then
-                !set bounds of frequency grid to match the observed line profile (plus an extra 20% to ensure coverage)
-                nu_grid%fmax = (line%frequency/(1+obs_data%vel(1)*1.2*10**3/c))
-                nu_grid%fmin = (line%frequency/(1+obs_data%vel(obs_data%n_data)*1.2*10**3/c))
-            else
-                nu_grid%fmax=5*(line%frequency/(1-max(dust_geometry%v_max,2000.0)*10**3/c))
-                nu_grid%fmin=0.2*(line%frequency/(1+max(dust_geometry%v_max,2000.0)*10**3/c))                !as above
-            end if
+                nu_grid%fmax=(line%frequency/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                nu_grid%fmin=(line%frequency/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))                !as above
         end if
         nu_grid%bin_width=(nu_grid%fmax-nu_grid%fmin)/nu_grid%n_bins
 
@@ -82,7 +80,6 @@ contains
             nu_grid%lambda_bin(ii)=(c*10**9)*(0.5/nu_grid%bin(ii,1)+0.5/nu_grid%bin(ii+1,1))
             nu_grid%vel_bin(ii)=(c*1e-3*(nu_grid%lambda_bin(ii)**2-line%wavelength**2)/(line%wavelength**2+nu_grid%lambda_bin(ii)**2))
         end do
-
 
     end subroutine construct_freq_grid
 
