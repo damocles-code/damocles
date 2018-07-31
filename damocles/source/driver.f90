@@ -27,7 +27,49 @@ contains
 
     subroutine run_damocles()
       integer :: thread_id
-        !read input:
+
+!----------this section to handle multiple runs for different lines------------!
+      !set up multiline case for mcmc bayesian modelling
+      if (lg_multiline) then
+         open(54,file = input_prefix // 'multiline.in')
+         read(54,*) n_lines, lg_multiline_fixdust      
+         n_bins_multiline = 0
+         !if running multiple lines then read in the relevant file names
+         do ii=1,n_lines
+            read(54,*)  input_file, data_file
+            open(53,file= input_prefix // trim(data_file))
+            read(53,*) obs_data%n_data
+            n_bins_multiline = n_bins_multiline+obs_data%n_data
+         end do
+         allocate(multiline_profile_array(n_bins_multiline,2))
+         close(53)
+         
+         !multiline_count will track how many bins have been recorded in the final multiline profile array
+         multiline_count = 0
+      end if
+      
+      rewind(unit=54)
+      read(54,*)
+      !run damocles for each requested line
+      do i_line = 1,n_lines
+         
+         !read in name of input file again
+         read(54,*) input_file, data_file, data_exclusions_file, dust_file, species_file, gas_file
+         
+         input_file = input_prefix // input_file
+         data_file = input_prefix // data_file
+         data_exclusions_file = input_prefix // data_exclusions_file
+         dust_file = input_prefix // dust_file
+         species_file = input_prefix // species_file
+         gas_file = input_prefix // gas_file
+         
+         !if only a single line then exit the multiline loop
+         if ((i_line > 1) .and. (.not. lg_multiline)) exit
+
+!-------------------------------------------------------------------------
+
+        !RUN DAMOCLES
+        !read input
         call read_input()
         
         !construct grids and initialise simulation:
@@ -40,12 +82,16 @@ contains
                 line%frequency=c*10**9/line%wavelength
                 
                 !construct grids
+                if ((lg_multiline_fixdust) .and. (i_line == 1) &
+                     & .or. (.not. lg_multiline_fixdust)) then
+                   call calculate_opacities()
+                   call build_dust_grid()
+                end if
+
                 call init_random_seed()
-                call calculate_opacities()
-                call build_dust_grid()
                 call construct_freq_grid()
                 call build_emissivity_dist()
-                call n_e_const()
+                if (lg_es) call n_e_const()
 
 !                print*,'WARNING:  USING RANDOM VELOCITIES NOT POWER-LAW VELOCITIES.  SEE CLASS_PACKET FILE TO AMEND.'
 
@@ -104,14 +150,16 @@ contains
         if (.not. lg_mcmc) call write_to_file()
 
         !decallocate all allocated memory
-        deallocate(grid_cell)
+        if (.not. lg_multiline_fixdust) then
+           deallocate(grid_cell)
+           deallocate(mothergrid%x_div)
+           deallocate(mothergrid%y_div)
+           deallocate(mothergrid%z_div)
+           deallocate(dust%species)
+        end if
         deallocate(nu_grid%lambda_bin)
         deallocate(nu_grid%vel_bin)
         deallocate(nu_grid%bin)
-        deallocate(mothergrid%x_div)
-        deallocate(mothergrid%y_div)
-        deallocate(mothergrid%z_div)
-        deallocate(dust%species)
         deallocate(cos_theta_array)
         deallocate(phi_array)
         if (lg_data) then
@@ -122,6 +170,7 @@ contains
            deallocate(obs_data%error)
            deallocate(exclusion_zone)
            if (.not. lg_mcmc) deallocate(profile_array_data_bins)
+           if (.not. lg_mcmc) deallocate(mc_error_data_bins)
            deallocate(square_weight_data_bins)
            deallocate(total_weight_data_bins)
            deallocate(n_packets_data_bins)
@@ -130,6 +179,20 @@ contains
         deallocate(profile_los_array)
 
         if (.not. lg_mcmc) print*,'complete!'
+
+        !handle the multiline case
+       if (lg_multiline) then
+          multiline_profile_array(1+multiline_count:multiline_count+obs_data%n_data,1) = profile_array_data_bins(:)
+          multiline_profile_array(1+multiline_count:multiline_count+obs_data%n_data,2) = mc_error_data_bins(:)
+          deallocate(profile_array_data_bins)
+          deallocate(mc_error_data_bins)
+          multiline_count= multiline_count + obs_data%n_data
+       end if
+       
+    end do
+
+    close(54)
+
 
     end subroutine run_damocles
 

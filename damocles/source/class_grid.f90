@@ -18,6 +18,7 @@ module class_grid
     real,allocatable        ::  profile_array(:)          !array to store the resultant line profile
     real,allocatable        ::  profile_los_array(:,:,:)  !array to store resultant profiles divided into lines of sight
     real,allocatable        ::  profile_array_data_bins(:)!array to store the resultant line profile binned into the same frequencies as the observed line
+    real,allocatable        ::  multiline_profile_array(:,:) !array to store the resultant line profile when multiple lines are modelled
     real,allocatable        ::  square_weight_data_bins(:)!array to store the sums of the square of the weights in each bin
     real,allocatable        ::  n_packets_data_bins(:)    !array to store the number of packets in each bin
     real,allocatable        ::  total_weight_data_bins(:) !array to store the total packet weight in each bin

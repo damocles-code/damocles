@@ -6,6 +6,9 @@ module globals
 
     implicit none
 
+    !path to input variables
+    character(len=6),parameter    ::  input_prefix='input/'
+
     !openmp variables
     integer,external    ::  omp_get_num_threads
     integer,external    ::  omp_get_thread_num
@@ -20,6 +23,7 @@ module globals
     integer             ::  i_doublet
     integer             ::  i_packet
     integer             ::  i_clump
+    integer             ::  i_line
 
   !  save i_packet
 
@@ -52,6 +56,9 @@ module globals
     integer(8)          ::  n_clumps=0              !actual number of clumps used
     integer(8)          ::  n_recorded_packets    !number of packets contributing to the final line profile
     integer(8)          ::  n_data_points          !number of data points used in chi squared calculation (output in order to calculate red. chi square if desired)
+    integer             ::  n_lines                 !number of lines to process if more than one
+    integer             ::  n_bins_multiline        !total number of bins to be stored in final array when running multiple lines
+    integer             ::  multiline_count         !running counter that tracks number of bins that have been recorded in multline profile array
 
     integer             ::  n_args                  !number of input arguments
     integer             ::  n_angle_divs            !number of division in each of phi and theta to divide grid into multiple lines of sight
@@ -70,6 +77,8 @@ module globals
 
     !different options and cases
     logical             ::  lg_mcmc                 !use an mcmc routine to map parameter space and return trace and likelihoods
+    logical             ::  lg_multiline            !mcmc parameter for running multiple lines - multiple lines used?
+    logical             ::  lg_multiline_fixdust    !when running multiple lines and would like to fix the dust distribution for all lines 
     logical             ::  lg_los                  !use a line of sight?
     logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
     logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?

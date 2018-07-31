@@ -51,8 +51,13 @@ contains
         read(10,*)
         read(10,*) lg_store_all
         read(10,*) lg_data
-        read(10,*) data_file
-        read(10,*) data_exclusions_file
+        if (.not. lg_multiline) then
+           read(10,*) data_file
+           read(10,*) data_exclusions_file
+        else
+           read(10,*)
+           read(10,*)
+        end if
         read(10,*) lg_doublet
         read(10,*) lg_vel_shift
         read(10,*) lg_los
@@ -66,12 +71,20 @@ contains
         read(10,*)
         read(10,*) lg_decoupled
         read(10,*) dust_geometry%type
-        read(10,*) dust_file
-        read(10,*) species_file
+        if (.not. lg_multiline) then
+           read(10,*) dust_file
+           read(10,*) species_file
+        else
+           read(10,*)
+           read(10,*)
+        end if
         read(10,*) grid_file
         read(10,*) gas_geometry%type
-        read(10,*) gas_file
-
+        if (.not. lg_multiline) then
+           read(10,*) gas_file
+        else
+           read(10,*)
+        end if
         read(10,*)
         read(10,*) mothergrid%n_cells(1)
         read(10,*) n_angle_divs
