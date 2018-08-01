@@ -93,11 +93,6 @@ contains
         read(10,*) nu_grid%n_bins
         read(10,*) num_threads
         
-        read(10,*)
-        read(10,*) lg_vel_law
-        read(10,*) vel_max
-        read(10,*) vel_min
-        read(10,*) vel_power
         close(10)
 
         !check for conflict in specified dust and gas distributions
@@ -131,6 +126,11 @@ contains
         read(11,*) gas_geometry%v_power
         read(11,*) gas_geometry%rho_power
         read(11,*) gas_geometry%emis_power
+
+        read(11,*)
+        read(11,*) lg_vel_law
+        read(11,*) gas_geometry%v_min
+        read(11,*) gas_geometry%v_prob_indx
         close(11)
 
         !read in dust options (for shell case)
@@ -162,8 +162,10 @@ contains
             else
                 read(12,*) dust_geometry%rho_power
             end if
-            read(12,*) dust_geometry%emis_power
+!            read(12,*) dust_geometry%emis_power
             close(12)
+            if (.not. lg_mcmc) print*,'WARNING: Emissivity as specified in the dust input file is deprecated and &
+                 & will be ignored. Please specific the emissivity parameter in the gas input file.'
         end if
 
         select case(dust_geometry%type)

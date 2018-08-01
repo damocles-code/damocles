@@ -481,7 +481,7 @@ contains
               gas_geometry%r_max=dust_geometry%r_max
               gas_geometry%v_power=dust_geometry%v_power
               gas_geometry%rho_power=dust_geometry%rho_power
-              gas_geometry%emis_power=dust_geometry%emis_power
+!              gas_geometry%emis_power=dust_geometry%emis_power
               gas_geometry%v_max=dust_geometry%v_max
     
               gas_geometry%r_max_cm = gas_geometry%r_max*1e15

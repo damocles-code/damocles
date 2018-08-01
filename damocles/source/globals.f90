@@ -67,8 +67,6 @@ module globals
     real                ::  l_halpha                !total halpha luminosity (for e- scattering calcn)
     real                ::  tot_vol                 !total volume of dusty ejecta in 1e42cm^3
     real                ::  tot_vol_gas             !total volume of emitting gas (if different from dust)
-    real                ::  vel_max,vel_min         !if using a velocity law that is independent of radius, maximum and minimum gas velocity
-    real                ::  vel_power               !if using a velocity law that is independent of radius,  gas velocity power law
 
     !variables used for checking dust mass calculations
     real                ::  m_tot_check             !calculated total mass of dust using densities and vols

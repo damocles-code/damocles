@@ -1,0 +1,28 @@
+!----------------------------------------------------------------------------!
+!  this subroutine is only called if the python mcmc wrapper is being used.  !
+!  the logical lg_mcmc is set to true and input parameters passed from the   !
+!  python routine.                                                           !
+!----------------------------------------------------------------------------!
+module bayesian_parameters
+
+contains 
+
+subroutine determine_which_params(vary_params)
+
+  use globals
+  use input
+  use class_dust
+  use initialise
+  use vector_functions
+  use driver
+
+  integer :: vary_params(18)
+
+  !f2py   intent(in) vary_params
+
+  flags = vary_params
+  n_dims = sum(flags)
+
+end subroutine
+
+end module

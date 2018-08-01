@@ -113,7 +113,9 @@ contains
            !if using a velocity law that is independent of radius, assign velocity here
            if (lg_vel_law) then
               random(1) = r4_uni_01()
-              packet%v=(random(1)*(vel_max**(1+vel_power)-vel_min**(1+vel_power))+vel_min**(1+vel_power))**(1/(1+vel_power))
+              packet%v=(random(1)*(gas_geometry%v_max**(1+gas_geometry%v_prob_indx)- &
+                   & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))+ &
+                   & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))**(1/(1+gas_geometry%v_prob_indx))
            else
               !velocity vector comes from radial position vector of particle
               packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)

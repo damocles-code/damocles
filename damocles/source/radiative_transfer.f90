@@ -265,7 +265,9 @@ contains
       !calculate bulk velocity of scattering e- and velocity unit vector
       if (lg_vel_law) then
          ran = r4_uni_01()
-         packet%v=(ran*(vel_max**(1-vel_power)-vel_min**(1-vel_power))+vel_min**(1-vel_power))**(1/(1-vel_power))
+         packet%v=(ran*(gas_geometry%v_max**(1-gas_geometry%v_prob_indx)- &
+              & gas_geometry%v_min**(1-gas_geometry%v_prob_indx))+ &
+              & gas_geometry%v_min**(1-gas_geometry%v_prob_indx))**(1/(1-gas_geometry%v_prob_indx))
       else
          packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
       end if
