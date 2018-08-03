@@ -7,7 +7,7 @@ module globals
     implicit none
 
     !path to input variables
-    character(len=6),parameter    ::  input_prefix='input/'
+    character(len=6),parameter    ::  input_prefix
 
     !openmp variables
     integer,external    ::  omp_get_num_threads
@@ -77,6 +77,7 @@ module globals
     logical             ::  lg_mcmc                 !use an mcmc routine to map parameter space and return trace and likelihoods
     logical             ::  lg_multiline            !mcmc parameter for running multiple lines - multiple lines used?
     logical             ::  lg_multiline_fixdust    !when running multiple lines and would like to fix the dust distribution for all lines 
+    logical             ::  lg_multiline_fixgas     !when running multiple lines and would like to fix the gas distribution for all lines
     logical             ::  lg_los                  !use a line of sight?
     logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
     logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?

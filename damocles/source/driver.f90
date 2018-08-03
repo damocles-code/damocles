@@ -72,7 +72,7 @@ contains
        
     !RUN DAMOCLES
     !read input
-    call read_input()
+    if (.not. lg_mcmc) call read_input()
     
     !construct grids and initialise simulation:
     do i_doublet=1,2

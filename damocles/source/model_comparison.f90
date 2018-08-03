@@ -51,11 +51,16 @@ contains
             end if
         end do
 
-        print*, 'vmax',dust_geometry%v_max
+        print*, 'dust vmax',dust_geometry%v_max
         print*, 'R_rat',dust_geometry%r_ratio
         print*, 'rho',dust_geometry%rho_power
+        print*, 'gas v_max',gas_geometry%v_max
+        print*, 'gas v_min',gas_geometry%v_min
+        print*, 'gas vel dist',gas_geometry%v_prob_indx
+        print*, 'gas rho',gas_geometry%rho_power
         print*, 'mdust',dust%mass
         print*, 'a',dust%species(1)%amin
+
 !        print*, 'chi sq - ', chi_sq
 !        print*,'number of data points',n_data_points
 
