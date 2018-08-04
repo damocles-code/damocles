@@ -1,5 +1,5 @@
-GFORTRAN module version '0' created from source/rnglib.f90 on Wed Aug  1 18:26:07 2018
-MD5:8e1a98b3503aeb4260e82d8ce7efce02 -- If you edit this, you'll get what you deserve.
+GFORTRAN module version '0' created from source/rnglib.f90 on Sat Aug  4 13:06:37 2018
+MD5:5bc27a256f74859b9ff3b228d241c9c2 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () ()
 () () () () () () () () () () () () () () ())
@@ -140,10 +140,9 @@ UNKNOWN ()) 0 0 () () 0 () () () 0 0)
 92 'input_file' 'globals' 'input_file' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '50'))) 0 0 () () 0 () () () 0 0)
-93 'input_prefix' 'globals' 'input_prefix' 1 ((PARAMETER UNKNOWN-INTENT
-UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (CHARACTER 1 0 0 CHARACTER ((
-CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '6'))) 0 0 () (CONSTANT (
-CHARACTER 1 0 0 CHARACTER (())) 0 6 'input/') () 0 () () () 0 0)
+93 'input_prefix' 'globals' 'input_prefix' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN-PROC UNKNOWN UNKNOWN) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
+INTEGER 4 0 0 INTEGER ()) 0 '12'))) 0 0 () () 0 () () () 0 0)
 94 'ish' 'globals' 'ish' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 95 'ixx' 'globals' 'ixx' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
@@ -193,135 +192,138 @@ UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 ()
 121 'lg_multiline_fixdust' 'globals' 'lg_multiline_fixdust' 1 ((
 VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0
 LOGICAL ()) 0 0 () () 0 () () () 0 0)
-122 'lg_set' 'rnglib' 'lg_set' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC
-DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 123 0 (124 125 126)
+122 'lg_multiline_fixgas' 'globals' 'lg_multiline_fixgas' 1 ((VARIABLE
+UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0 LOGICAL ())
+0 0 () () 0 () () () 0 0)
+123 'lg_set' 'rnglib' 'lg_set' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC
+DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 124 0 (125 126 127)
 () 0 () () () 0 0)
-127 'lg_store_all' 'globals' 'lg_store_all' 1 ((VARIABLE UNKNOWN-INTENT
+128 'lg_store_all' 'globals' 'lg_store_all' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 ()
 () () 0 0)
-128 'lg_vel_law' 'globals' 'lg_vel_law' 1 ((VARIABLE UNKNOWN-INTENT
+129 'lg_vel_law' 'globals' 'lg_vel_law' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 ()
 () () 0 0)
-129 'lg_vel_shift' 'globals' 'lg_vel_shift' 1 ((VARIABLE UNKNOWN-INTENT
+130 'lg_vel_shift' 'globals' 'lg_vel_shift' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (LOGICAL 4 0 0 LOGICAL ()) 0 0 () () 0 ()
 () () 0 0)
-130 'm_clumps_check' 'globals' 'm_clumps_check' 1 ((VARIABLE
+131 'm_clumps_check' 'globals' 'm_clumps_check' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 ()
 () 0 () () () 0 0)
-131 'm_icm_check' 'globals' 'm_icm_check' 1 ((VARIABLE UNKNOWN-INTENT
+132 'm_icm_check' 'globals' 'm_icm_check' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () ()
 0 0)
-132 'm_tot_check' 'globals' 'm_tot_check' 1 ((VARIABLE UNKNOWN-INTENT
+133 'm_tot_check' 'globals' 'm_tot_check' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () ()
 0 0)
-133 'multiline_count' 'globals' 'multiline_count' 1 ((VARIABLE
+134 'multiline_count' 'globals' 'multiline_count' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-134 'multmod' 'rnglib' 'multmod' 1 ((PROCEDURE UNKNOWN-INTENT
-MODULE-PROC DECL UNKNOWN FUNCTION) (INTEGER 4 0 0 INTEGER ()) 135 0 (
-136 137 138) () 134 () () () 0 0)
-139 'n_abs_packets' 'globals' 'n_abs_packets' 1 ((VARIABLE
+135 'multmod' 'rnglib' 'multmod' 1 ((PROCEDURE UNKNOWN-INTENT
+MODULE-PROC DECL UNKNOWN FUNCTION) (INTEGER 4 0 0 INTEGER ()) 136 0 (
+137 138 139) () 135 () () () 0 0)
+140 'n_abs_packets' 'globals' 'n_abs_packets' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-140 'n_angle_divs' 'globals' 'n_angle_divs' 1 ((VARIABLE UNKNOWN-INTENT
+141 'n_angle_divs' 'globals' 'n_angle_divs' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-141 'n_args' 'globals' 'n_args' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+142 'n_args' 'globals' 'n_args' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-142 'n_bins_multiline' 'globals' 'n_bins_multiline' 1 ((VARIABLE
+143 'n_bins_multiline' 'globals' 'n_bins_multiline' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-143 'n_clumps' 'globals' 'n_clumps' 1 ((VARIABLE UNKNOWN-INTENT
+144 'n_clumps' 'globals' 'n_clumps' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (INTEGER 8 0 0 INTEGER ()) 0 0 () ()
 0 () () () 0 0)
-144 'n_data_points' 'globals' 'n_data_points' 1 ((VARIABLE
+145 'n_data_points' 'globals' 'n_data_points' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-145 'n_inactive_packets' 'globals' 'n_inactive_packets' 1 ((VARIABLE
+146 'n_inactive_packets' 'globals' 'n_inactive_packets' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-146 'n_init_packets' 'globals' 'n_init_packets' 1 ((VARIABLE
+147 'n_init_packets' 'globals' 'n_init_packets' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-147 'n_lines' 'globals' 'n_lines' 1 ((VARIABLE UNKNOWN-INTENT
+148 'n_lines' 'globals' 'n_lines' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-148 'n_los_packets' 'globals' 'n_los_packets' 1 ((VARIABLE
+149 'n_los_packets' 'globals' 'n_los_packets' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-149 'n_packets' 'globals' 'n_packets' 1 ((VARIABLE UNKNOWN-INTENT
+150 'n_packets' 'globals' 'n_packets' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-150 'n_recorded_packets' 'globals' 'n_recorded_packets' 1 ((VARIABLE
+151 'n_recorded_packets' 'globals' 'n_recorded_packets' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 8 0 0 INTEGER ())
 0 0 () () 0 () () () 0 0)
-151 'no_active_cells' 'globals' 'no_active_cells' 1 ((VARIABLE
+152 'no_active_cells' 'globals' 'no_active_cells' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN IMPLICIT-SAVE) (INTEGER 8 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-152 'norm' 'globals' 'norm' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+153 'norm' 'globals' 'norm' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-153 'num_threads' 'globals' 'num_threads' 1 ((VARIABLE UNKNOWN-INTENT
+154 'num_threads' 'globals' 'num_threads' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-154 'omp_get_num_threads' 'globals' 'omp_get_num_threads' 1 ((PROCEDURE
+155 'omp_get_num_threads' 'globals' 'omp_get_num_threads' 1 ((PROCEDURE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN EXTERNAL) (INTEGER 4 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-155 'omp_get_thread_num' 'globals' 'omp_get_thread_num' 1 ((PROCEDURE
+156 'omp_get_thread_num' 'globals' 'omp_get_thread_num' 1 ((PROCEDURE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN EXTERNAL) (INTEGER 4 0 0
 INTEGER ()) 0 0 () () 0 () () () 0 0)
-156 'phi_array' 'globals' 'phi_array' 1 ((VARIABLE UNKNOWN-INTENT
+157 'phi_array' 'globals' 'phi_array' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN ALLOCATABLE DIMENSION) (REAL 4 0 0 REAL ())
 0 0 () (1 DEFERRED () ()) 0 () () () 0 0)
-157 'pi' 'globals' 'pi' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
+158 'pi' 'globals' 'pi' 1 ((PARAMETER UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN IMPLICIT-SAVE) (REAL 4 0 0 REAL ()) 0 0 () (CONSTANT (REAL 4 0 0
 REAL ()) 0 '0.3243f6c@1') () 0 () () () 0 0)
-158 'r4_uni_01' 'rnglib' 'r4_uni_01' 1 ((PROCEDURE UNKNOWN-INTENT
-MODULE-PROC DECL UNKNOWN FUNCTION) (REAL 4 0 0 REAL ()) 0 0 () () 158 ()
+159 'r4_uni_01' 'rnglib' 'r4_uni_01' 1 ((PROCEDURE UNKNOWN-INTENT
+MODULE-PROC DECL UNKNOWN FUNCTION) (REAL 4 0 0 REAL ()) 0 0 () () 159 ()
 () () 0 0)
-159 'r8_uni_01' 'rnglib' 'r8_uni_01' 1 ((PROCEDURE UNKNOWN-INTENT
-MODULE-PROC DECL UNKNOWN FUNCTION) (REAL 8 0 0 REAL ()) 0 0 () () 159 ()
+160 'r8_uni_01' 'rnglib' 'r8_uni_01' 1 ((PROCEDURE UNKNOWN-INTENT
+MODULE-PROC DECL UNKNOWN FUNCTION) (REAL 8 0 0 REAL ()) 0 0 () () 160 ()
 () () 0 0)
-160 'ran' 'globals' 'ran' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+161 'ran' 'globals' 'ran' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN THREADPRIVATE) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () ()
 0 0)
-161 'random' 'globals' 'random' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+162 'random' 'globals' 'random' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN DIMENSION THREADPRIVATE) (REAL 4 0 0 REAL ()) 0 0 () (1
 EXPLICIT (CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '1') (CONSTANT (INTEGER
 4 0 0 INTEGER ()) 0 '5')) 0 () () () 0 0)
-162 'rnglib' 'rnglib' 'rnglib' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
+163 'rnglib' 'rnglib' 'rnglib' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) (UNKNOWN 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
-163 'run_no_string' 'globals' 'run_no_string' 1 ((VARIABLE
+164 'run_no_string' 'globals' 'run_no_string' 1 ((VARIABLE
 UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN) (CHARACTER 1 0 0 CHARACTER
 ((CONSTANT (INTEGER 4 0 0 INTEGER ()) 0 '8'))) 0 0 () () 0 () () () 0 0)
-164 'set_initial_seed' 'rnglib' 'set_initial_seed' 1 ((PROCEDURE
+165 'set_initial_seed' 'rnglib' 'set_initial_seed' 1 ((PROCEDURE
 UNKNOWN-INTENT MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0
-UNKNOWN ()) 165 0 (166 167) () 0 () () () 0 0)
-168 'set_seed' 'rnglib' 'set_seed' 1 ((PROCEDURE UNKNOWN-INTENT
-MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 169 0 (
-170 171) () 0 () () () 0 0)
-172 'species_file' 'globals' 'species_file' 1 ((VARIABLE UNKNOWN-INTENT
+UNKNOWN ()) 166 0 (167 168) () 0 () () () 0 0)
+169 'set_seed' 'rnglib' 'set_seed' 1 ((PROCEDURE UNKNOWN-INTENT
+MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 170 0 (
+171 172) () 0 () () () 0 0)
+173 'species_file' 'globals' 'species_file' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (
 INTEGER 4 0 0 INTEGER ()) 0 '40'))) 0 0 () () 0 () () () 0 0)
-173 'thread_id' 'globals' 'thread_id' 1 ((VARIABLE UNKNOWN-INTENT
+174 'thread_id' 'globals' 'thread_id' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 ()
 () () 0 0)
-174 'time' 'globals' 'time' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
+175 'time' 'globals' 'time' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN) (CHARACTER 1 0 0 CHARACTER ((CONSTANT (INTEGER 4 0 0
 INTEGER ()) 0 '10'))) 0 0 () () 0 () () () 0 0)
-175 'timestamp' 'rnglib' 'timestamp' 1 ((PROCEDURE UNKNOWN-INTENT
+176 'timestamp' 'rnglib' 'timestamp' 1 ((PROCEDURE UNKNOWN-INTENT
 MODULE-PROC DECL UNKNOWN SUBROUTINE) (UNKNOWN 0 0 0 UNKNOWN ()) 0 0 () ()
 0 () () () 0 0)
-176 'tot_vol' 'globals' 'tot_vol' 1 ((VARIABLE UNKNOWN-INTENT
+177 'tot_vol' 'globals' 'tot_vol' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () ()
 0 0)
-177 'tot_vol_gas' 'globals' 'tot_vol_gas' 1 ((VARIABLE UNKNOWN-INTENT
+178 'tot_vol_gas' 'globals' 'tot_vol_gas' 1 ((VARIABLE UNKNOWN-INTENT
 UNKNOWN-PROC UNKNOWN UNKNOWN) (REAL 4 0 0 REAL ()) 0 0 () () 0 () () ()
 0 0)
-178 'xx' 'globals' 'xx' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+179 'xx' 'globals' 'xx' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-179 'yy' 'globals' 'yy' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+180 'yy' 'globals' 'yy' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-180 'zz' 'globals' 'zz' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+181 'zz' 'globals' 'zz' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 6 'k' '' 'k' 5 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN
 DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
@@ -402,25 +404,25 @@ UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 118 'lg2' '' 'lg2' 114 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-124 'g' '' 'g' 123 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+125 'g' '' 'g' 124 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-125 'lg1' '' 'lg1' 123 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+126 'lg1' '' 'lg1' 124 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-126 'lg2' '' 'lg2' 123 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+127 'lg2' '' 'lg2' 124 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-136 'a' '' 'a' 135 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+137 'a' '' 'a' 136 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-137 's' '' 's' 135 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+138 's' '' 's' 136 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-138 'm' '' 'm' 135 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+139 'm' '' 'm' 136 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-166 'ig1' '' 'ig1' 165 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+167 'ig1' '' 'ig1' 166 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-167 'ig2' '' 'ig2' 165 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+168 'ig2' '' 'ig2' 166 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-170 'cg1' '' 'cg1' 169 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+171 'cg1' '' 'cg1' 170 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
-171 'cg2' '' 'cg2' 169 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+172 'cg2' '' 'cg2' 170 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 )
 
@@ -439,16 +441,17 @@ UNKNOWN DUMMY) (INTEGER 4 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 'l_halpha' 0 101 'lg_data' 0 102 'lg_decoupled' 0 103 'lg_doublet' 0 104
 'lg_es' 0 105 'lg_get' 0 106 'lg_los' 0 111 'lg_mcmc' 0 112 'lg_memory'
 0 113 'lg_multi_los' 0 119 'lg_multiline' 0 120 'lg_multiline_fixdust' 0
-121 'lg_set' 0 122 'lg_store_all' 0 127 'lg_vel_law' 0 128 'lg_vel_shift'
-0 129 'm_clumps_check' 0 130 'm_icm_check' 0 131 'm_tot_check' 0 132
-'multiline_count' 0 133 'multmod' 0 134 'n_abs_packets' 0 139
-'n_angle_divs' 0 140 'n_args' 0 141 'n_bins_multiline' 0 142 'n_clumps'
-0 143 'n_data_points' 0 144 'n_inactive_packets' 0 145 'n_init_packets'
-0 146 'n_lines' 0 147 'n_los_packets' 0 148 'n_packets' 0 149
-'n_recorded_packets' 0 150 'no_active_cells' 0 151 'norm' 0 152
-'num_threads' 0 153 'omp_get_num_threads' 0 154 'omp_get_thread_num' 0
-155 'phi_array' 0 156 'pi' 0 157 'r4_uni_01' 0 158 'r8_uni_01' 0 159 'ran'
-0 160 'random' 0 161 'rnglib' 0 162 'run_no_string' 0 163
-'set_initial_seed' 0 164 'set_seed' 0 168 'species_file' 0 172 'thread_id'
-0 173 'time' 0 174 'timestamp' 0 175 'tot_vol' 0 176 'tot_vol_gas' 0 177
-'xx' 0 178 'yy' 0 179 'zz' 0 180)
+121 'lg_multiline_fixgas' 0 122 'lg_set' 0 123 'lg_store_all' 0 128
+'lg_vel_law' 0 129 'lg_vel_shift' 0 130 'm_clumps_check' 0 131
+'m_icm_check' 0 132 'm_tot_check' 0 133 'multiline_count' 0 134 'multmod'
+0 135 'n_abs_packets' 0 140 'n_angle_divs' 0 141 'n_args' 0 142
+'n_bins_multiline' 0 143 'n_clumps' 0 144 'n_data_points' 0 145
+'n_inactive_packets' 0 146 'n_init_packets' 0 147 'n_lines' 0 148
+'n_los_packets' 0 149 'n_packets' 0 150 'n_recorded_packets' 0 151
+'no_active_cells' 0 152 'norm' 0 153 'num_threads' 0 154
+'omp_get_num_threads' 0 155 'omp_get_thread_num' 0 156 'phi_array' 0 157
+'pi' 0 158 'r4_uni_01' 0 159 'r8_uni_01' 0 160 'ran' 0 161 'random' 0
+162 'rnglib' 0 163 'run_no_string' 0 164 'set_initial_seed' 0 165
+'set_seed' 0 169 'species_file' 0 173 'thread_id' 0 174 'time' 0 175
+'timestamp' 0 176 'tot_vol' 0 177 'tot_vol_gas' 0 178 'xx' 0 179 'yy' 0
+180 'zz' 0 181)

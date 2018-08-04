@@ -7,7 +7,7 @@ module globals
     implicit none
 
     !path to input variables
-    character(len=6),parameter    ::  input_prefix
+    character(len=12)    ::  input_prefix
 
     !openmp variables
     integer,external    ::  omp_get_num_threads

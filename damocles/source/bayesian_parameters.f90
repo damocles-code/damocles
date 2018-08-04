@@ -156,4 +156,4 @@ contains
     end if
     
   end subroutine check_for_conflicts
-end module damocles_wrap
+end module bayesian_input

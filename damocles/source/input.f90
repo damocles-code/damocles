@@ -37,6 +37,12 @@ contains
           print*,'too many input arguments - aborted'
           STOP
        end if
+    else
+       if (lg_multiline) then
+          input_file = trim(input_prefix) // 'input.in'
+       else
+          input_file = 'input/input.in'
+       end if
     end if
         
     !open log file (will be closed at end of model)
@@ -91,11 +97,13 @@ contains
     open(11,file=gas_file)
     read(11,*)
     read(11,*) line%doublet_wavelength_1
+    print*, 'test in input', line%doublet_wavelength_1
     read(11,*) line%doublet_wavelength_2
     read(11,*) line%luminosity
     read(11,*) line%tot_flux
     read(11,*) line%doublet_ratio
-    if (.not. (i_line>1 .and. lg_multiline_fixgas)) then
+    if ((i_line>1 .and. (.not. lg_multiline_fixgas)) &
+         & .or. (i_line == 1)) then
        read(11,*)
        read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
        read(11,*) gas_geometry%ff
