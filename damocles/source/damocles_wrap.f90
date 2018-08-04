@@ -98,13 +98,8 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      call run_damocles()
      
      if (lg_multiline) then
-        print*,'line no',i_line
-        print*,profile_array_data_bins
         multiline_profile_array(1+multiline_count:multiline_count+obs_data%n_data,1) = profile_array_data_bins(:)
         multiline_profile_array(1+multiline_count:multiline_count+obs_data%n_data,2) = mc_error_data_bins(:)
-        print*,'---'
-        print*,1+multiline_count,multiline_count+obs_data%n_data,obs_data%n_data
-        print*,multiline_profile_array(:,1)
         multiline_count= multiline_count + obs_data%n_data
      end if
 
