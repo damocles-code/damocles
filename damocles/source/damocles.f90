@@ -44,6 +44,8 @@ program damocles
     character(len=50)       ::  infile        !specified input file
     logical :: outputexists
 
+    print *,"damocles version ",VERSION
+
     !check number of input arguments is 1 (the name of the input file)
     n_args=command_argument_count()
     if (n_args==1) then
