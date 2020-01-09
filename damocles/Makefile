@@ -1,6 +1,7 @@
 FC=gfortran
 LD=gfortran
-FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp  -Jsource/ -DPREFIX=\"${PREFIX}\"
+VERSION := $(shell git describe --always --tags --dirty || echo "2.0")
+FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp  -Jsource/ -DPREFIX=\"${PREFIX}\" -DVERSION=\"${VERSION}\"
 
 # set prefix depending on OS
 OS := $(shell uname)
