@@ -86,7 +86,7 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      call read_input()
      dust%species(1)%nsizes=1
      dust%species(1)%power=1.0
-     print*,'test wav here',line%doublet_wavelength_1
+
      call read_bayesian_params(params,flags)
      call check_for_conflicts(flags)
 
@@ -106,7 +106,6 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
   end do
      
 !!!!!!!!!!!!!!!!!!!!!!!
-  print*,multiline_profile_array(:,1)  
   
   if (lg_multiline) then
      mcmc_mod(:,1) = multiline_profile_array(:,1)
@@ -116,12 +115,10 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      mcmc_mod(:,2) = mc_error_data_bins
   end if
   
-  if (lg_multiline) then
-     deallocate(multiline_profile_array)
-  else
-     deallocate(profile_array_data_bins)
-     deallocate(mc_error_data_bins)
-  end if
+  if (lg_multiline) deallocate(multiline_profile_array)
+  deallocate(profile_array_data_bins)
+  deallocate(mc_error_data_bins)
+
   
   if (lg_multiline_fixdust) then
      deallocate(grid_cell)
@@ -130,6 +127,7 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      deallocate(mothergrid%z_div)
      deallocate(dust%species)
   end if
+  close(54)
   
 end subroutine run_damocles_wrap
 

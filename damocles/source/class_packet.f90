@@ -46,6 +46,7 @@ module class_packet
     save packet
     !$OMP THREADPRIVATE(packet)
     real   ::  indx          !indx used in velocity calculation (TESTING)
+    real   ::  k  !testing variable used in alternative velocity law calculation
 contains
 
     !this subroutine generates a packet and samples an emission position in the observer's rest frame
@@ -83,7 +84,7 @@ contains
 
            !calculate the starting position of the the packet at an arbitary location in that cell
             packet%pos_cart= (grid_cell(packet%init_cell)%axis+random(1:3)*grid_cell(packet%init_cell)%width)
-            packet%pos_sph(1)=((packet%pos_cart(1)**2+packet%pos_cart(2)**2+packet%pos_cart(3)**2)**0.5)*1e-15
+            packet%pos_sph(1)=(((packet%pos_cart(1)/1e15)**2+(packet%pos_cart(2)/1e15)**2+(packet%pos_cart(3)/1e15)**2)**0.5)
             packet%pos_sph(2)=atan(packet%pos_cart(2)/packet%pos_cart(1))
             packet%pos_sph(3)=acos(packet%pos_cart(3)*1e-15/packet%pos_sph(1))
             packet%pos_cart(:)=packet%pos_cart(:)*1e-15
@@ -96,7 +97,6 @@ contains
             packet%pos_sph(3) = random(3)*2*pi
             packet%pos_cart(:)=cartr(packet%pos_sph(1),acos(packet%pos_sph(2)),packet%pos_sph(3))
         end if
-
         !generate an initial propagation direction from an isotropic distribution
         !in comoving frame of emitting particle
         packet%dir_sph(:)=(/ (2*random(4))-1,random(5)*2*pi /)
@@ -113,9 +113,17 @@ contains
            !if using a velocity law that is independent of radius, assign velocity here
            if (lg_vel_law) then
               random(1) = r4_uni_01()
+!              k = 1/((0.05*gas_geometry%v_min)+(((gas_geometry%v_max-gas_geometry%v_min))/(gas_geometry%v_prob_indx+1)))
               packet%v=(random(1)*(gas_geometry%v_max**(1+gas_geometry%v_prob_indx)- &
                    & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))+ &
                    & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))**(1/(1+gas_geometry%v_prob_indx))
+!              if (random(1) < (0.05*k*gas_geometry%v_min)) then
+!                 packet%v= ((gas_geometry%v_min*random(1)/(5*k))**0.5+(0.9*gas_geometry%v_min))
+!              else
+!                  packet%v = gas_geometry%v_max - (&
+!                      &(((gas_geometry%v_max-gas_geometry%v_min)**(gas_geometry%v_prob_indx+1)) &
+!                      & -((random(1)-0.05*k*gas_geometry%v_min)*((gas_geometry%v_prob_indx+1)/k)*((gas_geometry%v_max-gas_geometry%v_min)**gas_geometry%v_prob_indx)))**(1/(gas_geometry%v_prob_indx+1)))
+!              end if
            else
               !velocity vector comes from radial position vector of particle
               packet%v=gas_geometry%v_max*((packet%pos_sph(1)/gas_geometry%r_max)**gas_geometry%v_power)

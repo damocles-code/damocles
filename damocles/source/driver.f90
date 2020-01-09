@@ -28,8 +28,6 @@ contains
   subroutine run_damocles()
     integer :: thread_id
     
-    print*,'run number',i_line
-
     !RUN DAMOCLES
     !read input
     if (.not. lg_mcmc) call read_input()
@@ -44,24 +42,22 @@ contains
           line%frequency=c*10**9/line%wavelength
 
           !construct grids
-          if (((lg_multiline_fixdust) .and. (i_line == 1)) &
+          if (lg_mcmc) then
+             if (((lg_multiline_fixdust) .and. (i_line == 1)) &
                & .or. (.not. lg_multiline_fixdust)) then
+                call calculate_opacities()
+                call build_dust_grid()
+             end if
+          else
              call calculate_opacities()
              call build_dust_grid()
           end if
-
+          
           call init_random_seed()
           call construct_freq_grid()
-
           call build_emissivity_dist()
-
-          print*,gas_geometry%v_max
-          print*,gas_geometry%v_min
-          print*,gas_geometry%v_prob_indx
-          print*,line%wavelength
-
           if (lg_es) call n_e_const()
-          
+
           !                print*,'WARNING:  USING RANDOM VELOCITIES NOT POWER-LAW VELOCITIES.  SEE CLASS_PACKET FILE TO AMEND.'
           
           !build multiple lines of sight array
@@ -174,7 +170,6 @@ recursive subroutine run_packet()
   !$OMP END CRITICAL
   
   if (packet%lg_active) then
-     
      !propagate active packet through grid
      call propagate()
      !if packet has been absorbed then record

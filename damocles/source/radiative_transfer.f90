@@ -38,7 +38,7 @@ module radiative_transfer
     real    ::  c_sca_tot              !total scattering cross-section of interaction
     real    ::  g_param_tot            !total forward scattering parameter g (from mie calculation, to be used with henyey-greenstein approx)
     real    ::  albedo                 !albedo in cell
-    
+
     !$OMP THREADPRIVATE(kappa_rho,c_ext_tot,c_sca_tot,g_param_tot,albedo,i_min,wav_id,event_type,nu_ext,i_spec)
 
 contains
@@ -55,6 +55,7 @@ contains
 
             !----variables below are properties of current active packet at its current wavelength
             real    ::  tau                    !optical depth sampled from cumulative frequency dsitribution
+
 
         call check_step_no()
         call update_cell_no()
@@ -159,18 +160,16 @@ contains
             select case(event_type)
 
                 case("dust_scat")
+                   if (lg_vel_shift) then
+                      !inverse lorentz boost (observer frame to particle), sample new scat direction, lorentz boost (particle frame to observer)
+                      call inv_lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
+                      call scatter()
+                      call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
+                   end if
 
-                    if (lg_vel_shift) then
-                        !inverse lorentz boost (observer frame to particle), sample new scat direction, lorentz boost (particle frame to observer)
-                       call inv_lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
-                        call scatter()
-                        call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"scat")
-                    end if
-
-                    call propagate()
+                   call propagate()
 
                 case("dust_absn")
-
                     packet%lg_abs=.true.
                     call check_los()
                     return
@@ -181,14 +180,18 @@ contains
                     v_therm(1)=normal(0.d0,dble(maxwell_sigma))
                     v_therm(2)=normal(0.d0,dble(maxwell_sigma))
                     v_therm(3)=normal(0.d0,dble(maxwell_sigma))
+
                     packet%vel_vect=packet%vel_vect+v_therm
+
                     !!weighting for e- scattering
+
                     if (lg_vel_shift) then
                         !inverse lorentz boost (observer frame to particle), sample new scat direction, lorentz boost (particle frame to observer)
                         call inv_lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"escat")
                         call scatter()
                         call lorentz_trans(packet%vel_vect,packet%dir_cart,packet%nu,packet%weight,"escat")
                     end if
+
                     call propagate()
 
             end select
@@ -263,13 +266,15 @@ contains
 
     subroutine calculate_velocity()
       !calculate bulk velocity of scattering e- and velocity unit vector
-      if (lg_vel_law) then
+      if ((lg_vel_law) .and. (.not. lg_decoupled)) then
          ran = r4_uni_01()
-         packet%v=(ran*(gas_geometry%v_max**(1-gas_geometry%v_prob_indx)- &
-              & gas_geometry%v_min**(1-gas_geometry%v_prob_indx))+ &
-              & gas_geometry%v_min**(1-gas_geometry%v_prob_indx))**(1/(1-gas_geometry%v_prob_indx))
+         packet%v=(random(1)*(gas_geometry%v_max**(1+gas_geometry%v_prob_indx)- &
+              & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))+ &
+              & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))**(1/(1+gas_geometry%v_prob_indx))
       else
-         packet%v=dust_geometry%v_max*((packet%r/(dust_geometry%r_max*1e15))**dust_geometry%v_power)
+         packet%v=(random(1)*(gas_geometry%v_max**(1+gas_geometry%v_prob_indx)-&
+              & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))+ &
+              & gas_geometry%v_min**(1+gas_geometry%v_prob_indx))**(1/(1+gas_geometry%v_prob_indx))
       end if
       packet%vel_vect=normalise(packet%pos_cart)*packet%v
     end subroutine
@@ -342,7 +347,7 @@ contains
         packet%step_no=packet%step_no+1
         if (packet%step_no>500) then
             packet%lg_active=.false.
-            print*,'Packet reached 500 steps and was removed - either highly scattered or very large grid.'
+            print*,'Packet reached 5000 steps and was removed - either highly scattered or very large grid.'
             return
         end if
     end subroutine

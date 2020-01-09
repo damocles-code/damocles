@@ -26,19 +26,22 @@ contains
     if (flags(8,i_line) == 1) gas_geometry%v_prob_indx = params(8,i_line)
     if (flags(9,i_line) == 1) dust%mass = 10**params(9,i_line)
     if (flags(10,i_line) == 1) dust_geometry%clumped_mass_frac = params(10,i_line)
-    if (flags(11,i_line) == 1) dust_geometry%ff = params(10,i_line)
+    if (flags(11,i_line) == 1) dust_geometry%ff = params(11,i_line)
     if (flags(12,i_line) == 1) dust_geometry%clump_power = params(12,i_line)
     if (flags(13,i_line) == 1) dust_geometry%v_max = params(13,i_line)*1000
     if (flags(14,i_line) == 1) dust_geometry%r_max = params(14,i_line)
-    if (flags(15,i_line) == 1) dust_geometry%r_ratio = params(15,i_line)
+    if (flags(15,i_line) == 1) dust_geometry%v_min = params(15,i_line)*1000
     if (flags(16,i_line) == 1) dust_geometry%v_power = params(16,i_line)
-    if (flags(17,i_line) == 1) gas_geometry%rho_power = params(17,i_line)
+    if (flags(17,i_line) == 1) dust_geometry%rho_power = params(17,i_line)
     if (flags(18,i_line) == 1) dust%species(1)%amin = 10**params(18,i_line)
     if (flags(18,i_line) == 1) dust%species(1)%amax = 10**params(18,i_line)
     if (flags(19,i_line) == 1) line%doublet_ratio = params(19,i_line)
     if (flags(20,i_line) == 1) gas_geometry%ff = params(20,i_line)
     if (flags(21,i_line) == 1) gas_geometry%clump_power = params(21,i_line)
+
+    dust_geometry%r_ratio = dust_geometry%v_min/dust_geometry%v_max
     
+
   end subroutine read_bayesian_params
   
   

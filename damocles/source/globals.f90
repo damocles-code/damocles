@@ -33,6 +33,7 @@ module globals
     !identifiers
     integer             ::  ig
     integer             ::  id_theta,id_phi
+    integer             ::  io !error handling
 
     !random numbers and functions
     real                ::  random(5), ran

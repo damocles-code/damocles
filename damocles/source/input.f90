@@ -95,15 +95,15 @@ contains
     
     !read in gas options
     open(11,file=gas_file)
+    rewind(11)
     read(11,*)
     read(11,*) line%doublet_wavelength_1
-    print*, 'test in input', line%doublet_wavelength_1
     read(11,*) line%doublet_wavelength_2
     read(11,*) line%luminosity
     read(11,*) line%tot_flux
     read(11,*) line%doublet_ratio
     if ((i_line>1 .and. (.not. lg_multiline_fixgas)) &
-         & .or. (i_line == 1)) then
+         & .or. (i_line == 1) .or. (.not. lg_mcmc)) then
        read(11,*)
        read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
        read(11,*) gas_geometry%ff
@@ -115,13 +115,18 @@ contains
        read(11,*) gas_geometry%v_power
        read(11,*) gas_geometry%rho_power
        read(11,*) gas_geometry%emis_power
-       read(11,*)
-       read(11,*) lg_vel_law
-       read(11,*) gas_geometry%v_min
-       read(11,*) gas_geometry%v_prob_indx
+       !include a catch here for the old input files
+       read(11,*,iostat=io)
+       if (io == 0) then
+          read(11,*) lg_vel_law
+          read(11,*) gas_geometry%v_min
+          read(11,*) gas_geometry%v_prob_indx
+       else 
+          lg_vel_law = .false.
+       end if
     end if
     close(11)
-    
+
     !read in dust options (for shell case)
     if (.not. (i_line>1 .and. lg_multiline_fixdust)) then
        open(12,file=dust_file)

@@ -120,6 +120,7 @@ contains
         write(27,101)  'albedo at line wavelength',dust%lambda_sca/dust%lambda_ext
         write(27,101)  'forward scattering parameter g at line wavelength',dust%lambda_g_param
         write(27,101)  'average optical depth at line wavelength',mothergrid%n_rho_dust_av*dust%lambda_ext*(dust_geometry%r_max_cm-dust_geometry%r_min_cm)
+        write(27,101)  'average optical depth (absn) at line wavelength',mothergrid%n_rho_dust_av*dust%lambda_ext*(dust_geometry%r_max_cm-dust_geometry%r_min_cm)*(1-dust%lambda_sca/dust%lambda_ext)
         write(27,101)  'average optical depth at V band (547nm)',mothergrid%n_rho_dust_av*dust%lambda_ext_v*(dust_geometry%r_max_cm-dust_geometry%r_min_cm)
 
         if (dust%n_species > 1) then

@@ -57,15 +57,15 @@ contains
         !!this array could be simplified
         if (lg_doublet) then
               if (line%doublet_wavelength_2>line%doublet_wavelength_1) then
-                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
-                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_1)/(1-max(dust_geometry%v_max,2000.0)*2.0*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_2)/(1+max(dust_geometry%v_max,2000.0)*2.0*10**3/c))
               else
-                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
-                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
+                 nu_grid%fmax=((c*10**9/line%doublet_wavelength_2)/(1-max(dust_geometry%v_max,2000.0)*2.0*10**3/c))
+                 nu_grid%fmin=((c*10**9/line%doublet_wavelength_1)/(1+max(dust_geometry%v_max,2000.0)*2.0*10**3/c))
            end if
         else
-                nu_grid%fmax=(line%frequency/(1-max(dust_geometry%v_max,2000.0)*1.2*10**3/c))
-                nu_grid%fmin=(line%frequency/(1+max(dust_geometry%v_max,2000.0)*1.2*10**3/c))                !as above
+                nu_grid%fmax=(line%frequency/(1-max(dust_geometry%v_max,gas_geometry%v_max)*2.0*10**3/c))
+                nu_grid%fmin=(line%frequency/(1+max(dust_geometry%v_max,gas_geometry%v_max)*2.0*10**3/c))                !as above
         end if
         nu_grid%bin_width=(nu_grid%fmax-nu_grid%fmin)/nu_grid%n_bins
 
