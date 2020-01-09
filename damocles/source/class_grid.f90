@@ -12,6 +12,7 @@ module class_grid
     use class_dust
     use class_freq_grid
     use rnglib
+    use sort
 
     implicit none
 
@@ -23,10 +24,14 @@ module class_grid
     real,allocatable        ::  n_packets_data_bins(:)    !array to store the number of packets in each bin
     real,allocatable        ::  total_weight_data_bins(:) !array to store the total packet weight in each bin
     real,allocatable        ::  mc_error_data_bins(:)     !array to store the monte carlo error in each bin
+    real,allocatable        ::  r_sorted(:)               !array used to sort the grid cells into order of increaring radius
+    integer,allocatable     ::  r_indices(:)              !order of cells in order of increasing radius
     real                    ::  delta                     !dummy variable used in calculation the mean and sigma of the packet weights in each bin
     real,allocatable        ::  shell_radius(:,:)         !radial bounds of each shell in 1e15cm (if using shell geometry)
     real,allocatable        ::  frac_shell_radius(:,:)    !radial bounds of each shell as a fraction of the whole scaled to  r_max = 1 and r_min = r_ratio
     integer(8),allocatable  ::  num_packets_array(:,:)      !number of packets to be emitted in each cell and cumulative total 
+    real                    ::  n_clumps_per_cell
+    real                    ::  add_clump
 
     type grid_obj
         integer          ::  n_cells(3)                   !number of cells in x/y/z directions
@@ -118,6 +123,8 @@ contains
                 tot_vol=1000*4*pi*(dust_geometry%r_max**3-dust_geometry%r_min**3)/3 !in e42cm^3
 
                 allocate(grid_cell(mothergrid%tot_cells))
+                allocate(r_sorted(mothergrid%tot_cells))
+                allocate(r_indices(mothergrid%tot_cells))
                 allocate(mothergrid%x_div(mothergrid%n_cells(1)))
                 allocate(mothergrid%y_div(mothergrid%n_cells(2)))
                 allocate(mothergrid%z_div(mothergrid%n_cells(3)))
@@ -153,6 +160,7 @@ contains
                     do iyy=1,mothergrid%n_cells(2)
                         do izz=1,mothergrid%n_cells(3)
                             ig=ig+1
+                            r_indices(iG) = iG
                             grid_cell(ig)%r=((mothergrid%x_div(ixx)+mothergrid%cell_width(1)/2)**2+(mothergrid%y_div(iyy)+mothergrid%cell_width(2)/2)**2+(mothergrid%z_div(izz)+mothergrid%cell_width(3)/2)**2)**0.5
                             grid_cell(ig)%axis(:)=(/ mothergrid%x_div(ixx),mothergrid%y_div(iyy),mothergrid%z_div(izz)/)
                             grid_cell(ig)%id(:)=(/ ixx,iyy,izz /)
@@ -178,7 +186,7 @@ contains
 
                 !generate grid for a clumped geometry
                 if (dust_geometry%lg_clumped) then
-
+                   print*,'building clumped grid...'
                    !test for cases with high volume filling factor that
                    !there more cells available in region than requested number of clumps
                    if (dust_geometry%n_clumps > &
@@ -192,40 +200,68 @@ contains
                    !repeat until required number of clumps reached
                     n_clumps=0
                     m_clumps_check=0
-                    do while (n_clumps<(dust_geometry%n_clumps))
+                   grid_cell%rho=0.
+                   grid_cell%n_rho=0.
+                   add_clump=0
 
-                        !select a random cell from the grid
-                        !call random_number(ran)
-                        ran = r4_uni_01()
+                   !sort cells into order of increasing radius
+                   r_sorted=grid_cell%r
+                   call hpsort_eps_epw(mothergrid%tot_cells,r_sorted,r_indices,0.0)
 
-                        ig=ceiling(mothergrid%tot_cells*ran)
-                        if ((ig==0) .or. (ig>mothergrid%tot_cells)) cycle
+                   do ii=1,mothergrid%tot_cells
+                      ig = r_indices(ii)
+                      
+                      if ((grid_cell(ig)%r<dust_geometry%r_max_cm) .and. (grid_cell(ig)%r>dust_geometry%r_min_cm)) then
+                         
+                         ran = r4_uni_01()
+                         
+                         !calculate the clump number density at radius of cell
+                         !*volume of cell for number of clumps per cell
+                         
+                         !calculate clump number density at radius of cell and therefore calculate number of clumps 'per cell'. If greater than 1, assign a clump. Else, test.
+                         n_clumps_per_cell=grid_cell(iG)%vol*(1e-3/(4*pi))*&
+                              &(3-dust_geometry%clump_power)*dust_geometry%n_clumps*&
+                              &(1/(dust_geometry%r_max**(3-dust_geometry%clump_power)-dust_geometry%r_min**(3-dust_geometry%clump_power)))*&
+                              &(grid_cell(iG)%r*1e-15)**(-dust_geometry%clump_power)
+                         
 
-                        !test cell against clump probability distribution
-                        if ( (grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. &
-                            & (grid_cell(ig)%r>(dust_geometry%r_min_cm)) .and. &
-                            & (.not. grid_cell(ig)%lg_clump)) then
+                         !add clump used to incorporate additional clumps such that total filling factor is reached - causes minor deviation from power-law distribution when grid does not have fine enough resolution
+                         !this is mitigated by looping over grid cells in order of increasing r. Still a minor skew as a result of multiple cells with same radius (these are looped over in order z,y,x).
+                         if (n_clumps_per_cell>1)then
+                            grid_cell(ig)%lg_clump=.true.
+                            add_clump = add_clump+n_clumps_per_cell-1
+                         else if (ran<n_clumps_per_cell) then
+                            grid_cell(ig)%lg_clump=.true.
+                         else if (add_clump > 1) then
+                            grid_cell(ig)%lg_clump=.true.
+                            add_clump = add_clump - 1
+                         end if
+                         
+                         !if cell is a clump, update various properties
+                         if (grid_cell(ig)%lg_clump) then
+                            grid_cell(ig)%rho=dust_geometry%rho_clump
+                            grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
+                            m_clumps_check=m_clumps_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
+                            n_clumps=n_clumps+1
+                         end if
+                      end if
+                   end do
 
-                            !call random_number(ran)
-                            ran = r4_uni_01()
-                            if (ran<((dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%clump_power)) then
-                                grid_cell(ig)%lg_clump=.true.
-                                n_clumps=n_clumps+1
-                                grid_cell(ig)%rho=dust_geometry%rho_clump
-                                grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
-                                m_clumps_check=m_clumps_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
-                            end if
-                        end if
-                    end do
+                   !update the density of all clumps based on the actual number of clumps
+                   grid_cell%rho = grid_cell%rho*dust_geometry%n_clumps/n_clumps
+                   grid_cell%n_rho = grid_cell%n_rho*dust_geometry%n_clumps/n_clumps
+                   m_clumps_check=m_clumps_check*dust_geometry%n_clumps/n_clumps
 
-                    !integrate dust density distribution over cells in interclump medium (i.e. not clump cells)
-                    !calculate normalisation factor to be used in smooth density calculation later
+                   !integrate dust density distribution over cells in interclump medium (i.e. not clump cells)
+                   !calculate normalisation factor to be used in smooth density calculation later
+                   if (dust_geometry%clumped_mass_frac /= 1) then
                     norm=0
                     do ig = 1,mothergrid%tot_cells
                         if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. (grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
                             if (.not. grid_cell(ig)%lg_clump) norm=norm+(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power
                         end if
                     end do
+                 end if
 
                     !calculate dust density of cells in the interclump medium and check total mass correct
                     !m and micm will be used to check that the dust masses used are equal to those requested
@@ -234,38 +270,31 @@ contains
                     m_tot_check=0.
                     m_icm_check=0.
                     mothergrid%n_rho_dust_av=0.
-                    do ixx=1,mothergrid%n_cells(1)
-                        do iyy=1,mothergrid%n_cells(2)
-                            do izz=1,mothergrid%n_cells(3)
-                                ig=ig+1
+                    do ig=1,mothergrid%tot_cells
 
-                                !test cell inside bounds of shell
-                                if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. &
-                                    &(grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
+                       !test cell inside bounds of shell
+                       if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. &
+                            &(grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
 
-                                    no_active_cells=no_active_cells+1
+                          no_active_cells=no_active_cells+1
+                          
+                          !calculate density if not a clump
+                          if (dust_geometry%clumped_mass_frac /= 1) then
+                             if (.not. grid_cell(ig)%lg_clump) then
+                                grid_cell(ig)%rho=dust%m_icm*((dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)/(5.02765e8*norm*mothergrid%cell_vol)
+                                grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
+                                m_icm_check=m_icm_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
+                             end if
+                          end if
 
-                                    !calculate density if not a clump
-                                    if (.not. grid_cell(ig)%lg_clump) then
-                                        grid_cell(ig)%rho=dust%m_icm*((dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)/(5.02765e8*norm*mothergrid%cell_vol)
-                                        grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
-                                        m_icm_check=m_icm_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
-                                    end if
+                          !add mass of cell to total mass for checking purposes
+                          m_tot_check=m_tot_check+grid_cell(ig)%rho*grid_cell(iG)%vol*5.02765e8
 
-                                    !add mass of cell to total mass for checking purposes
-                                    m_tot_check=m_tot_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
+                          !average dust number density will be divided by total number of active cells at end of loop
+                          mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av+grid_cell(ig)%n_rho
 
-                                    !average dust number density will be divided by total number of active cells at end of loop
-                                    mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av+grid_cell(ig)%n_rho
-
-                                else
-                                    !set all densities etc. to zero if cell is outside of bounds of shell
-                                    grid_cell(ig)%axis(:)=(/ mothergrid%x_div(ixx),mothergrid%y_div(iyy),mothergrid%z_div(izz)/)
-                                    grid_cell(ig)%rho=0.
-                                    grid_cell(ig)%n_rho=0.
-                                end if
-                            end do
-                        end do
+                       end if
+                       
                     end do
 
                 else
@@ -285,36 +314,35 @@ contains
                     !calculate dust densities for each cell in grid
                     no_active_cells=0
                     ig=0
-                    do ixx=1,mothergrid%n_cells(1)
-                        do iyy=1,mothergrid%n_cells(2)
-                            do izz=1,mothergrid%n_cells(3)
-
-                                ig=ig+1
-                                if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. (grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
-                                    !calculate densities for cells inside shell
-                                    !grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
-                                    grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
-                                    grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
-                                    mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av+grid_cell(ig)%n_rho
-
-                                    !check total mass used is correct and increment total number of active cells in shell
-                                    !5.02765e8=1e42/1.989e33 i.e. conversion factor for  e42cm3 to cm3 and g to msun
-                                    no_active_cells=no_active_cells+1
-                                    m_tot_check=m_tot_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
-                                else
-                                    !set desntiies for cells outside of shell to zero
-                                    grid_cell(ig)%rho=0.
-                                    grid_cell(ig)%n_rho=0.
-                                    grid_cell(ii)%n_e=0.
-                                end if
-                            end do
-                        end do
+                    do ig=1,mothergrid%tot_cells
+                       
+                       if ((grid_cell(ig)%r<(dust_geometry%r_max_cm)) .and. (grid_cell(ig)%r>(dust_geometry%r_min_cm))) then
+                          !calculate densities for cells inside shell
+                          !grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
+                          grid_cell(ig)%rho=((dust_geometry%rho_in)*(dust_geometry%r_min_cm/grid_cell(ig)%r)**dust_geometry%rho_power)
+                          grid_cell(ig)%n_rho=grid_cell(ig)%rho/dust%av_mgrain
+                          mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av+grid_cell(ig)%n_rho
+                          
+                          !check total mass used is correct and increment total number of active cells in shell
+                          !5.02765e8=1e42/1.989e33 i.e. conversion factor for  e42cm3 to cm3 and g to msun
+                          no_active_cells=no_active_cells+1
+                          m_tot_check=m_tot_check+grid_cell(ig)%rho*mothergrid%cell_vol*5.02765e8
+                          
+                       end if
                     end do
-
                 end if
 
                 !calculate true average dust number density by dividing by total number of active cells in shell
                 mothergrid%n_rho_dust_av=mothergrid%n_rho_dust_av/no_active_cells
+                deallocate(r_sorted)
+                deallocate(r_indices)
+
+                open(33,file='output/dust_grid.out')
+                do iG=1,mothergrid%tot_cells
+                   write(33,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),grid_cell(iG)%n_rho
+                end do
+                close(33)
+
 
             case("torus")
                 print*, 'you have selected a torus distribution of dust.  this routine has not been written yet.  &
@@ -535,12 +563,6 @@ contains
                     end if
                  end do
 
-                 open(33,file='output/gas_grid.out')
-                 do iG=1,mothergrid%tot_cells
-                    write(33,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(ig,1)
-                 end do
-                 close(33)
-
                  else
                  !if clumped gas distribution coupled to clumped dust distribution
                  do iG=1,mothergrid%tot_cells
@@ -558,6 +580,11 @@ contains
               n_packets = sum(num_packets_array(:,1))
               print*,'Using ',n_packets,'packets'
               
+              open(33,file='output/gas_grid.out')
+              do iG=1,mothergrid%tot_cells
+                 write(33,*) grid_cell(iG)%axis(1),grid_cell(iG)%axis(2),grid_cell(iG)%axis(3),num_packets_array(iG,1)
+              end do
+              close(33)
            end if
 
         case("torus")
@@ -610,7 +637,7 @@ contains
            do iG = 2, mothergrid%tot_cells
               num_packets_array(iG,2) = num_packets_array(iG-1,2)+num_packets_array(iG,1)
            end do
-           
+
            
            !update the total number of packets to be run
            n_packets = sum(num_packets_array(:,1))
