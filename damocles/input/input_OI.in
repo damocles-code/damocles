@@ -1,0 +1,27 @@
+========================GENERAL OPTIONS================================================
+false		  !  create a unique folder to store all data? (false will overwrite current output files)
+true		  !  using observed data? 
+'input/line.in'	  !  data file containing observed line
+'input/line_exclusions.in' !data file containing details of regions to exclude from chi calculation
+true              !  doublet?
+true		  !  include velocity scattering?
+false		  !  use line of sight
+false		  !  use multiple lines of sight? (complete coverage)
+false             !  include e- scattering?
+'input/e_scat.in' !  e- scattering file
+714		  !  day no (used to calculate R_out)
+hg		  !  dust scattering (enter isotropic or hg (henyey-greenstein))
+========================GEOMETRY OPTIONS===============================================
+false		  !  decouple dust and gas? (If not decoupled, gas distribution will follow the  dust distribution)
+shell		  !  dust geometry?  Enter 'shell' or 'torus' or 'arbitrary'
+'input/dust.in'	  !  dust geometry file (required - specifies parameters to create grid or is the grid file)
+'input/species.in' !  Name of file detailing dust species and grain sizes
+shell   	  !  gas geometry? Enter 'shell' or 'torus' or 'arbitrary'
+'input/gas.in'	  !  gas geometry file (required - - specifies parameters to create grid or is the grid file)
+=========================GRID==========================================================
+50		  !  number of cells in each direction
+20		  !  number of divisions in phi and theta to generate lines of sight covering whole ejecta
+=======================PHOTON PACKETS==================================================
+2500              !  number of photons
+100		  !  number of frequency bins for output energy distribution
+88		  !  number of threads to run on
