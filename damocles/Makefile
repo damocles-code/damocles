@@ -1,12 +1,13 @@
 FC=gfortran
 LD=gfortran
 VERSION := $(shell git describe --always --tags --dirty || echo "2.0")
-FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0 -fopenmp  -Jsource/ -DPREFIX=\"${PREFIX}\" -DVERSION=\"${VERSION}\"
+FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0  -fopenmp  -Jsource/ -DPREFIX=\"${PREFIX}\" -DVERSION=\"${VERSION}\" #-L/usr/lib #-L/usr/local/lib -L/Library/Frameworks/ -L/System/Library/Frameworks/ -L/usr/local/opt
 
 # set prefix depending on OS
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
   PREFIX=/usr/local
+  FFLAGS += -L/usr/lib
 else
   PREFIX=/usr
 endif
