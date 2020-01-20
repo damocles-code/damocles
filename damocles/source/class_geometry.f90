@@ -13,7 +13,9 @@ module class_geometry
         real        ::  clumped_mass_frac   !mass fraction of dust located in clumpes. 0 indicates no clumping.
         real        ::  r_ratio             !ratio between inner and outer radii (r_in/r_out)
         real        ::  v_max               !maximum velocity (km/s) at r_out
+        real        ::  v_min               !minimum velocity (km/s) (determined from geometry if coupled to radius)
         real        ::  v_power             !value of l where velocity profile is v~r^l
+        real        ::  v_prob_indx         !power of probability distribution of v in case where independent of radius (different to v_power)
         real        ::  rho_power           !value of q where density profile is rho~r^-q
         real        ::  emis_power          !value of b where emissivity~r^-qb
         real        ::  clump_power         !value of q where the number density of clumps is distributed as n~r^-q

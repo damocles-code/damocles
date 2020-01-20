@@ -29,7 +29,11 @@ contains
 
         !read in observed data number of lines
         open(35,file=data_file)
-        read(35,*) obs_data%n_data, err
+        if (lg_multiline) then
+           read(35,*)
+        else
+           read(35,*) obs_data%n_data, err
+        end if
 
         !allocate size of data array accordingly
         allocate(obs_data%vel(obs_data%n_data))
@@ -39,7 +43,7 @@ contains
         allocate(obs_data%freq(obs_data%n_data))
 
         obs_data%error = err
-
+        
         !read in observed line data
         do ii = 1,obs_data%n_data
             read(35,*) obs_data%vel(ii),obs_data%flux(ii)

@@ -51,11 +51,18 @@ contains
             end if
         end do
 
-        print*, 'vmax',dust_geometry%v_max
-        print*, 'R_rat',dust_geometry%r_ratio
-        print*, 'rho',dust_geometry%rho_power
-        print*, 'mdust',dust%mass
-        print*, 'a',dust%species(1)%amin
+       print*,'vmax dust',dust_geometry%v_max
+       print*,'vmax gas',gas_geometry%v_max
+       print*,'r rat dust,vmin', dust_geometry%r_ratio,gas_geometry%v_min
+       print*,'r rat gas,vmin',gas_geometry%r_ratio,gas_geometry%v_min
+       print*,'dust mass',dust%mass
+       print*,'clump power',dust_geometry%clump_power
+       print*,'gas density power (dust)',gas_geometry%rho_power,dust_geometry%rho_power
+       print*,'filling factor',dust_geometry%ff
+       print*,'grain size',dust%species(1)%amin,dust%species(1)%amax
+       print*,'R max gas,dust',gas_geometry%r_max,dust_geometry%r_max
+       print*,'R min gas,dust',gas_geometry%r_min,dust_geometry%r_min       
+
 !        print*, 'chi sq - ', chi_sq
 !        print*,'number of data points',n_data_points
 

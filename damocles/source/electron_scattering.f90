@@ -1,3 +1,4 @@
+
 module electron_scattering
 
     use globals
@@ -46,7 +47,13 @@ contains
         if (lg_es) then
            if (gas_geometry%type == "shell") then
               es_const=(lum_q**0.5)*(((3-2*gas_geometry%rho_power)/(4*pi))/(((r_max_es*1e15)**(3-2*gas_geometry%rho_power)-(gas_geometry%r_min*1e15)**(3-2*gas_geometry%rho_power))))**0.5
-              grid_cell%n_e=es_const*(grid_cell%r**(-dust_geometry%rho_power))*1e20
+              do iG=1,mothergrid%tot_cells
+                 if ((grid_cell(iG)%r*1e-15 < gas_geometry%r_max) .and. (grid_cell(iG)%r*1e-15 > gas_geometry%r_min)) then
+                    grid_cell(iG)%n_e=es_const*(grid_cell(iG)%r**(-gas_geometry%rho_power))*1e20
+                    print*,grid_cell(iG)%n_e
+                 end if
+
+              end do
            else
               print*,'provision for electron scattering with a non-shell emissivity distribution has not yet been included.Aborted.'
               stop

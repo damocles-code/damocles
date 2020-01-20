@@ -6,6 +6,9 @@ module globals
 
     implicit none
 
+    !path to input variables
+    character(len=12)    ::  input_prefix
+
     !openmp variables
     integer,external    ::  omp_get_num_threads
     integer,external    ::  omp_get_thread_num
@@ -20,6 +23,7 @@ module globals
     integer             ::  i_doublet
     integer             ::  i_packet
     integer             ::  i_clump
+    integer             ::  i_line
 
   !  save i_packet
 
@@ -29,6 +33,7 @@ module globals
     !identifiers
     integer             ::  ig
     integer             ::  id_theta,id_phi
+    integer             ::  io !error handling
 
     !random numbers and functions
     real                ::  random(5), ran
@@ -52,6 +57,9 @@ module globals
     integer(8)          ::  n_clumps=0              !actual number of clumps used
     integer(8)          ::  n_recorded_packets    !number of packets contributing to the final line profile
     integer(8)          ::  n_data_points          !number of data points used in chi squared calculation (output in order to calculate red. chi square if desired)
+    integer             ::  n_lines                 !number of lines to process if more than one
+    integer             ::  n_bins_multiline        !total number of bins to be stored in final array when running multiple lines
+    integer             ::  multiline_count         !running counter that tracks number of bins that have been recorded in multline profile array
 
     integer             ::  n_args                  !number of input arguments
     integer             ::  n_angle_divs            !number of division in each of phi and theta to divide grid into multiple lines of sight
@@ -60,8 +68,6 @@ module globals
     real                ::  l_halpha                !total halpha luminosity (for e- scattering calcn)
     real                ::  tot_vol                 !total volume of dusty ejecta in 1e42cm^3
     real                ::  tot_vol_gas             !total volume of emitting gas (if different from dust)
-    real                ::  vel_max,vel_min         !if using a velocity law that is independent of radius, maximum and minimum gas velocity
-    real                ::  vel_power               !if using a velocity law that is independent of radius,  gas velocity power law
 
     !variables used for checking dust mass calculations
     real                ::  m_tot_check             !calculated total mass of dust using densities and vols
@@ -70,6 +76,9 @@ module globals
 
     !different options and cases
     logical             ::  lg_mcmc                 !use an mcmc routine to map parameter space and return trace and likelihoods
+    logical             ::  lg_multiline            !mcmc parameter for running multiple lines - multiple lines used?
+    logical             ::  lg_multiline_fixdust    !when running multiple lines and would like to fix the dust distribution for all lines 
+    logical             ::  lg_multiline_fixgas     !when running multiple lines and would like to fix the gas distribution for all lines
     logical             ::  lg_los                  !use a line of sight?
     logical             ::  lg_multi_los            !divide grid into multiple lines of sight with complete coverage
     logical             ::  lg_vel_shift            !use velocity shifting to recalculate frequency at every scattering event?
