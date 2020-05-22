@@ -66,6 +66,7 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
 
 
   do i_line = 1,n_lines
+     print*,'line no',i_line
      !update the number of observed data points for each line
      if (lg_multiline) then
         read(54,*)  input_folder(i_line), data_file
@@ -89,6 +90,7 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
 
      call read_bayesian_params(params,flags)
      call check_for_conflicts(flags)
+     print*, 'dust geometry filling factor',dust_geometry%ff
 
      if (i_line>1) then
         deallocate(profile_array_data_bins)

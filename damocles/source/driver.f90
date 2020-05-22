@@ -95,6 +95,9 @@ contains
        !$OMP DO 
        !SCHEDULE(DYNAMIC)
        do ii=1,n_packets
+          if (modulo(real(ii),real(n_packets)/real(100)) ==0) then
+             print*,real(ii)*100.0/real(n_packets),'%'
+          end if
           packet%id = ii
           call run_packet()
        end do
@@ -170,6 +173,12 @@ recursive subroutine run_packet()
   !$OMP END CRITICAL
   
   if (packet%lg_active) then
+     !prevent emission coming from clumps
+     !     packet%cell_no=(mothergrid%n_cells(2)*mothergrid%n_cells(3)*(packet%axis_no(1)-1)+mothergrid%n_cells(3)*(packet%axis_no(2)-1)+packet%axis_no(3))
+     !     if (grid_cell(packet%cell_no)%lg_clump) then
+     !        call run_packet()
+     !     end if
+
      !propagate active packet through grid
      call propagate()
      !if packet has been absorbed then record

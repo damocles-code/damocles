@@ -43,7 +43,7 @@ contains
         allocate(obs_data%freq(obs_data%n_data))
 
         obs_data%error = err
-
+        
         !read in observed line data
         do ii = 1,obs_data%n_data
             read(35,*) obs_data%vel(ii),obs_data%flux(ii)
