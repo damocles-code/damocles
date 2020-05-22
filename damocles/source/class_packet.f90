@@ -46,7 +46,7 @@ module class_packet
     save packet
     !$OMP THREADPRIVATE(packet)
     real   ::  indx          !indx used in velocity calculation (TESTING)
-    real   ::  k  !testing variable used in alternative velocity law calculation
+
 contains
 
     !this subroutine generates a packet and samples an emission position in the observer's rest frame
