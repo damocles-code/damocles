@@ -50,7 +50,6 @@ contains
               do iG=1,mothergrid%tot_cells
                  if ((grid_cell(iG)%r*1e-15 < gas_geometry%r_max) .and. (grid_cell(iG)%r*1e-15 > gas_geometry%r_min)) then
                     grid_cell(iG)%n_e=es_const*(grid_cell(iG)%r**(-gas_geometry%rho_power))*1e20
-                    print*,grid_cell(iG)%n_e
                  end if
 
               end do

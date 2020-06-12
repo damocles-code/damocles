@@ -28,7 +28,7 @@ contains
        if (n_args==1) then
           call get_command_argument(1,input_file)
           input_file=trim(input_file)
-          print*, 'reading input from file ', input_file
+          if (.not. lg_mcmc) print*, 'reading input from file ', input_file
        else if (n_args==0) then
           input_prefix = trim('input/')
           input_file='input/input.in'

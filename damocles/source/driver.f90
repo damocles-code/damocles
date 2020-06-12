@@ -95,9 +95,6 @@ contains
        !$OMP DO 
        !SCHEDULE(DYNAMIC)
        do ii=1,n_packets
-          if (modulo(real(ii),real(n_packets)/real(100)) ==0) then
-             print*,real(ii)*100.0/real(n_packets),'%'
-          end if
           packet%id = ii
           call run_packet()
        end do

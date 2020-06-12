@@ -186,7 +186,7 @@ contains
 
                 !generate grid for a clumped geometry
                 if (dust_geometry%lg_clumped) then
-                   print*,'building clumped grid...'
+                   if (.not. lg_mcmc) print*,'building clumped grid...'
                    !test for cases with high volume filling factor that
                    !there more cells available in region than requested number of clumps
                    if (dust_geometry%n_clumps > &
@@ -557,7 +557,6 @@ contains
                        ran = r4_uni_01()
                        if (ran<((gas_geometry%r_min_cm/grid_cell(ig)%r)**gas_geometry%clump_power)) then
                           n_clumps=n_clumps+1
-                          print*,'n clumps',n_clumps
                           num_packets_array(iG,1)=ceiling(real(n_packets)/real(gas_geometry%n_clumps))
                        end if
                     end if
@@ -576,9 +575,8 @@ contains
               end do
 
               !adjust the total number of packets to be run
-              print*,'Recalculating total number of packets to run...'
+              if (.not. lg_mcmc) print*,'Recalculating total number of packets to run...'
               n_packets = sum(num_packets_array(:,1))
-              print*,'Using ',n_packets,'packets'
               
               open(33,file='output/gas_grid.out')
               do iG=1,mothergrid%tot_cells
