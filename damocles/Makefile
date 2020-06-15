@@ -7,7 +7,7 @@ FFLAGS += -cpp -fPIC -fbounds-check -ffree-line-length-0  -fopenmp  -Jsource/ -D
 OS := $(shell uname)
 ifeq ($(OS),Darwin)
   PREFIX=/usr/local
-  FFLAGS += -L/usr/lib
+  FFLAGS += -L/usr/lib 
 else
   PREFIX=/usr
 endif

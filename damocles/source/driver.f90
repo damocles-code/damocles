@@ -43,8 +43,7 @@ contains
 
           !construct grids
           if (lg_mcmc) then
-             if (((lg_multiline_fixdust) .and. (i_line == 1)) &
-               & .or. (.not. lg_multiline_fixdust)) then
+             if (i_line == 1) then
                 call calculate_opacities()
                 call build_dust_grid()
              end if
@@ -115,13 +114,6 @@ contains
     if (.not. lg_mcmc) call write_to_file()
     
     !decallocate all allocated memory
-    if (.not. lg_multiline_fixdust) then
-       deallocate(grid_cell)
-       deallocate(mothergrid%x_div)
-       deallocate(mothergrid%y_div)
-       deallocate(mothergrid%z_div)
-       deallocate(dust%species)
-    end if
     deallocate(nu_grid%lambda_bin)
     deallocate(nu_grid%vel_bin)
     deallocate(nu_grid%bin)

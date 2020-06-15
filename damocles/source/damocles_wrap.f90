@@ -3,7 +3,7 @@
 !  the logical lg_mcmc is set to true and input parameters passed from the   !
 !  python routine.                                                           !
 !----------------------------------------------------------------------------!
-subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)  
+subroutine run_damocles_wrap(params,flags,n,n_lines,mcmc_mod)  
 
     use globals
     use input
@@ -15,13 +15,14 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
 
   implicit none
 
-  real :: params(21,6)
-  real :: flags(21,6)
-  integer :: n
-  integer :: ml_lg
-  real :: mcmc_mod(n,2)
-  character(30) :: input_folder(6)
-  
+  real :: params(21,6)  !an array to store all possible variable parameters for each line (max 6 lines)
+  real :: flags(21,6)   !an array to indicate which parameters are being varied by python (max 6 lines)
+  integer :: n          !the size of returned line profiles array (containing all lines concatenated)
+  integer :: n_lines    !the number of lines being modelled
+  real :: mcmc_mod(n,2) !the array to store the modelled line profiles (concatenated)
+  character(30) :: input_folder(6) !array to store the names of the input folders for the lines
+  character(10) :: line_name(6)    !names of the lines
+
   !f2py   intent(in) params
   !f2py   intent(in) flags
   !f2py   intent(in) n
@@ -33,25 +34,30 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
   
   lg_mcmc = .true.
   
-  if (ml_lg == 1) then
+  if (n_lines > 1) then
      lg_multiline = .true.
-  else
+  else if (n_lines == 1) then
      lg_multiline = .false.
-     n_lines=1
+  else
+     print*, 'You have requested a negative number of lines. Aborting.'
+     STOP
   end if
 
 ! dust_geometry%r_ratio = mcmc_v_min/mcmc_v_max
 
 !-------------
   !set up multiline case for mcmc bayesian modelling
-  if (lg_multiline) then
-     open(54,file = 'multiline.in')
-     read(54,*) n_lines, lg_multiline_fixdust,lg_multiline_fixgas
+!  if (lg_multiline) then
+     open(54,file = 'line_list.in')
+     read(54,*)
+     read(54,*)
+     read(54,*)
+     read(54,*)
      !if running multiple lines then read in the relevant file names
      n_bins_multiline = 0
-     do ii=1,n_lines
-        read(54,*)  input_folder(ii), data_file
-        open(53,file= trim(input_folder(ii)) // trim(data_file))
+     do i_line=1,n_lines
+        read(54,*)  line_name(i_line), input_folder(i_line), lg_multiline_fixgas(i_line)
+        open(53,file= trim(input_folder(i_line)) // '/line.in')
         read(53,*) obs_data%n_data
         n_bins_multiline = n_bins_multiline+obs_data%n_data
      end do
@@ -62,24 +68,22 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      multiline_count = 0
      rewind(unit=54)
      read(54,*)
-  end if
+!  end if
 
 
   do i_line = 1,n_lines
      !update the number of observed data points for each line
      if (lg_multiline) then
-        read(54,*)  input_folder(i_line), data_file
-        open(53,file= trim(input_folder(i_line)) // trim(data_file))
+        open(53,file= trim(input_folder(i_line)) // '/line.in')
         read(53,*) obs_data%n_data
-        input_prefix = trim(input_folder(i_line))
+        !input_prefix = trim(input_folder(i_line)) // '/'
      end if
+     input_prefix = trim(input_folder(i_line)) // '/'
      close(53)
 
      !!adjust this specification for multiple species or a grain size range
      !the below is only applicable for a single grain size
-     if ((.not. lg_multiline_fixdust) .and. (i_line>1)) then
-        allocate(dust%species(1))
-     else if (i_line == 1) then
+     if (i_line == 1) then
         allocate(dust%species(1))
      end if
 
@@ -115,18 +119,17 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
      mcmc_mod(:,2) = mc_error_data_bins
   end if
   
-  if (lg_multiline) deallocate(multiline_profile_array)
+  deallocate(multiline_profile_array)
   deallocate(profile_array_data_bins)
   deallocate(mc_error_data_bins)
 
   
-  if (lg_multiline_fixdust) then
-     deallocate(grid_cell)
-     deallocate(mothergrid%x_div)
-     deallocate(mothergrid%y_div)
-     deallocate(mothergrid%z_div)
-     deallocate(dust%species)
-  end if
+  deallocate(grid_cell)
+  deallocate(mothergrid%x_div)
+  deallocate(mothergrid%y_div)
+  deallocate(mothergrid%z_div)
+  deallocate(dust%species)
+
   close(54)
   
 end subroutine run_damocles_wrap

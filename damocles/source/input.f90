@@ -38,11 +38,11 @@ contains
           STOP
        end if
     else
-       if (lg_multiline) then
-          input_file = trim(input_prefix) // 'input.in'
-       else
-          input_file = 'input/input.in'
-       end if
+       !if (lg_multiline) then
+       input_file = trim(input_prefix) // 'input.in'
+       !else
+       !   input_file = 'input/input.in'
+       !end if
     end if
         
     !open log file (will be closed at end of model)
@@ -102,7 +102,7 @@ contains
     read(11,*) line%luminosity
     read(11,*) line%tot_flux
     read(11,*) line%doublet_ratio
-    if ((i_line>1 .and. (.not. lg_multiline_fixgas)) &
+    if ((i_line>1 .and. (.not. lg_multiline_fixgas(i_line))) &
          & .or. (i_line == 1) .or. (.not. lg_mcmc)) then
        read(11,*)
        read(11,*) gas_geometry%clumped_mass_frac  !!!currently restricted to 0 or 1
@@ -128,7 +128,7 @@ contains
     close(11)
 
     !read in dust options (for shell case)
-    if (.not. (i_line>1 .and. lg_multiline_fixdust)) then
+    if (i_line == 1) then
        open(12,file=dust_file)
        read(12,*)
        read(12,*) dust%mass
