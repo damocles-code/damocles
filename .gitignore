@@ -5,4 +5,7 @@
 /damocles/**/*~
 /damocles/output/*.out
 /damocles/**/bkup
+/damocles/bayesian_example/.idea
+/damocles/bayesian_example/.ipynb_checkpoints
+/damocles/bayesian_example/.DS_Store
 damocles
