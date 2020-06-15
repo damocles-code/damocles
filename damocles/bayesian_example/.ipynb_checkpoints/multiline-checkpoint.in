@@ -1,0 +1,9 @@
+3  .true. .true.  !number of lines, fix dust dist?, fix gas dist?
+'input_Ha/' 'line.in' 'line_exclusions.in' 'dust.in' 'species.in' 'gas.in' 
+'input_Hb/' 'line.in' 'line_exclusions.in' 'dust.in' 'species.in' 'gas.in' 
+'input_HeI/' 'line.in' 'line_exclusions.in' 'dust.in' 'species.in' 'gas.in' 
+
+
+#Note that if you fix the dust or gas distributions, they distribution will be based on the variables specified in the 1st folder in this list
+#Please include the / in the folder name
+

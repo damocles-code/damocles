@@ -1,0 +1,7 @@
+# List all of the lines to be modelled here with their input directories
+# List also the value of any (flat) continuum to be subtracted
+# The final column links different lines together if two or more lines should
+# follow the same distribution. Give each distinct distribution a unique name.
+Ha input_Ha .false. 2500
+Hb input_Hb .true. 300
+HeI input_HeI .false. 0

@@ -1,0 +1,20 @@
+!---BAYESIAN INPUT FILE - IGNORE IF NOT USING PYTHON BAYESIAN IMPLEMENTATION---!
+!This file allows you to turn on/off the variables that you would like to be automatically varied
+!The number of dimensions to be investigated will be automatically calculated from this file
+!The assumption is a uniform prior in all variables except dust mass and grain sizes which are log uniform and are specified in log space
+!If a variable is not explored (VARY = 0), its fixed value will be read in from the standard input files and all other values specified here for that variable will be ignored. If a variable is explored (VARY = 1), the range of parameters to be explored and the initial distribution of walkers is specified here
+!This file is currnetly only set up to handle 1 dust species and a single grain size but could be amended in future
+!------------------------------------------------------------------------------!
+!  VARY? (0/1) | MIN PRIOR | MAX PRIOR | MEAN INITIAL DIST | SD INITIAL DIST   !
+!------------------------------------------------------------------------------!
+0   1.0   3.0   2.0   1.0            !  #11 max gas velocity in 10^3km/s
+0   200   700   493   300            !  #12 Rout (gas) in 1e15cm. (Must exclude 0 from explored range)
+0   0.05  0.5   0.12  0.3            !  #13 Rin/Rout (gas) ratio for gas shell
+0   0.3   2.0   1.0   1.0            !  #14 V power: v propto r^x (only if v depends on radius)
+0   0.0   10.0  5.0   5.0            !  #15 Gas density profile (rho propto r^-x)
+0   1.0   3.0   2.0   1.0            !  #16 Gas emissivity profile (i propto rho^x)
+0   0.05  0.9   0.5   0.5            !  #17 Min gas vel if v is *not* dependent on radius (10^3km/s)
+0   -1.5  3.0   0.5   2.0            !  #18 Power-law prob vel distribution (if independent of radius)
+0   2.5   3.5   3.0   1.0            !  #19 Doublet flux ratio of components (care to specify correct way around - line 1/line 2)
+0   0.05  0.5   0.2   0.3            !  #20 Gas clump filling factor (if decoupled from dust)
+0   0.5   4.0   1.7   2.0            !  #21 Gas clump number density distribution (if decoupled to dust)
