@@ -1,0 +1,19 @@
+!---BAYESIAN INPUT FILE - IGNORE IF NOT USING PYTHON BAYESIAN IMPLEMENTATION---!
+!This file allows you to turn on/off the variables that you would like to be automatically varied
+!The number of dimensions to be investigated will be automatically calculated from this file
+!The assumption is a uniform prior in all variables except dust mass and grain sizes which are log uniform and are specified in log space
+!If a variable is not explored (VARY = 0), its fixed value will be read in from the standard input files and all other values specified here for that variable will be ignored. If a variable is explored (VARY = 1), the range of parameters to be explored and the initial distribution of walkers is specified here
+!This file is currnetly only set up to handle 1 dust species and a single grain size but could be amended in future
+!------------------------------------------------------------------------------!
+!  VARY? (0/1) | MIN PRIOR | MAX PRIOR | MEAN INITIAL DIST | SD INITIAL DIST   !
+!------------------------------------------------------------------------------!
+1   -6.0  0.2   -3.0  3.0            !  #1 Total dust mass (Msun) SPECIFY IN LOG10 SPACE
+0   0.1   0.8   0.3   0.5            !  #2 Dust mass fraction in clumps
+1   0.05  0.8   0.3   0.5            !  #3 Clump filling factor (volume in clumps)
+0   1.0   3.0   2.0   1.0            !  #4 Clump number density distribution (n propto r^-x)
+0   1.0   5.0   1.9   2.5            !  #5 Max dust velocity in 10^3km/s
+0   200.  700   500   300            !  #6 Rout (dust) in 1e15cm (exclude 0 from prior range)
+0   0.05  0.5   0.1   0.3            !  #7 Rin/Rout (dust) ratio
+0   0.5   3.0   1.0   2.0            !  #8 Dust v profile:  v_dust propto r^x
+0   0.5   3.0   1.0   2.0            !  #9 Dust density profile: rho_dust propto r^-x
+1   -2    0.7   -0.45  1.5           !  #10 Dust grain radius SPECIFY IN LOG10 space
