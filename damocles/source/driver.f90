@@ -106,7 +106,7 @@ contains
     line%initial_energy=line%luminosity/real(n_init_packets)
     
     !calculate goodness of fit to data if supplied
-    if (lg_data) then
+    if ((lg_data) .and. (.not. lg_mcmc)) then
        call calculate_chi_sq()
     end if
     
