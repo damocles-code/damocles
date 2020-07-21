@@ -56,16 +56,38 @@ def ln_like_damocles(theta,
 
     '''
 
-    print(theta)
+    
     n_lines = len(lines)
 
     # calculate total number of rows required to store all model line profiles
     n_bins = np.array(line_summary.n_bins)
     n = line_summary.n_bins.sum()
+    
 
-    # run model
+     #count how many dust vars are being varied so you can redefine theta just for the gas parameters
+    count=0
+    for i in flags[0:10]:
+       all_zeros = not np.any(i)
+       if all_zeros == False:
+         count+=1
+       
+    
+    #define theta just for gas
+    gas_theta=theta[count:]
+    #reshuffling around odd index numbers with even index numbers so the gas variable parameters can be read into damocles in the right order 
+    elements=int((np.floor(len(gas_theta)/n_lines)))
+    gas_theta=(gas_theta.reshape((n_lines,elements)).T)
+    gas_theta=gas_theta.flatten()
+    theta = np.concatenate((theta[0:count],gas_theta))
+ 
+
+   # run model
     theta_pad = np.zeros((21, 6))
+
     theta_pad[flags == 1] = theta
+
+    
+
     mod = model.run_damocles_wrap(theta_pad, flags, n, n_lines)
   
     n_indices = np.cumsum(np.array(n_bins).astype(int))
@@ -115,7 +137,7 @@ def ln_like_damocles(theta,
         )
 
   
-        print("line no", i_line, "chi model", mod_chi)
+    #    print("line no", i_line, "chi model", mod_chi)
 
         # test plots
         if (check_with_plots):
@@ -127,7 +149,7 @@ def ln_like_damocles(theta,
 
     # total chi^2 for all lines
     chi2 = sum(mod_chi)
-    print("chi", chi2)
+#    print("chi", chi2)
 
     return -chi2
 
@@ -203,7 +225,7 @@ def ln_prob(theta,
    
 
     ln_prior = ln_uniform_prior(theta, lower_bounds, upper_bounds)
-    print("IN PRIOR?",ln_prior)
+
     if np.isinf(ln_prior):
         return -np.inf
     

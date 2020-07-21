@@ -6,8 +6,8 @@ import mcmc_functions as mcmc
 import mcmc_set_up
 
 # input for user to vary
-resolution = 3 #resolution of the observed data in km/s
-n_walkers = 50 #500 odd good number
+resolution = 177 #resolution of the observed data in km/s
+n_walkers = 300 #500 odd good number
 check_with_plots = False
 
 # read in all input folders and continuum parameters for each line
@@ -38,7 +38,6 @@ for i_line, line in enumerate(lines):
     flags[10:,i_line] = init_params[init_params.line == line].variable.astype('int')
 # dust params specified in first column
 flags[:10,0] = init_params[init_params.line == 'dust'].variable.astype('int')
-
 
 # initialise walkers in a ball around best estimate
 lower_bounds = np.array(init_params.loc[init_params.variable == 1].prior_min)
@@ -75,11 +74,11 @@ q.close()
 
 
 # run sampler
-nsteps = 5
+nsteps = 1000
 chi_min = -10000000000
 count = 0
 for pos, lnprob, rstate in sampler.sample(pos, iterations=nsteps): #changed from ln_prob to lnprob
-
+    
     count = count + 1
     print("step no", count)
     with open("state.pkl", "wb") as filestate:
@@ -97,8 +96,7 @@ for pos, lnprob, rstate in sampler.sample(pos, iterations=nsteps): #changed from
     q.write("{:f}".format(chi_min))
     q.write("{:s} \n".format(str(chi_min_pos)))
     q.close()
-
-    # print 'best fit chi', chi_min
+   # print('best fit chi', chi_min)
     # print 'best fit chi pos', chi_min_pos
 
     position = position.astype(float)
