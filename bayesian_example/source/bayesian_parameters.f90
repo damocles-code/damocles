@@ -15,14 +15,14 @@ contains
     
     real,intent(in) :: params(21,6)
     real,intent(in) :: flags(21,6)
-    print*,params(:,i_line)
+    
     if (flags(1,i_line) == 1) dust%mass = 10**params(1,i_line)
     if (flags(2,i_line) == 1) dust_geometry%clumped_mass_frac = params(2,i_line)
     if (flags(3,i_line) == 1) dust_geometry%ff = params(3,i_line)
     if (flags(4,i_line) == 1) dust_geometry%clump_power = params(4,i_line)
     if (flags(5,i_line) == 1) dust_geometry%v_max = params(5,i_line)*1000
     if (flags(6,i_line) == 1) dust_geometry%r_max = params(6,i_line)
-    if (flags(7,i_line) == 1) dust_geometry%r_ratio = params(7,i_line)
+    if (flags(7,i_line) == 1) dust_geometry%v_min = params(7,i_line)*1000
     if (flags(8,i_line) == 1) dust_geometry%v_power = params(8,i_line)
     if (flags(9,i_line) == 1) dust_geometry%rho_power = params(9,i_line)
     if (flags(10,i_line) == 1) dust%species(1)%amin = 10**params(10,i_line)
@@ -40,14 +40,7 @@ contains
     if (flags(20,i_line) == 1) gas_geometry%ff = params(20,i_line)
     if (flags(21,i_line) == 1) gas_geometry%clump_power = params(21,i_line)
 
-    
-    dust_geometry%v_min = dust_geometry%r_ratio*dust_geometry%v_max
-
-    if (.not. lg_decoupled) then
-    gas_geometry%v_min = dust_geometry%v_min
-    end if 
-    
-
+    dust_geometry%r_ratio = dust_geometry%v_min/dust_geometry%v_max
     
 
   end subroutine read_bayesian_params
