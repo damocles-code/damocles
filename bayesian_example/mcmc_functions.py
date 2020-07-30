@@ -62,24 +62,7 @@ def ln_like_damocles(theta,
     # calculate total number of rows required to store all model line profiles
     n_bins = np.array(line_summary.n_bins)
     n = line_summary.n_bins.sum()
-    
-
-     #count how many dust vars are being varied so you can redefine theta just for the gas parameters
-    count=0
-    for i in flags[0:10]:
-       all_zeros = not np.any(i)
-       if all_zeros == False:
-         count+=1
-       
-    
-    #define theta just for gas
-    gas_theta=theta[count:]
-    #reshuffling around odd index numbers with even index numbers so the gas variable parameters can be read into damocles in the right order 
-    elements=int((np.floor(len(gas_theta)/n_lines)))
-    gas_theta=(gas_theta.reshape((n_lines,elements)).T)
-    gas_theta=gas_theta.flatten()
-    theta = np.concatenate((theta[0:count],gas_theta))
- 
+  
 
    # run model
     theta_pad = np.zeros((21, 6))
