@@ -6,14 +6,13 @@ import mcmc_functions as mcmc
 import mcmc_set_up
 
 # input for user to vary
-resolution = 177 #resolution of the observed data in km/s
-n_walkers = 300 #500 odd good number
-check_with_plots = False
+resolution = 30 #resolution of the observed data in km/s
+n_walkers = 500
+check_with_plots = True
 
 # read in all input folders and continuum parameters for each line
 # set up all variable parameters with priors and starting distributions
 lines, line_summary, init_params, line_profiles = mcmc_set_up.mcmc_set_up(resolution)
-
 
 
 # open files to track progress and record output
@@ -39,13 +38,13 @@ for i_line, line in enumerate(lines):
 # dust params specified in first column
 flags[:10,0] = init_params[init_params.line == 'dust'].variable.astype('int')
 
+
 # initialise walkers in a ball around best estimate
 lower_bounds = np.array(init_params.loc[init_params.variable == 1].prior_min)
 upper_bounds = np.array(init_params.loc[init_params.variable == 1].prior_max)
 ball_mu = np.array(init_params.loc[init_params.variable == 1].ball_mu)
 ball_sd = np.array(init_params.loc[init_params.variable == 1].ball_sd)
 pos = emcee.utils.sample_ball(ball_mu, ball_sd, size=n_walkers)
-
 
 # check initial positions inside prior bounds
 for i in range(0, n_walkers):
@@ -71,14 +70,11 @@ sampler = emcee.EnsembleSampler(n_walkers,
 q = open("chi_tracker.dat", "w")
 q.close()
 
-
-
 # run sampler
-nsteps = 1000
+nsteps = 50000
 chi_min = -10000000000
 count = 0
-for pos, lnprob, rstate in sampler.sample(pos, iterations=nsteps): #changed from ln_prob to lnprob
-    
+for pos, ln_prob, rstate in sampler.sample(pos, iterations=nsteps):
     count = count + 1
     print("step no", count)
     with open("state.pkl", "wb") as filestate:
@@ -88,15 +84,15 @@ for pos, lnprob, rstate in sampler.sample(pos, iterations=nsteps): #changed from
     p.write("{}".format(count))
     position = pos
     indx = np.argmax(lnprob)
-    
     if lnprob[indx] > chi_min:
         chi_min = lnprob[indx]
         chi_min_pos = position[indx, :]
     q = open("chi_tracker.dat", "a")
     q.write("{:f}".format(chi_min))
-    q.write("{:s} \n".format(str(chi_min_pos)))
+    q.write("{:s} \n".format(chi_min_pos))
     q.close()
-   # print('best fit chi', chi_min)
+
+    # print 'best fit chi', chi_min
     # print 'best fit chi pos', chi_min_pos
 
     position = position.astype(float)
@@ -156,4 +152,3 @@ for pos, lnprob, rstate in sampler.sample(pos, iterations=nsteps): #changed from
 
     p.write("\n")
     p.close()
-#'''
