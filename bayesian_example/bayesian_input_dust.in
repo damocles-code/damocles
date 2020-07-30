@@ -7,13 +7,13 @@
 !------------------------------------------------------------------------------!
 !  VARY? (0/1) | MIN PRIOR | MAX PRIOR | MEAN INITIAL DIST | SD INITIAL DIST   !
 !------------------------------------------------------------------------------!
-1   -3    0.1   -1    2.0            !  #1 Total dust mass (Msun) SPECIFY IN LOG10 SPACE
-1   0.0   1.0   0.5   0.3            !  #2 Dust mass fraction in clumps
-0   0.05  0.8   0.3   0.5            !  #3 Clump filling factor (volume in clumps)
+1   -6.0  0.2   -3.0  3.0            !  #1 Total dust mass (Msun) SPECIFY IN LOG10 SPACE
+0   0.1   0.8   0.3   0.5            !  #2 Dust mass fraction in clumps
+1   0.05  0.8   0.3   0.5            !  #3 Clump filling factor (volume in clumps)
 0   1.0   3.0   2.0   1.0            !  #4 Clump number density distribution (n propto r^-x)
-1   5.0   8.0   6.0   1.5            !  #5 Max dust velocity in 10^3km/s
-1   600  950    750   200            !  #6 Rout (dust) in 1e15cm (exclude 0 from prior range)
-1   0.3  0.8    0.5   0.2         !     #7 Dust Rin/Rout ratio
+0   1.0   5.0   1.9   2.5            !  #5 Max dust velocity in 10^3km/s
+0   200.  700   500   300            !  #6 Rout (dust) in 1e15cm (exclude 0 from prior range)
+0   0.05  0.5   0.1   0.3            !  #7 Rin/Rout (dust) ratio
 0   0.5   3.0   1.0   2.0            !  #8 Dust v profile:  v_dust propto r^x
-1   0.5   8.0   3.0   2.0            !  #9 Dust density profile: rho_dust propto r^-x
-1   -2    0.2   -0.7  1.5           !  #10 Dust grain radius SPECIFY IN LOG10 space
+0   0.5   3.0   1.0   2.0            !  #9 Dust density profile: rho_dust propto r^-x
+1   -2    0.7   -0.45  1.5           !  #10 Dust grain radius SPECIFY IN LOG10 space
