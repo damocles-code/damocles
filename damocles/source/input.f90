@@ -147,8 +147,8 @@ contains
           !            read(12,*) dust_geometry%emis_power
        end if
        close(12)
-       if (.not. lg_mcmc) print*,'WARNING: Emissivity as specified in the dust input file is deprecated and &
-            & will be ignored. Please specific the emissivity parameter in the gas input file.'
+       !if (.not. lg_mcmc) print*,'WARNING: Emissivity as specified in the dust input file is deprecated and &
+       !     & will be ignored. Please specific the emissivity parameter in the gas input file.'
     end if
     
     select case(dust_geometry%type)
