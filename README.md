@@ -2,6 +2,8 @@
 
 Damocles is a 3D Monte Carlo line transfer code designed to model the effects of dust on line emission an expanding atmosphere. It is a grid-based code with a wide variety of variable parameters. It is suitable for modelling the presence of dust in supernovae or supernovae remnants, stellar winds, planetary nebulae and AGN. For more details on how Damocles works, please see [here](https://github.com/damocles-code/damocles/wiki/About).
 
+Please cite Bevan, A. & Barlow, M. J. 2016, 456, 1269 and Bevan, A. 2018, MNRAS, 480, 4659 in any work that uses this code.
+
 ## Quick-start guide
 For full details on how to install and run Damocles, please see the online [wiki](https://github.com/damocles-code/damocles/wiki).
 
