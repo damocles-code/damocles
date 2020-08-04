@@ -108,7 +108,6 @@ contains
     !calculate goodness of fit to data if supplied
     if ((lg_data) .and. (.not. lg_mcmc)) then
        call calculate_chi_sq()
-    end if
     else  
        profile_array_data_bins = line%tot_flux*total_weight_data_bins/n_recorded_packets
        mc_error_data_bins = line%tot_flux*(square_weight_data_bins**0.5)/n_recorded_packets
