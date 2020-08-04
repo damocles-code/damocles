@@ -303,12 +303,14 @@ contains
                     !calculate dust density at inner radius (rho_in)
                     !factor of 1.989e-12 (= 1.989e33/1e45) to convert from msun/e45cm3 to g/cm3
                     if (dust_geometry%rho_power==3) then
-                        dust_geometry%rho_in=(dust_geometry%r_min**(-dust_geometry%rho_power))*((dust%mass*1.989e33)/(log(dust_geometry%r_max/dust_geometry%r_min)*4*pi))
+                        dust_geometry%rho_in=(dust_geometry%r_min**(-dust_geometry%rho_power))*((dust%mass)/(log(dust_geometry%r_max/dust_geometry%r_min)*4*pi))
                         dust_geometry%rho_in=dust_geometry%rho_in*(1.989e-12)
+                    	print*, 'rhoin',dust_geometry%rho_in
                     else
                         dust_geometry%rho_in = ((dust%mass*(3-dust_geometry%rho_power)) &
                             & /(4*pi*(dust_geometry%r_ratio**(dust_geometry%rho_power)*(dust_geometry%r_max**3)-dust_geometry%r_min**3)))
                         dust_geometry%rho_in=dust_geometry%rho_in*(1.989e-12)
+                    	print*, 'rhoin',dust_geometry%rho_in
                     end if
 
                     !calculate dust densities for each cell in grid
