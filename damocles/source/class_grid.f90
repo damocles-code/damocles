@@ -219,7 +219,13 @@ contains
                          !*volume of cell for number of clumps per cell
                          
                          !calculate clump number density at radius of cell and therefore calculate number of clumps 'per cell'. If greater than 1, assign a clump. Else, test.
-                         n_clumps_per_cell=grid_cell(iG)%vol*(1e-3/(4*pi))*&
+                         if (dust_geometry%clump_power == 3) then
+                         	n_clumps_per_cell=grid_cell(iG)%vol*(1e-3/(4*pi))*&
+                              &dust_geometry%n_clumps*&
+                              &(1/(log(dust_geometry%r_max)-log(dust_geometry%r_min)))*&
+                              &(grid_cell(iG)%r*1e-15)**(-dust_geometry%clump_power)
+                         else
+                         		n_clumps_per_cell=grid_cell(iG)%vol*(1e-3/(4*pi))*&
                               &(3-dust_geometry%clump_power)*dust_geometry%n_clumps*&
                               &(1/(dust_geometry%r_max**(3-dust_geometry%clump_power)-dust_geometry%r_min**(3-dust_geometry%clump_power)))*&
                               &(grid_cell(iG)%r*1e-15)**(-dust_geometry%clump_power)
