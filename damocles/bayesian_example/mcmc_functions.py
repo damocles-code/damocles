@@ -198,12 +198,7 @@ def ln_prob(theta,
 
     '''
     ln_prior = ln_uniform_prior(theta, lower_bounds, upper_bounds)
-    ln_like = ln_like_damocles(theta,
-                              lines,
-                              line_summary,
-                              line_profiles,
-                              flags,
-                              check_with_plots)
+    
     if np.isinf(ln_prior):
         return -np.inf
-    return ln_prior + ln_like
+    return ln_prior + ln_like_damocles(theta,lines,line_summary,line_profiles,flags,check_with_plots)

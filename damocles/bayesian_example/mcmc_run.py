@@ -77,7 +77,7 @@ count = 0
 for pos, ln_prob, rstate in sampler.sample(pos, iterations=nsteps):
     count = count + 1
     print("step no", count)
-    with open("state.pkl", "w") as filestate:
+    with open("state.pkl", "wb") as filestate:
         pickle.dump([pos, lnprob, rstate], filestate, -1)
     filestate.close()
     p = open("percent_complete.dat", "a")
