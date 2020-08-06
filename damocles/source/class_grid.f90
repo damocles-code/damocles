@@ -229,7 +229,7 @@ contains
                               &(3-dust_geometry%clump_power)*dust_geometry%n_clumps*&
                               &(1/(dust_geometry%r_max**(3-dust_geometry%clump_power)-dust_geometry%r_min**(3-dust_geometry%clump_power)))*&
                               &(grid_cell(iG)%r*1e-15)**(-dust_geometry%clump_power)
-                         
+                         end if
 
                          !add clump used to incorporate additional clumps such that total filling factor is reached - causes minor deviation from power-law distribution when grid does not have fine enough resolution
                          !this is mitigated by looping over grid cells in order of increasing r. Still a minor skew as a result of multiple cells with same radius (these are looped over in order z,y,x).
