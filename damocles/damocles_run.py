@@ -154,7 +154,8 @@ class DamoclesInput(object):
        #unless otherwise specified via the interactive button, the default dust distribition is smooth
             if  'fraction in clumps' in line:                
                      line=replace_str('0.0',0,line)
-                       
+            if  'using observed data' in line:                
+                     line=replace_str('True',0,line)           
             sys.stdout.write(line)  
 
         fi.close()   
