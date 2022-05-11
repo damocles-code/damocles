@@ -3,7 +3,7 @@
 """
 Created on Wed Dec 29 14:58:36 2021
 
-@author: maria
+@author: Maria Niculescu-Duvaz
 """
 import tkinter as tk
 import tkinter.font as TkFont
@@ -22,13 +22,13 @@ from FUNCTIONS import *
 from mpl_toolkits import mplot3d
 import numpy as np
 from matplotlib.figure import Figure
-###
 
 
            
 class DamoclesInput(object):
     
-    "This class contains all functions and variables which pass input parameters to the DAMOCLES code"
+    "This class contains all functions and variables which modify input files in the DAMOCLES code from the GUI"
+    
     
     def __init__(self):
         
@@ -57,7 +57,6 @@ class DamoclesInput(object):
         self.obswav,self.obsflux = trim_wav_flux(self.obswav_init,self.obsflux_init,self.trim_lims[0],self.trim_lims[1])
         self.obsflux = snip_spect(self.obswav,self.obsflux,*self.snip_regs)
         
-        #self.obsflux = [i-0.4e-16 for i in self.obsflux]
         self.obsvels = convert_wav_to_vel(self.obswav,(1+self.z)*(self.wavelength_peak_1*10.0),self.wavelength_peak_1*10)
     
   
@@ -70,9 +69,10 @@ class DamoclesInput(object):
             #calculate observational uncert on input spectrum using background regions provided
                 bg_vels,bg_flux = trim_wav_flux(self.obswav_init,self.obsflux_init,self.bg_lims[0],self.bg_lims[1])
                 return np.std(bg_flux)
+
     
     def write_obsfile_out(self):
-    #write observed line to line.out file, which is used to do rebin the damocles model 
+    #write observed line to line.out file, which is used to rebin the damocles model to the bin number of the observed line
         filey = open(path+"/input/line.in",'w')
         filey.write(str(len(self.obsflux))+ " " + str(self.obs_err) + "\n")
         for j in range(len(self.obsflux)):    
@@ -91,6 +91,7 @@ class DamoclesInput(object):
 
            
     def is_Clump(self,conf): 
+     #called when the Clump? button is pressed and changes the input file in damocles
       fi2 = fileinput.FileInput(files=(dust_file),inplace=True)
       
       if conf.get() == True:        
@@ -108,7 +109,7 @@ class DamoclesInput(object):
     
     
     def update_damocfile_input(self,params):
-         #writing values we've updated via sliders (where params comes from) to shell version of damocles 
+         #writing values we've updated via sliders (where params comes from) to damocles input files 
          fi2 = fileinput.FileInput(files=(dust_file,spec_file),inplace=True)
          for line in fi2:	
              if 'max dust velocity' in line:
@@ -130,6 +131,11 @@ class DamoclesInput(object):
          fi2.close()
          
     def initialise_damocfile_input(self):
+        
+        #values are specified by the user in the opening pane, and in this function are used to 
+        #change variables in the damocles input files upon running the GUI
+        #so this is only run once
+        
         phot_no = InputWindow.start_vars['Photon packet number'][1] 
         is_doublet = InputWindow.start_vars["Doublet?"][1]
         doublet_ratio = InputWindow.start_vars["Doublet ratio"][1]
@@ -165,6 +171,9 @@ class DamoclesInput(object):
 
 
 class Plotting_window(DamoclesInput):
+    
+    "This class contains functions that relate to and define the plotting window of the observed and modelled emission line overplots "
+    
      def __init__(self,frame_a_pw,frame_b_pw,frame_c_pw):
         super(Plotting_window,self).__init__()
        
@@ -279,8 +288,7 @@ class Slider(Plotting_window):
         self.frame_e=frame_e
         
         super(Slider,self).__init__(frame_c,frame_d,frame_e)
-        #Plotting_window.__init__(self,self.frame_c,self.frame_d,self.frame_e)
-        #GasGrid.__init__(self,self.frame_b)
+
         
         self.sliderfont = TkFont.Font(family='bitstream charter', size=14)
         self.slider_input_values = {"v_slider": [v_max_init,(1000, 15000),"Vmax (km/s)",1], "r_slider": [Rrat_init,(0.01, 1),"Rin/Rout",0.0005],
@@ -288,13 +296,13 @@ class Slider(Plotting_window):
                                "gs_slider": [grain_size_init,(-2.3, 0.5),'log(Grain radius (\u03BCm))',0.001], "amc_frac_slider": [0.0,(0.0,1.0),'AmC Fraction',0.01]   }
     
         
-        
-
+        #making a widget for every slider 
         for i in self.slider_input_values:
             self.initialise_slider(self.slider_input_values[i])
 
         
-        #initialising all plotwindow things here as sliders directly interact with these values
+        #initialising all other widgets here, which plot the 
+        #as sliders are the only way information interacts with these widgets
         self.fig2 = Figure(figsize=(8.5, 5.3), dpi=100)
         self.ax2 = self.fig2.add_subplot(111, projection='3d')
         self.figure_canvas2= FigureCanvasTkAgg(self.fig2,frame_b)
@@ -306,7 +314,6 @@ class Slider(Plotting_window):
         self.make_model_scalebox()
     
     def initialise_slider(self,slide_params):
-        print(slide_params)
         lab = tk.Label(self.frame_a,text=slide_params[2],font=self.sliderfont)
         slider = tk.Scale(self.frame_a,from_=slide_params[1][0],to=slide_params[1][1],orient='horizontal',resolution=slide_params[3],width=17,length=900,font=self.sliderfont)      
         slider.set(slide_params[0])
@@ -323,7 +330,6 @@ class Slider(Plotting_window):
     	            slider_vals.append(child_widget.get())
         
         #de-log the dust mass and grain size values
-  
         slider_vals[3] = 10**(slider_vals[3])
         slider_vals[4] = 10**(slider_vals[4])
         
@@ -339,6 +345,10 @@ class Slider(Plotting_window):
 
   
 class InputWindow(tk.Tk):
+    
+    #This class sets the "main window" of the application which opens up the interactive damocles modelling environment
+    #and into which important variables such as age, redshift of supernova, are set
+    
     def __init__(self):
        
        super().__init__()
@@ -374,6 +384,7 @@ class InputWindow(tk.Tk):
                           "SN age (days)":[self.age_d,None],
                           "Photon packet number":[self.phot_no,None]}
        
+       #creating widget for entry boxes interacted with by the user
        count = 0
        for i in list(self.start_vars.keys()):
            self.make_label_entry(i,self.start_vars.get(i)[0],count)
@@ -413,9 +424,11 @@ class InputWindow(tk.Tk):
 class App(tk.Toplevel,Slider):
     def __init__(self,parent):
       
+        #this class is the window in which all widgets for the damocles modelling environment are placed
+        
         super().__init__(parent)
         
-        #print("IN APP",InputWindow.start_vars)
+
         self.geometry("2000x1500")
         self['bg'] = 'blue'
  
@@ -435,14 +448,13 @@ class App(tk.Toplevel,Slider):
         
         
         self.DamoclesInput = DamoclesInput()
-       
         self.Plotting_window = Plotting_window(frame_3,frame_4,frame_5)
         
         self.DamoclesInput.initialise_damocfile_input()
         self.DamoclesInput.make_clump_button(frame_1)
          
         #create sliders for parameters that are changed by user
-        #plotting window things are initialised here
+        #plotting window things are re-initialised here
         Slider(frame_1,frame_2,frame_3,frame_4,frame_5)
 
         frame_1.place(x=950,y=515)
@@ -452,6 +464,7 @@ class App(tk.Toplevel,Slider):
         frame_5.place(x=235,y=920)
         
     
+
 
 path = os.path.dirname(os.path.realpath(__file__))
 

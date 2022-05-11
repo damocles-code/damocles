@@ -3,26 +3,21 @@
 """
 Created on Tue Jan  2 16:45:22 2018
 
-@author: maria
+@author: Maria Niculescu-Duvaz
 """
 
 ###SMALL MISCELLANEOUS FUNCTIONS USED IN ALL MY CODES###
 
 import numpy as np
-
 import sys
-#sys.path.append('/home/maria/PYTHONCODES/mazzyfuncts/modules')
 
 
 import re
 import os
-#import matplotlib.pyplot as plt
 import sys
 import fileinput
 import tkinter as tk
 from scipy.ndimage import gaussian_filter1d
-####read in data file and split each column into arrays!! 
-
 
 
 def appendline(read,start,stop):    
@@ -31,20 +26,6 @@ def appendline(read,start,stop):
         line = line.split()
         x.append(line)
     return x
- 
-def checkspacing(array):
-    #returns True if spacing is equal between every point, used to test meshgrids have been made properly
-    y = []
-    for first, second in zip(array, array[1:]):
-        x = abs(second - first)
-        print(x)
-        if x != 0:
-            y.append(second - first)
-            
-    if len(set(y)) <= 1:
-        print("GRID SPACED EVENLY")   
-    else:
-        print("ITS NOT EQUAL TRY AGAIN")
         
 
 def find_nearest(array, values):
@@ -55,11 +36,10 @@ def find_nearest(array, values):
 
 
 def convert_wav_to_vel(wavarray,obspeak,labpeak):
-	#used for spectra to convert from wavelength to velocity units where 0km/s is set by the peak of the line
+	#used for spectra to convert from wavelength to velocity units where 0km/s is set by the lab peak of the line
     final_vel = []
     
     zpeak = (float(obspeak) - float(labpeak))/float(obspeak)
-    
     radvel = 299792 * zpeak
   
 
@@ -75,16 +55,12 @@ def convert_wav_to_vel(wavarray,obspeak,labpeak):
     
 def datafile_2_array(filename,isint=True,zipped=True):
     '''
-    need to change to directory and specify datafile beforehand
-    returns a list of lists where each list is a column in the datafile
-    can then allocate each array after calling this function
-    if isint=True then convert rows to ints, otherwise converts to float
-    this is specifically for spectra (two/three rows), sometimes with a header
+    This is used to create 1D arrays from columns in text files which is what 
+    damocles output and observed spectra are kept in
     '''
     
     opening = open(filename, 'r')
-    reading = opening.readlines()
-    
+    reading = opening.readlines()  
     obsdata = appendline(reading,0,len(reading))
     
     
@@ -149,8 +125,6 @@ def snip_spect(x_axis,flux_axis,*args):
                
         return flux_axis
     
-#'''    
-
 
 def replace_str(value,place,linetally):
 #USED in conjuction with the fileinput module, which then allows the changes we make to string to be printed back into the file        
@@ -161,11 +135,10 @@ def replace_str(value,place,linetally):
         
         return string
 
-#Replace values in files in input.in fortran file with values defined in this script
-
-
 
 def chi_sq(obs_flux,mod_flux,obs_err,mod_err):
+    #calculates reduced chi sq between an observed and modelled line profile
+    
     #cutting off last value as damocles returns rebinned model flux array missing final because of how the unequal frequency bins for the model are rebinned
     obs_flux=obs_flux[0:-1]
     
@@ -173,7 +146,6 @@ def chi_sq(obs_flux,mod_flux,obs_err,mod_err):
         chi_sq=0
         for i in range(len(obs_flux)):         
             chi_sq += ((mod_flux[i] - obs_flux[i])**2/(obs_err**2 + mod_err[i]**2))
-    #want to return reduced chi sq so you divide by the array length 
         return chi_sq/len(obs_flux)
     else:
         print(len(obs_flux),len(mod_flux))
@@ -182,16 +154,15 @@ def chi_sq(obs_flux,mod_flux,obs_err,mod_err):
 
 
 def convolve_spectra(res,velarray,fluxarray,Velocity=True):
+            #convolves the 1D model flux array 
     
             binwidth = abs(velarray[2] - velarray[1])
-           
             sigma = res/(binwidth *2.3548)
             
-            #make a gaussian using sigma
+            #make a gaussian using sigma which is defined by resolution of the observed spectrum
             mod_convolve=gaussian_filter1d(fluxarray, sigma)
             
-            #mod_convolve = np.convolve(fluxarray,g,boundary = 'extend')
-            return(mod_convolve)
+            return mod_convolve
              
 
 def make_Grid(v_max,Rrat,rho_index,age_d,divno):
@@ -236,6 +207,7 @@ def make_Grid(v_max,Rrat,rho_index,age_d,divno):
 
 
 def setax(axis,g_s):
+       #used to set the grid limits and axis of the 3D shell model grid plotting window in the GUI
        axis.view_init(elev=30, azim=50)
        axis.set_xlabel('X axis (cm)')
        axis.set_ylabel('Y axis (cm)')
@@ -264,7 +236,8 @@ def initialise_grid_axis(v_max_init,Rrat_init,rho_index_init,age,axis,figur,figu
        
 
 def update_gasgrid(axis,figur_canv,frame,age,params):
-         print("IN GAS GRID",params)
+         #every time slider is changed, gas plot is changed      
+    
          try: 
              figur_canv.get_tk_widget().pack_forget()
          except AttributeError: 
