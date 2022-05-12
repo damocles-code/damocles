@@ -1,8 +1,7 @@
 import numpy as np
 import damocleslib as model
 import matplotlib.pyplot as plt
-from astropy.convolution import Gaussian1DKernel
-from astropy.convolution import convolve
+from scipy.ndimage import gaussian_filter1d
 
 def convolve_model(model, sd):
     '''
@@ -20,10 +19,10 @@ def convolve_model(model, sd):
 
     '''
 
-    g = Gaussian1DKernel(stddev=sd)
-    mod_convolve = convolve(model, g, boundary="extend")
+    mod_convolve = gaussian_filter1d(model,sd)
 
     return mod_convolve
+
 
 
 def ln_like_damocles(theta,
