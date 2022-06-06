@@ -172,7 +172,7 @@ class DamoclesInput(object):
 
 class Plotting_window(DamoclesInput):
     
-    "This class contains functions that relate to and define the plotting window of the observed and modelled emission line overplots "
+     "This class contains functions that relate to and define the plotting window of the observed and modelled emission line overplots "
     
      def __init__(self,frame_a_pw,frame_b_pw,frame_c_pw):
         super(Plotting_window,self).__init__()
