@@ -93,9 +93,7 @@ def ln_like_damocles(theta,
         # calculate flux of modelled line
         x_mod = line_profiles[line].data[:,0]
         mod_flux = np.trapz(x_mod, mod_convolved[i_line])
-        print('min x mod', min(x_mod))
-        print('max x mod', max(x_mod))
-
+   
         # scale the model and uncertainties to the observed flux of that line
         mod_err[i_line] = (mod_multi[i_line][:, 1] * obs_flux / mod_flux)
         mod_convolved[i_line] = (mod_convolved[i_line] * obs_flux / mod_flux)
@@ -111,8 +109,6 @@ def ln_like_damocles(theta,
             )
         )
 
-        print("line no", i_line, "chi model", mod_chi)
-
         # test plots
         if (check_with_plots):
             plt.figure()
@@ -123,7 +119,6 @@ def ln_like_damocles(theta,
 
     # total chi^2 for all lines
     chi2 = sum(mod_chi)
-    print("chi", chi2)
 
     return -chi2
 
