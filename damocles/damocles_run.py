@@ -352,7 +352,6 @@ class InputWindow(tk.Tk):
     def __init__(self):
        
        super().__init__()
-       self.geometry('500x800')
        
        self.buttonfont = TkFont.Font(family='bitstream charter', size=16)
        self.filename = tk.StringVar(value='iPTF14hls_2016-11-08_14-31-56_FTN_FLOYDS-N_iPTF_contsub.ascii')
@@ -394,18 +393,17 @@ class InputWindow(tk.Tk):
       # Button to be clicked which opens up modelling app when fields are complete
        tk.Button(self,
                  text='Open modelling app',
-                 command=self.open_window,font=self.buttonfont).place(x=200,y=600)
+                 command=self.open_window,font=self.buttonfont,pady=5).grid(columnspan=2)
        
     def make_label_entry(self,labelname,variablename,label_no):
        
-       y_increm = 30 * label_no
        labelText=tk.StringVar()
        labelText.set(labelname + ": ")
-       labelDir= tk.Label(self, textvariable=labelText, height=3)
-       labelDir.place(x=50,y=100+y_increm)
+       labelDir= tk.Label(self, textvariable=labelText)
+       labelDir.grid(column=0,row=label_no,stick=tk.W)
       
        z_entry = tk.Entry(self, textvariable=variablename)
-       z_entry.place(x=300,y=110+y_increm)
+       z_entry.grid(column=1,row=label_no)
      
     
     def open_window(self,event=None):
