@@ -24,13 +24,19 @@ contains
     
     !check number of input arguments is 1 (the name of the input file)
     if (.not. lg_mcmc) then
+       
        n_args=command_argument_count()
+      
        if (n_args==1) then
           call get_command_argument(1,input_file)
           input_file=trim(input_file)
           if (.not. lg_mcmc) print*, 'reading input from file ', input_file
        else if (n_args==0) then
           input_prefix = trim('input/')
+          input_file='input/input.in'
+          if (.not. lg_mcmc) print*,'reading input from file input/input.in...'
+       else if (lg_gui) then
+	  input_prefix = trim('input/')
           input_file='input/input.in'
           if (.not. lg_mcmc) print*,'reading input from file input/input.in...'
        else

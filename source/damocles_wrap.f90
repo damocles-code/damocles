@@ -3,6 +3,32 @@
 !  the logical lg_mcmc is set to true and input parameters passed from the   !
 !  python routine.                                                           !
 !----------------------------------------------------------------------------!
+!----------------------------------------------------------------------------!
+!  this subroutine is only called if the python GUI wrapper is being used.   !
+!----------------------------------------------------------------------------!
+
+
+subroutine run_damocles_gui_wrap()
+
+    use globals
+    use input
+    use class_dust
+    use initialise
+    use vector_functions
+    use driver
+    
+
+    implicit none
+    lg_mcmc = .false.
+    lg_gui = .true.
+    call read_input()
+    call run_damocles()
+
+end subroutine
+
+
+
+
 subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)  
 
     use globals
@@ -131,4 +157,8 @@ subroutine run_damocles_wrap(params,flags,n,ml_lg,mcmc_mod)
   close(54)
   
 end subroutine run_damocles_wrap
+
+
+
+
 

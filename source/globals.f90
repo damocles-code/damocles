@@ -88,7 +88,7 @@ module globals
     logical             ::  lg_doublet              !is the 'line' to be modelled a doublet?
     logical             ::  lg_store_all
     logical             ::  lg_vel_law              !are you using a velocity law independent of radius?
-
+    logical             ::  lg_gui                  !set to true if the GUI python wrapper is being used to call damocles
     !properties of resultant line profile
     real                ::  abs_frac                !total fraction of emitted energy that has been absorbed
     real,allocatable    ::  cos_theta_array(:)
