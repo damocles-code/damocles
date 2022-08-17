@@ -1,7 +1,10 @@
 .DS_Store
 /**/.DS_Store
-/damocles/**/*.mod
-/damocles/**/*.o
+*.mod
+*.o
+*.so
 /damocles/**/*~
 /damocles/output/*.out
 damocles
+input/
+output/
