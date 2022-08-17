@@ -353,7 +353,7 @@ class InputWindow(tk.Tk):
        
        super().__init__()
        
-       self.buttonfont = TkFont.Font(family='bitstream charter', size=16)
+       self.wm_title("Damocles interactive")
        self.filename = tk.StringVar(value='iPTF14hls_2016-11-08_14-31-56_FTN_FLOYDS-N_iPTF_contsub.ascii')
        self.z_var = tk.DoubleVar(value=0.034)
        self.SN_name = tk.StringVar()
@@ -393,7 +393,7 @@ class InputWindow(tk.Tk):
       # Button to be clicked which opens up modelling app when fields are complete
        tk.Button(self,
                  text='Open modelling app',
-                 command=self.open_window,font=self.buttonfont,pady=5).grid(columnspan=2)
+                 command=self.open_window,pady=5).grid(columnspan=2)
        
     def make_label_entry(self,labelname,variablename,label_no):
        
