@@ -18,7 +18,7 @@ from matplotlib.backends.backend_tkagg import (
 )
 import sys
 import fileinput
-from FUNCTIONS import *
+from interactive_functions import *
 from mpl_toolkits import mplot3d
 import numpy as np
 from matplotlib.figure import Figure
