@@ -51,7 +51,7 @@ class DamoclesInput(object):
           
          
     
-        self.buttonfont = TkFont.Font(family='bitstream charter', size=20)
+        self.buttonfont = TkFont.Font(family='bitstream charter')
         
         self.obswav_init,self.obsflux_init= datafile_2_array(self.obsfile,isint=False,zipped=True)
         self.obswav,self.obsflux = trim_wav_flux(self.obswav_init,self.obsflux_init,self.trim_lims[0],self.trim_lims[1])
@@ -181,7 +181,7 @@ class Plotting_window(DamoclesInput):
         self.frame_b_pw = frame_b_pw
         self.frame_c_pw = frame_c_pw
         
-        self.buttonfont = TkFont.Font(family='bitstream charter', size=16)
+        self.buttonfont = TkFont.Font(family='bitstream charter')
         
         self.fig = Figure(figsize=(7.5, 7.7), dpi=100)
         self.figure_canvas= FigureCanvasTkAgg(self.fig,self.frame_a_pw)
@@ -290,7 +290,7 @@ class Slider(Plotting_window):
         super(Slider,self).__init__(frame_c,frame_d,frame_e)
 
         
-        self.sliderfont = TkFont.Font(family='bitstream charter', size=14)
+        self.sliderfont = TkFont.Font(family='bitstream charter')
         self.slider_input_values = {"v_slider": [v_max_init,(1000, 15000),"Vmax (km/s)",1], "r_slider": [Rrat_init,(0.01, 1),"Rin/Rout",0.0005],
                                "rho_slider": [rho_index_init,(-6, 6),"Density index (\u03B2)",0.01], "md_slider": [mdust_init,(-9, 0.2),"log(Dust mass (M\u2609))",0.001],
                                "gs_slider": [grain_size_init,(-2.3, 0.5),'log(Grain radius (\u03BCm))',0.001], "amc_frac_slider": [0.0,(0.0,1.0),'AmC Fraction',0.01]   }
@@ -315,7 +315,7 @@ class Slider(Plotting_window):
     
     def initialise_slider(self,slide_params):
         lab = tk.Label(self.frame_a,text=slide_params[2],font=self.sliderfont)
-        slider = tk.Scale(self.frame_a,from_=slide_params[1][0],to=slide_params[1][1],orient='horizontal',resolution=slide_params[3],width=17,length=900,font=self.sliderfont)      
+        slider = tk.Scale(self.frame_a,from_=slide_params[1][0],to=slide_params[1][1],orient='horizontal',resolution=slide_params[3],width=12,length=700,font=self.sliderfont)
         slider.set(slide_params[0])
         slider.bind("<ButtonRelease-1>", self.slider_command)      
         lab.pack(fill='x', padx=1)      
