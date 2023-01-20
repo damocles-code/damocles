@@ -1,0 +1,17 @@
+========================LINE===========================================================
+500.7           !  Wavelength (nm) of line or first doublet component
+495.9           !  Wavelength (nm) of second doublet component (enter 0.0 if n/a)
+4.12e2          !  total observed luminosity (e40 ergs-1)
+9.8e3           !  total flux of line to scale model to (in e15)
+2.98            !  Flux ratio of line 1 to line 2 (0 if n/a)
+========================SHELL GEOMETRY=================================================
+0               !  fraction of emission emanated from clumps (currently only 0 or 1)
+0               !  gas clump filling factor
+0               !  gas clump power distribution
+=======================================================================================
+2000.           !  max gas velocity in km/s
+0.              !  Rout in 1e15cm. Set to 0 to couple to velocity (r=vt).
+0.05            !  Rin/Rout ratio for gas shell
+1.0             !  gas velocity profile
+1.2             !  gas density profile
+2.0             !  gas emissivity profile
