@@ -182,8 +182,14 @@ class Plotting_window(DamoclesInput):
         self.frame_c_pw = frame_c_pw
         
         self.buttonfont = TkFont.Font(family='bitstream charter')
-        
-        self.fig = Figure(figsize=(7.5, 7.7), dpi=100)
+
+# set reasonable plot size
+
+        plotwidth=0.01*max(800,InputWindow.winfo_screenwidth()/2)
+        plotheight=0.01*max(750,InputWindow.winfo_screenheight()-150)
+
+        self.fig = Figure(figsize=(plotwidth,plotheight), dpi=100)
+
         self.figure_canvas= FigureCanvasTkAgg(self.fig,self.frame_a_pw)
         self.toolbar = NavigationToolbar2Tk(self.figure_canvas, self.frame_a_pw)
         self.toolbar.update()
@@ -206,9 +212,9 @@ class Plotting_window(DamoclesInput):
           trim_lims_vel = convert_wav_to_vel(self.trim_lims,(1+self.z)*(self.wavelength_peak_1*10.0),self.wavelength_peak_1*10.0)
           
           self.ax = self.fig.add_subplot(111)
-          self.ax.axes.set_xlabel("Velocity (km/s)",fontsize=20)
-          self.ax.axes.set_ylabel("Flux ($ergs$  $cm^{-2}$  $s^{-1}$  $\AA^{-1}$)",fontsize=20)
-          self.ax.tick_params(axis='both', which='major',labelsize=20)
+          self.ax.axes.set_xlabel("Velocity (km/s)")
+          self.ax.axes.set_ylabel("Flux ($ergs$  $cm^{-2}$  $s^{-1}$  $\AA^{-1}$)")
+          self.ax.tick_params(axis='both', which='major')
           self.ax.set_xlim([trim_lims_vel[0],trim_lims_vel[1]])
           self.ax.plot(self.obsvels,self.obsflux) 
           self.figure_canvas.get_tk_widget().pack(fill='x', expand=1)
