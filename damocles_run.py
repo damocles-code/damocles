@@ -322,7 +322,7 @@ class Slider(Plotting_window):
     
     def initialise_slider(self,slide_params):
         lab = tk.Label(self.frame_a,text=slide_params[2],font=self.sliderfont)
-        slider = tk.Scale(self.frame_a,from_=slide_params[1][0],to=slide_params[1][1],orient='horizontal',resolution=slide_params[3],width=12,length=700,font=self.sliderfont)
+        slider = tk.Scale(self.frame_a,from_=slide_params[1][0],to=slide_params[1][1],orient='horizontal',resolution=slide_params[3],width=12,length=max(533,self.scr_w*0.333),font=self.sliderfont)
         slider.set(slide_params[0])
         slider.bind("<ButtonRelease-1>", self.slider_command)      
         lab.pack(fill='x', padx=1)      
