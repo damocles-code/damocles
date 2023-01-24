@@ -354,7 +354,7 @@ class InputWindow(tk.Tk):
        super().__init__()
        
        self.wm_title("Damocles interactive")
-       self.filename = tk.StringVar(value='iPTF14hls_2016-11-08_14-31-56_FTN_FLOYDS-N_iPTF_contsub.ascii')
+       self.filename = tk.StringVar(value='exampleData/iPTF14hls_2016-11-08_14-31-56_FTN_FLOYDS-N_iPTF_contsub.ascii')
        self.z_var = tk.DoubleVar(value=0.034)
        self.SN_name = tk.StringVar()
        self.Line_name = tk.StringVar()
