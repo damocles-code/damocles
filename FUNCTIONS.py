@@ -212,7 +212,7 @@ def setax(axis,g_s):
        axis.set_xlabel('X axis (cm)')
        axis.set_ylabel('Y axis (cm)')
        axis.set_zlabel('Z axis (cm)')
-       axis.set_title("Model of gas distribution in a Supernova")
+       axis.set_title("Model of gas distribution")
        axis.set_xlim([-1.5*g_s,1.5*g_s])
        axis.set_ylim([-1.5*g_s,1.5*g_s])
        axis.set_zlim([-1.5*g_s,1.5*g_s])
@@ -229,8 +229,8 @@ def initialise_grid_axis(v_max_init,Rrat_init,rho_index_init,age,axis,figur,figu
 
         l = axis.scatter(x,y,z,c=d,cmap="nipy_spectral")
         cbar = figur.colorbar(l)
-        cbar.set_label('density', rotation=270,size=18,labelpad=20)
-        cbar.ax.tick_params(labelsize=13)
+        cbar.set_label('density', rotation=270, labelpad=20)
+        cbar.ax.tick_params()
         figur.tight_layout()
         figur_canv.get_tk_widget().pack(side=tk.TOP, fill='x', expand=1)
        

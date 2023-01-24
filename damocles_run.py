@@ -185,10 +185,10 @@ class Plotting_window(DamoclesInput):
 
 # set reasonable plot size
 
-        plotwidth=0.01*max(800,InputWindow.winfo_screenwidth()/2)
-        plotheight=0.01*max(750,InputWindow.winfo_screenheight()-150)
+        self.scr_w=InputWindow.winfo_screenwidth()
+        self.scr_h=InputWindow.winfo_screenheight()
 
-        self.fig = Figure(figsize=(plotwidth,plotheight), dpi=100)
+        self.fig = Figure(figsize=( 0.01*max(800,self.scr_w/2),0.01*max(750,self.scr_h-150) ), dpi=100)
 
         self.figure_canvas= FigureCanvasTkAgg(self.fig,self.frame_a_pw)
         self.toolbar = NavigationToolbar2Tk(self.figure_canvas, self.frame_a_pw)
@@ -309,7 +309,8 @@ class Slider(Plotting_window):
         
         #initialising all other widgets here, which plot the 
         #as sliders are the only way information interacts with these widgets
-        self.fig2 = Figure(figsize=(8.5, 5.3), dpi=100)
+
+        self.fig2 = Figure(figsize=(0.01*max(533,self.scr_w*0.333), 0.01*max(400,self.scr_h*0.5)), dpi=100)
         self.ax2 = self.fig2.add_subplot(111, projection='3d')
         self.figure_canvas2= FigureCanvasTkAgg(self.fig2,frame_b)
         initialise_grid_axis(v_max_init,Rrat_init,rho_index_init,self.age_d,self.ax2,self.fig2,self.figure_canvas2,frame_b)
