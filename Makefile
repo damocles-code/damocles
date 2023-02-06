@@ -59,7 +59,7 @@ damocles-interactive: damocles
 	f2py3 -c -lgomp -I -L/usr/lib $(SOURCES) -m damocleslib source/damocles_wrap.f90
 
 clean:
-	rm -f damocles source/*.o source/*.mod
+	rm -f damocles source/*.o source/*.mod damocleslib*so
 
 install: damocles
 	test -e ${DESTDIR}${PREFIX}/share/damocles || mkdir -p ${DESTDIR}${PREFIX}/share/damocles
