@@ -78,6 +78,11 @@ def read_inputs():
         line_params["line"] = line
         line_params["parameter_name"] = param_list
         init_params = pd.concat([init_params, line_params])
+      #re-arranging using a "sort" so that indices so that in multiline case gas geometry parameters are read out to theta variable in the correct order
+          
+    if len(lines) > 1:
+      
+        init_params=init_params[init_params.line =='dust'].append(init_params[init_params.line != 'dust'].sort_index())
 
 
 def read_line_errs():
